@@ -1,0 +1,20 @@
+{"document": {
+    "Mimir_class" : "assignment",
+    "preamble" : {
+        "documentclass" : "article",
+        "documentclass_options" : ["11pt", "a4paper"],
+        "font": {
+            "package" : "arimo",
+            "family" : "sfdefault",
+            "type" : "T1"
+        }, 
+        "packages" : [
+            ["graphicx", ""],
+            ["setspace", ""]
+        ],
+        "margins" : [20, 20, 20, 20],
+        "no_hyphenation" : ["\\tolerance=1", "\\emergencystretch=\\maxdimen", "\\hyphenpenalty=10000", "\\hbadness=10000"],
+        "other" : []
+    },
+    "document_defaults" : []
+}}
