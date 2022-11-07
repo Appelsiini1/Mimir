@@ -104,22 +104,31 @@ def tex_gen(metadatapath: str, datapath: list, document_settingspath: str):
 
     end = "\\end{document}"
 
-    tex_cmd = [document_class_cmd, font_cmd, extra_packages_cmd, margins_cmd, hyphenation_cmd, begin, text, end]
+    tex_cmd = [
+        document_class_cmd,
+        font_cmd,
+        extra_packages_cmd,
+        margins_cmd,
+        hyphenation_cmd,
+        begin,
+        text,
+        end,
+    ]
     tex_data = "\n".join(tex_cmd)
 
     return tex_data
 
-        
 
 def write_tex_file(texdata, filepath):
     try:
-        with open(filepath, "w", encoding='utf-8') as tex_doc:
+        with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
 
-    except Exception as e: # pylint: disable=invalid-name
+    except Exception as e:  # pylint: disable=invalid-name
         logging.exception("Exception occured when writing to file.")
         print(e)
         sys.exit(0)
+
 
 def main():  # pylint: disable=missing-function-docstring
     # print("Hello World!")
