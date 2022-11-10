@@ -152,6 +152,7 @@ Data/
 
 # TeX test files
 result.*
+unnumberedtotoc.sty
 
 # Log files
 log.txt

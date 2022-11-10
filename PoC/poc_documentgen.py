@@ -10,7 +10,7 @@ import json
 
 ENVPATH = path.abspath(path.dirname(__file__))
 ENVPATH2 = getenv("APPDATA") + "\\MimirPoC"
-VERSION = 0.2
+VERSION = 0.4
 
 
 def init():  # pylint: disable=missing-function-docstring
@@ -35,7 +35,9 @@ def init():  # pylint: disable=missing-function-docstring
 #     return filepath, metafilepath
 
 
-def get_files(metadatapath: str, datapath: list, document_settingspath: str):
+def get_files(
+    metadatapaths: list, datapath: list, document_settingspath: str, general_path: str
+):
 
     # TeX base for document
     try:
@@ -48,13 +50,26 @@ def get_files(metadatapath: str, datapath: list, document_settingspath: str):
         sys.exit(0)
 
     # Assignment metadata
+    assignment_metadata = []
+    for metadatapath in metadatapaths:
+        try:
+            with open(metadatapath, "r", encoding="utf-8") as assignment_metafile:
+                raw_json = assignment_metafile.read()
+                loaded_json = json.loads(raw_json)
+                assignment_metadata.append(loaded_json)
+        except FileNotFoundError:
+            logging.exception("Assingment data file %s not found.", metadatapath)
+            print("Assignment metadatafile not found.")
+            sys.exit(0)
+
+    # Week general data
     try:
-        with open(metadatapath, "r", encoding="utf-8") as assignment_metafile:
-            raw_json = assignment_metafile.read()
-            assignment_metadata = json.loads(raw_json)
+        with open(general_path, "r", encoding="utf-8") as gen_file:
+            raw_json = gen_file.read()
+            gen_info = json.loads(raw_json)
     except FileNotFoundError:
-        logging.exception("Assingment data file %s not found.", metadatapath)
-        print("Assignment metadatafile not found.")
+        logging.exception("Week metadata file %s not found", general_path)
+        print("Week metadata not found")
         sys.exit(0)
 
     # Assignment example solution
@@ -69,49 +84,146 @@ def get_files(metadatapath: str, datapath: list, document_settingspath: str):
             sys.exit(0)
         assignments.append(assignment)
 
-    return (doc_settings, assignment_metadata, assignments)
+    return (doc_settings, assignment_metadata, assignments, gen_info)
 
 
-def tex_gen(metadatapath: str, datapath: list, document_settingspath: str):
+def hdr_ftr_gen(doc_settings, gen_info):
+    # generate header and footer
+    header_opt = doc_settings["document"]["preamble"]["header"]
+    footer_opt = doc_settings["document"]["preamble"]["footer"]
 
-    doc_settings, assignment_metadata, assignment = get_files(
-        metadatapath, datapath, document_settingspath
-    )
+    if doc_settings["document"]["pagestyle"] == "fancy":
+        hdr_cmd = "\\fancyhead{}\n"
+        ftr_cmd = "\\fancyfoot{}\n"
 
-    tex_data = ""
+        if header_opt["include_course"]:
+            course = gen_info["course_id"] + " " + gen_info["course_name"]
+            hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
-    doc_class = doc_settings["document"]["preamble"]["documentclass"]
-    doc_class_options = doc_settings["document"]["preamble"]["documentclass_options"]
-    document_class_cmd = f"\\documentclass[{doc_class_options[0]}, {doc_class_options[1]}]{{{doc_class}}}"
+        if footer_opt["include_week"]:
+            ftr_cmd += f"\\fancyfoot[C]{{Viikko {gen_info['lecture']}}}\n"
 
-    font = doc_settings["document"]["preamble"]["font"]
-    font_cmd = f'\\usepackage[{font["family"]}]{{{font["package"]}}}\n\\usepackage[{font["type"]}]{{fontenc}}'
+        if footer_opt["include_program"]:
+            ftr_cmd += f"\\fancyfoot[L]{{Mímir v{VERSION}}}"
 
-    extra_packages = doc_settings["document"]["preamble"]["packages"]
-    extra_packages_cmd = f"\\usepackage{{{extra_packages[0][0]}}}\n\\usepackage{{{extra_packages[1][0]}}}\n\\usepackage{{lipsum}}"
+        page_numbering = f"\\fancyhead[{header_opt['page_numbering'][0]}]\
+{{Sivu {header_opt['page_numbering'][1]}}}\n"
+        hdr_cmd += page_numbering
 
-    margins = doc_settings["document"]["preamble"]["margins"]
-    margins_cmd = f"\\usepackage[{doc_class_options[1]}, left={margins[0]}mm, right={margins[1]}mm, top={margins[2]}mm, bottom={margins[3]}mm]{{geometry}}"
+        return (hdr_cmd, ftr_cmd)
 
-    hyphenation = doc_settings["document"]["preamble"]["no_hyphenation"]
+    else:
+        return ""
+
+
+def preamble_gen(doc_settings):
+    preamble = doc_settings["document"]["preamble"]
+
+    doc_class = preamble["documentclass_options"]
+    doc_class_cmd = f"\\documentclass[{doc_class[0]}, \
+{doc_class[1]}]{{{preamble['documentclass']}}}"
+
+    font = preamble["font"]
+    font_cmd = f'\\usepackage[{font["family"]}]{{{font["package"]}}}\n\
+\\usepackage[{font["type"]}]{{fontenc}}'
+
+    extra_packages = preamble["packages"]
+    extra_packages_cmd = ""
+    for package in extra_packages:
+        extra_packages_cmd += f"\\usepackage[{package[1]}]{{{package[0]}}}\n"
+
+    margins = preamble["margins"]
+    margins_cmd = f"\\usepackage[{doc_class[1]}, \
+left={margins[0]}mm, \
+right={margins[1]}mm, \
+top={margins[2]}mm, \
+bottom={margins[3]}mm]\
+{{geometry}}"
+
+    head_height = f"\\setlength{{\\headheight}}{{{preamble['head_height']}}}\n"
+
+    hyphenation = preamble["no_hyphenation"]
     hyphenation_cmd = ""
     for t in hyphenation:
         hyphenation_cmd += t + "\n"
 
-    begin = "\\begin{document}\n"
-
-    text = "\\lipsum[1-1]"
-
-    end = "\\end{document}"
-
-    tex_cmd = [
-        document_class_cmd,
+    return [
+        doc_class_cmd,
         font_cmd,
         extra_packages_cmd,
         margins_cmd,
+        head_height,
         hyphenation_cmd,
+    ]
+
+
+def starting_instructions_gen(gen_info):
+    text = ""
+    title = f"\\section*{{L{gen_info['lecture']} Tehtävät}}\n"
+
+    topics = "\\begin{itemize}[noitemsep]\n"
+    for topic in gen_info["topics"]:
+        topics += f"\t\\item {topic}\n"
+
+    text += title
+    text += "\\vspace{0.2cm}"
+    text += topics
+    text += "\\end{itemize}\n"
+    text += gen_info["instructions"] + "\n"
+    text += "\\tableofcontents\n\\vspace{1cm}\n"
+
+    return text
+
+
+def assignment_text_gen(metadata: list, assignment_list: list):
+
+    text = ""
+    for i, assignment in enumerate(assignment_list):
+        meta = metadata[i]
+        text += f"\\addsec{{L{meta['lecture']}T{meta['exp_assignment_no']}: {meta['title']}}}\n"
+        text += meta["instructions"] + "\n"
+        text += "\\vspace{0.1cm}\n"
+
+        text += "\n\\textbf{Esimerkkiajo}\n"
+        text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
+        text += meta["example_output"] + "\n\end{verbatim}\n}\n"
+        text += "\\vspace{0.1cm}\n"
+
+        text += "\\textbf{Malliratkaisu}\n"
+        text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
+        text += assignment.replace("\t", "    ") + "\end{verbatim}\n}\n"
+
+        text += "\\vspace{0.5cm}\n"
+
+    return text
+
+
+def tex_gen(
+    metadatapath: list, datapath: list, document_settingspath: str, general_path: str
+):
+
+    doc_settings, assignment_metadata, assignment, gen_info = get_files(
+        metadatapath, datapath, document_settingspath, general_path
+    )
+
+    tex_data = ""
+    begin = "\\begin{document}\n"
+    pagestyle = f'\\pagestyle{{{doc_settings["document"]["pagestyle"]}}}'
+
+    pre_content = starting_instructions_gen(gen_info)
+    content = assignment_text_gen(assignment_metadata, assignment)
+    end = "\\end{document}"
+
+    preamble = preamble_gen(doc_settings)
+    header, footer = hdr_ftr_gen(doc_settings, gen_info)
+
+    tex_cmd = preamble + [
         begin,
-        text,
+        pagestyle,
+        header,
+        footer,
+        pre_content,
+        content,
         end,
     ]
     tex_data = "\n".join(tex_cmd)
@@ -133,13 +245,14 @@ def write_tex_file(texdata, filepath):
 def main():  # pylint: disable=missing-function-docstring
     # print("Hello World!")
 
-    datafilepath = ["Data\\poc_L01T1.c"]
-    metafilepath = "Data\\poc_cprg_L01T1.json"
+    datafilepath = ["Data\\poc_L01T1.c", "Data\\poc_L01T2.c"]
+    metafilepath = ["Data\\poc_cprg_L01T1.json", "Data\\poc_cprg_L01T2.json"]
     document_settingspath = "Data\\poc_document_settings.json"
     resultpath = "result.tex"
+    general_path = "Data\\poc_cprg_L01_general.json"
 
     init()
-    tex_data = tex_gen(metafilepath, datafilepath, document_settingspath)
+    tex_data = tex_gen(metafilepath, datafilepath, document_settingspath, general_path)
     write_tex_file(tex_data, resultpath)
 
 
