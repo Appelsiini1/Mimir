@@ -3,6 +3,7 @@
 from os import name as OSname
 from os import getenv
 from os.path import join
+from logging import DEBUG
 
 
 # Environment spesific variables
@@ -18,3 +19,4 @@ elif OSname == "POSIX":
 
 
 VERSION = "0.0.1"
+LOG_LEVEL = DEBUG
