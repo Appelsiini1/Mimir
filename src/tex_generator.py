@@ -43,6 +43,14 @@ def hdr_ftr_gen(doc_settings: dict, gen_info: dict):
 
 
 def preamble_gen(doc_settings):
+    """
+    Create preamble for the TeX document.
+    This includes most of the general settings for the document.
+    Returns a string.
+
+    Params:
+    doc_settings: Documents settings as a JSON string.
+    """
     preamble = doc_settings["document"]["preamble"]
 
     doc_class = preamble["documentclass_options"]
@@ -84,6 +92,13 @@ bottom={margins[3]}mm]\
 
 
 def starting_instructions_gen(gen_info):
+    """
+    Creates the general instructions of the instruction document
+    Returns a TeX string.
+
+    Params:
+    gen_info: General instructions as a JSON string
+    """
     text = ""
     title = f"\\section*{{L{gen_info['lecture']} Tehtävät}}\n"
 
@@ -102,6 +117,17 @@ def starting_instructions_gen(gen_info):
 
 
 def assignment_text_gen(metadata: list, assignment_list: list):
+    """
+    Creates assignment TeX string from assingment code and metadata.
+    Returns a TeX string
+
+    Params:
+    metadata: a list of assignment metadata JSON strings
+    assignment_list: A list of assignment codes as strings
+    """
+
+    #TODO add commandline arguments, example datafiles and example result files
+    #TODO Add option to not include example code for student instructions.
 
     text = ""
     for i, assignment in enumerate(assignment_list):
@@ -133,7 +159,7 @@ def tex_gen(
 
     """
 
-    # refactor
+    #TODO refactor to use data_path_handler
     doc_settings, assignment_metadata, assignment, gen_info = get_files(
         metadatapath, datapath, document_settingspath, general_path
     )
