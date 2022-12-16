@@ -18,5 +18,5 @@ elif OSname == "POSIX":
     ENV["PROGRAM_DATA"] = join(getenv("HOME"), "MimirData")
 
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 LOG_LEVEL = DEBUG

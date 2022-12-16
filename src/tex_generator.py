@@ -5,8 +5,9 @@ Functions to generate instruction TeX file from available data
 
 import logging
 import sys
+from os.path import join
 
-from constants import VERSION
+from constants import VERSION, ENV
 
 
 # pylint: disable=anomalous-backslash-in-string
@@ -128,6 +129,7 @@ def assignment_text_gen(metadata: list, assignment_list: list):
 
     #TODO add commandline arguments, example datafiles and example result files
     #TODO Add option to not include example code for student instructions.
+    #TODO Add numbered list generator for lines starting with '-'
 
     text = ""
     for i, assignment in enumerate(assignment_list):
@@ -189,16 +191,23 @@ def tex_gen(
     return tex_data
 
 
-def write_tex_file(texdata, filepath):
+def write_tex_file(texdata:str):
     """
-    Write 'texdata' to 'filepath'
-    Uses UTF-8 encoding.
+    Write 'texdata' to 'filepath'. Uses UTF-8 encoding.
+    Returns True if writing is succesfull, otherwise False.
+
+    Params:
+    texdata: TeX data to write as string
     """
+    #XXX should this be changed to return the exception?
+
+    filepath = join(ENV["PROGRAM_DATA"], "output.tex")
     try:
         with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
 
-    except OSError as e:  # pylint: disable=invalid-name
+    except OSError:
         logging.exception("Exception occured when writing to file.")
-        print(e)
-        sys.exit(0)
+        return False
+    else:
+        return True
