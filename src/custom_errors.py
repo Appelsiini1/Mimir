@@ -18,3 +18,15 @@ class CannotMoveFileError(Exception):
         self.message = message
 
         super().__init__(self.message)
+
+class ConflictingAssignmentID(Exception):
+    """
+    Raised if assignment ID does not match between JSON and the code file it points to.
+
+    Params:
+    msg: Message to display with exception
+    """
+    def __init__(self, msg="Assignment ID in code file does not match ID in JSON"):
+        self.message = msg
+        super().__init__(self.message)
+
