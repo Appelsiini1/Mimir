@@ -30,3 +30,15 @@ class ConflictingAssignmentID(Exception):
         self.message = msg
         super().__init__(self.message)
 
+
+class IndexExistsError(Exception):
+    """
+    Raised if index already exists and its clearing is not forced.
+
+    Params:
+    msg: Message to display with exception
+    """
+
+    def __init__(self, msg="Index already exists"):
+        self.message = msg
+        super().__init__(self.message)
