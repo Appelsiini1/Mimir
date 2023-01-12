@@ -3,8 +3,40 @@
         "FI": "Päävalikko",
         "ENG" : "Main"
     },
+    "tex_assignment" : {
+        "FI" : "Tehtävät",
+        "ENG" : "Assignments"
+    },
+    "tex_ex_run" : {
+        "FI" : "Esimerkkiajo",
+        "ENG" : "Example run"
+    },
+    "tex_ex_solution" : {
+        "FI" : "Malliratkaisu",
+        "ENG" : "Example solution"
+    },
+    "tex_ex_input" : {
+        "FI" : "Syötteet",
+        "ENG" : "Inputs"
+    },
+    "tex_cmd_input" : {
+        "FI" : "Komentoriviargumentit",
+        "ENG" : "Commandline arguments"
+    },
+    "tex_ex_input_datafile" : {
+        "FI" : "Esimerkki syötetiedostosta",
+        "ENG" : "Example from input file"
+    },
+    "tex_ex_resultfile" : {
+        "FI" : "Esimerkki tulostiedostosta",
+        "ENG" : "Example from output file"
+    },
+    "tex_ex_output" : {
+        "FI" : "Tuloste",
+        "ENG" : "Output"
+    },
     "" : {
         "FI" : "",
         "ENG" : ""
-    }
+    },
 }
