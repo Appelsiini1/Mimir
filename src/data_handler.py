@@ -5,6 +5,7 @@ Functions for loading and saving exercise data
 
 import json
 import logging
+import sys
 from os import path, mkdir
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
@@ -32,16 +33,25 @@ class Assignment:
     exp:    A boolean whether the assignment is expanding or not. Defaults to False.
     """
 
-    def __init__(self, a_id, title, tags, lecture, paths, used_in, exp=False):
+    def __init__(self, a_id, title, tags, lecture, jsonpath, used_in, exp=False):
         self.a_id = a_id
         self.title = title
         self.tags = tags
         self.lecture = lecture[0]
         self.a_pos = lecture[1]
-        self.json_path = paths[0]
-        self.code_path = paths[1]
+        self.json_path = jsonpath
         self.used_in = used_in
         self.is_expanding = exp
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS # pylint: disable=protected-access, no-member
+    except Exception:
+        base_path = path.abspath(".")
+
+    return path.join(base_path, relative_path)
 
 
 def data_path_handler(directory_path: str):
@@ -120,7 +130,6 @@ def create_index(ix_path: str, name: str, force=False):
         tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
         title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
         json_path=STORED,
-        code_path=STORED,
         is_expanding=BOOLEAN,
         used_in=KEYWORD(stored=True, commas=True),
         mtimes=ID,
@@ -173,13 +182,11 @@ def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
     used_in = ",".join(data.used_in)
 
     try:
-        mtime1 = path.getmtime(data.json_path)
-        mtime2 = path.getmtime(data.code_path)
+        mtime = path.getmtime(data.json_path)
     except OSError:
         logging.exception("Could not get modification time(s) for assignment data file(s)")
         return False
 
-    mtimes = ":".join((mtime1, mtime2))
     writer = ix.writer()
 
     writer.add_document(
@@ -188,10 +195,9 @@ def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
         tags=tags,
         title=data.title,
         json_path=data.json_path,
-        code_path=data.code_path,
         is_expanding=data.is_expanding,
         used_in=used_in,
-        mtimes=mtimes
+        mtimes=mtime
     )
     writer.commit()
     return True
@@ -222,21 +228,14 @@ def update_index(a_ix: index.FileIndex):
 
         for fields in searcher.all_stored_fields():
             ind_json_path = fields['json_path']
-            ind_code_path = fields['code_path']
 
-            if not path.exists(ind_json_path) or not path.exists(ind_code_path):
+            if not path.exists(ind_json_path):
                 deleted.append(fields['a_id'])
             else:
                 ind_times = fields['mtimes']
                 ind_json_time = ind_times.split(",")[0]
-                ind_code_time = ind_times.split(",")[1]
-
                 json_time = path.getmtime(ind_json_path)
-                code_time = path.getmtime(ind_code_path)
 
                 if json_time > ind_json_time:
                     to_index.append(fields['a_id'])
-                if code_time > ind_code_time:
-                    if fields['a_id'] not in to_index:
-                        to_index.append(fields['a_id'])
     #TODO Add document updating logic
