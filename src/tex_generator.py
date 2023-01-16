@@ -254,3 +254,19 @@ def _write_tex_file(texdata: str):
         return True
 
 
+def gen_one_week(gen_info: dict, assignment_list: list, incl_solution: bool):
+    """
+    Generates a briefing for a spesified week.
+
+    Params:
+    gen_info: General week/course information
+    assingment_list: list of assignment dicts
+    incl_solution: True/False whether to include example solution
+    """
+    document_settings = get_texdoc_settings()
+
+    tex_data = _tex_gen(assignment_list, gen_info, document_settings, incl_solution)
+
+    result = _write_tex_file(tex_data)
+
+    return result
