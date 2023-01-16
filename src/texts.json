@@ -35,6 +35,10 @@
         "FI" : "Tuloste",
         "ENG" : "Output"
     },
+    "tex_assignment_letter" : {
+        "FI" : "T",
+        "ENG" : "E"
+    },
     "" : {
         "FI" : "",
         "ENG" : ""
