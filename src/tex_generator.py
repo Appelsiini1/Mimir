@@ -40,6 +40,11 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
 {{Sivu {header_opt['page_numbering'][1]}}}\n"
         hdr_cmd += page_numbering
 
+        logging.debug("TEX HEADER")
+        logging.debug(hdr_cmd)
+        logging.debug("TEX FOOTER")
+        logging.debug(ftr_cmd)
+
         return (hdr_cmd, ftr_cmd)
 
     return ""
@@ -84,7 +89,7 @@ bottom={margins[3]}mm]\
     for t in hyphenation:
         hyphenation_cmd += t + "\n"
 
-    return [
+    result = [
         doc_class_cmd,
         font_cmd,
         extra_packages_cmd,
@@ -92,6 +97,10 @@ bottom={margins[3]}mm]\
         head_height,
         hyphenation_cmd,
     ]
+    logging.debug("TEX PREAMBLE")
+    logging.debug(result)
+
+    return result
 
 
 def _starting_instructions_gen(gen_info: dict):
@@ -115,6 +124,9 @@ def _starting_instructions_gen(gen_info: dict):
     text += "\\end{itemize}\n"
     text += gen_info["instructions"] + "\n"
     text += "\\tableofcontents\n\\vspace{1cm}\n"
+
+    logging.debug("TEX STARTING INSTRUCTIONS")
+    logging.debug(text)
 
     return text
 
@@ -142,6 +154,10 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     text += data + "\n\end{verbatim}\n}\n"
     text += "\\vspace{0.1cm}\n"
 
+    logging.debug("TEX BLOCK GENERATOR")
+    logging.debug("DISPLAY KEY: "+display_text_key)
+    logging.debug(text)
+
     return text
 
 
@@ -156,6 +172,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     """
 
     # TODO Add numbered list generator for lines starting with '-'
+    # TODO Add code formatting
 
     text = ""
     for i, assignment in enumerate(assignment_list):
@@ -229,6 +246,8 @@ def _tex_gen(
     ]
     tex_data = "\n".join(tex_cmd)
 
+    logging.info("TeX data created.")
+
     return tex_data
 
 
@@ -251,6 +270,7 @@ def _write_tex_file(texdata: str):
         logging.exception("Exception occured when writing to file.")
         return False
     else:
+        logging.info("TeX file written to " + filepath)
         return True
 
 
