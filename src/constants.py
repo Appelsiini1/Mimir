@@ -29,5 +29,5 @@ def _get_texts():
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
-VERSION = "0.0.6"
+VERSION = "0.1.0"
 LOG_LEVEL = DEBUG
