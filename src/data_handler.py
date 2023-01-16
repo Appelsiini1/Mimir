@@ -239,3 +239,10 @@ def update_index(a_ix: index.FileIndex):
                 if json_time > ind_json_time:
                     to_index.append(fields['a_id'])
     #TODO Add document updating logic
+
+def get_texdoc_settings():
+    _path = path.join(ENV['PROGRAM_DATA'], "document_settings.json")
+    with open(_path, "r", encoding="UTF-8") as _file:
+        _json = json.loads(_file.read())
+
+    return _json
