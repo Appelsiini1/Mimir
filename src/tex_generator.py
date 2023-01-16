@@ -7,15 +7,18 @@ import logging
 from os.path import join
 
 from constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
-
+from data_handler import get_texdoc_settings
 
 # pylint: disable=anomalous-backslash-in-string
 
 
 def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
-    """Generate header and footer
+    """
+    Generate header and footer
+
     Params:
-    doc_settings: Document settings as JSON (dict)"""
+    doc_settings: Document settings as JSON (dict)
+    """
     header_opt = doc_settings["document"]["preamble"]["header"]
     footer_opt = doc_settings["document"]["preamble"]["footer"]
 
@@ -39,8 +42,7 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
 
         return (hdr_cmd, ftr_cmd)
 
-    else:
-        return ""
+    return ""
 
 
 def _preamble_gen(doc_settings):
@@ -92,7 +94,7 @@ bottom={margins[3]}mm]\
     ]
 
 
-def _starting_instructions_gen(gen_info, lecture_no):
+def _starting_instructions_gen(gen_info: dict):
     """
     Creates the general instructions of the instruction document
     Returns a TeX string.
@@ -100,19 +102,18 @@ def _starting_instructions_gen(gen_info, lecture_no):
     Params:
     gen_info: General instructions as a dict
     """
-    week_info = gen_info["lectures"][lecture_no - 1]
     text = ""
-    title = f"\\section*{{L{week_info['lecture_no']} {DISPLAY_TEXTS['tex_assignment'][LANGUAGE]}}}\n"
+    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['tex_assignment'][LANGUAGE]}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
-    for topic in week_info["topics"]:
+    for topic in gen_info["topics"]:
         topics += f"\t\\item {topic}\n"
 
     text += title
     text += "\\vspace{0.2cm}"
     text += topics
     text += "\\end{itemize}\n"
-    text += week_info["instructions"] + "\n"
+    text += gen_info["instructions"] + "\n"
     text += "\\tableofcontents\n\\vspace{1cm}\n"
 
     return text
@@ -144,75 +145,74 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     return text
 
 
-def _assignment_text_gen(assignment_list: list, incl_solution=False):
+def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: bool):
     """
     Creates assignment TeX string from assingment code and metadata.
     Returns a TeX string
 
     Params:
     assignment_list: A list of assignments as dicts containing assingment information
+    incl_solution: A boolean that spesifies whether to include the example solution in the assingment
     """
-
-    # Assignment dict:
-    # lecture, title, instructions, example_runs(dict) datafile(s)(list of dicts), examplecode(s)
-    # Example run dict:
-    # input, output, outputfile, CMD
-    # Datafile dict:
-    # filename, data
 
     # TODO Add numbered list generator for lines starting with '-'
 
     text = ""
     for i, assignment in enumerate(assignment_list):
-        text += f"\\addsec{{L{assignment['lecture']}T{i:02d}: {assignment['title']}}}\n"
+        text += f"\\addsec{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
 
         for datafile in assignment["datafiles"]:
-            text += _block_gen("tex_ex_input_datafile", datafile["data"], datafile["filename"])
-
-        for i, example_run in enumerate(assignment["example_runs"]):
-            text += (
-                f"\n\\large\\textbf{{{DISPLAY_TEXTS['tex_ex_run'][LANGUAGE]}{i+1}}}\n"
+            text += _block_gen(
+                "tex_ex_input_datafile", datafile["data"], datafile["filename"]
             )
+
+        for i, example_run in enumerate(assignment["example_runs"], start=1):
+            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['tex_ex_run'][LANGUAGE]}{i}}}\n"
             text += "\\vspace{0.1cm,}\n"
             if example_run["CMD"]:
                 text += _block_gen("tex_cmd_input", example_run["CMD"])
-            if example_run["input"]:
-                text += _block_gen("tex_ex_input", example_run["input"])
+            if example_run["inputs"]:
+                text += _block_gen("tex_ex_input", example_run["inputs"])
             if example_run["output"]:
                 text += _block_gen("tex_ex_output", example_run["output"])
             if example_run["outputfiles"]:
                 for resultfile in example_run["outputfiles"]:
-                    text += _block_gen("tex_ex_resultfile", resultfile["data"], resultfile["filename"])
+                    text += _block_gen(
+                        "tex_ex_resultfile", resultfile["data"], resultfile["filename"]
+                    )
 
         if incl_solution:
             text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\n"
-            text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
-            text += assignment.replace("\t", "    ") + "\end{verbatim}\n}\n"
+            for code in assignment["example_codes"]:
+                text += f"\\textbf{{'{code['filename']}':}}"
+                text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
+                text += code["code"].replace("\t", "    ") + "\end{verbatim}\n}\n"
 
         text += "\\vspace{0.5cm}\n"
 
     return text
 
 
-def tex_gen(assignment_set: dict, lecture_info: dict, doc_settings: dict):
+def _tex_gen(
+    assignment_list: list, gen_info: dict, doc_settings: dict, incl_solution: bool
+):
     """
     Generate TeX data from assignment data. Returns TeX data as a string.
 
     Params:
-    assignment_set: a dictionary containing the generated assignment set.
-    lecture_info: a dictionary containing the lecture information related to the assignment set
-    doc_settings: a dictionary containing the TeX document settings
+    assignment_set: a list of assignment dictionaries in the generated set.
+    gen_info: dictionary containing the lecture and course information related to the assignment set
+    doc_settings: dictionary containing the TeX document settings
     """
 
-    # TODO Refactor to use new parameters
     tex_data = ""
     begin = "\\begin{document}\n"
     pagestyle = f'\\pagestyle{{{doc_settings["document"]["pagestyle"]}}}'
 
     pre_content = _starting_instructions_gen(gen_info)
-    content = _assignment_text_gen(assignment_metadata, assignment)
+    content = _assignment_text_gen(gen_info, assignment_list, incl_solution)
     end = "\\end{document}"
 
     preamble = _preamble_gen(doc_settings)
@@ -232,7 +232,7 @@ def tex_gen(assignment_set: dict, lecture_info: dict, doc_settings: dict):
     return tex_data
 
 
-def write_tex_file(texdata: str):
+def _write_tex_file(texdata: str):
     """
     Write 'texdata' to 'filepath'. Uses UTF-8 encoding.
     Returns True if writing is succesfull, otherwise False.
@@ -252,3 +252,5 @@ def write_tex_file(texdata: str):
         return False
     else:
         return True
+
+
