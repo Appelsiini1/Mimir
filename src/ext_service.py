@@ -4,12 +4,13 @@ Functions to handle connections to external services like
 compilers or runtime environments
 """
 
+# pylint: disable=import-error
 import logging
 import subprocess
 from os import path
 
-from constants import ENV
-from custom_errors import CannotMoveFileError
+from src.constants import ENV
+from src.custom_errors import CannotMoveFileError
 
 def run_command(command:str, inputs:str|None, process_timeout=10):
     """

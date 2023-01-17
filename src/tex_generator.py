@@ -3,11 +3,12 @@ Mímir TeX Generator
 Functions to generate instruction TeX file from available data
 """
 
+# pylint: disable=import-error
 import logging
 from os.path import join
 
-from constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
-from data_handler import get_texdoc_settings
+from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
+from src.data_handler import get_texdoc_settings
 
 # pylint: disable=anomalous-backslash-in-string
 
