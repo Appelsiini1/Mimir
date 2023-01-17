@@ -1,5 +1,5 @@
 {
-    "main": {
+    "ui_main": {
         "FI": "Päävalikko",
         "ENG" : "Main"
     },
@@ -38,6 +38,37 @@
     "tex_assignment_letter" : {
         "FI" : "T",
         "ENG" : "E"
+    },
+    "ui_general" : {
+        "FI" : "Yleinen",
+        "ENG" : "General"
+    },
+    "menu_file" : {
+        "FI" : "Tiedosto",
+        "ENG" : "File"
+    },
+    "menu_open" : {
+        "FI" : "Avaa kurssi",
+        "ENG" : "Open course"
+    },
+    "menu_open_recent" : {
+        "FI" : "Avaa edellinen",
+        "ENG" : "Open recent"
+    },"menu_exit" : {
+        "FI" : "Poistu",
+        "ENG" : "Exit"
+    },
+    "menu_create" : {
+        "FI" : "Luo kurssi",
+        "ENG" : "Create course"
+    },
+    "menu_update" : {
+        "FI" : "Päivitä tehtäväindeksi",
+        "ENG" : "Update assignment index"
+    },
+    "ui_info" : {
+        "FI" : "Tietoa kurssista",
+        "ENG" : "Course infomation"
     },
     "" : {
         "FI" : "",
