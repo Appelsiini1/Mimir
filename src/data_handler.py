@@ -3,16 +3,16 @@ Mímir Data Handlers
 Functions for loading and saving exercise data
 """
 
+# pylint: disable=import-error
 import json
 import logging
-import sys
 from os import path, mkdir
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 
-from constants import ENV
-from custom_errors import ConflictingAssignmentID, IndexExistsError
+from src.constants import ENV
+from src.custom_errors import ConflictingAssignmentID, IndexExistsError
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
@@ -42,16 +42,6 @@ class Assignment:
         self.json_path = jsonpath
         self.used_in = used_in
         self.is_expanding = exp
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS # pylint: disable=protected-access, no-member
-    except Exception:
-        base_path = path.abspath(".")
-
-    return path.join(base_path, relative_path)
 
 
 def data_path_handler(directory_path: str):
