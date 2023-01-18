@@ -15,15 +15,16 @@ def _init_logging():
     """
     Initialize logging
     """
-    logname = path.join(ENV["PROGRAM_DATA"], "LOG.txt")
+    logname = path.join(ENV["PROGRAM_DATA"], "log.txt")
     logging.basicConfig(
         filename=logname,
         level=LOG_LEVEL,
+        encoding="UTF-8",
         format="%(asctime)s %(levelname)s - %(message)s",
         datefmt="%d/%m/%Y %H:%M:%S",
     )
 
-    logging.info(  
+    logging.info(
         f"Mímir v{VERSION}"
     )
 
@@ -33,8 +34,6 @@ def _init_env_path():
     """
     if path.exists(ENV["PROGRAM_DATA"]) is False:
         mkdir(ENV["PROGRAM_DATA"])
-        logging.info("Cache folder created.")
-    logging.info("Cache folder OK")
 
 def init_environment():
     """
