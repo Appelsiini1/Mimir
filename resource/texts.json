@@ -83,7 +83,7 @@
         "ENG" : "Assignments in index"
     },
     "ui_no_weeks" : {
-        "FI" : "Viikkoja kurssila",
+        "FI" : "Viikkoja kurssilla",
         "ENG" : "Number of weeks on course"
     },
     "ui_save" : {
@@ -98,7 +98,7 @@
         "FI" : "Tehtäväsarjat",
         "ENG" : "Assignment sets"
     },
-    "ui_assingment_management" : {
+    "ui_assignment_management" : {
         "FI" : "Tehtävien hallinta",
         "ENG" : "Assignment management"
     },
@@ -265,5 +265,17 @@
     "ui_delete" : {
         "FI" : "Poista",
         "ENG" : "Delete"
+    },
+    "help_assignment_no" : {
+        "FI" : "Syötä kaikki tehtäväpositiot joihin tämä tehtävä sopii.\nErota positiot pilkulla.",
+        "ENG" : "Input all positions where this assingment fits here.\nSeparate positions with a comma."
+    },
+    "help_assignment_tags" : {
+        "FI" : "Syötä tehtävän tunnisteet tähän pilkuilla erotettuna",
+        "ENG" : "Input all assingment tags here, separated by a comma." 
+    },
+    "help_inst" : {
+        "FI" : "Täytä tähän tehtävän variaation tehtävänanto. Tämä syötelaatikko tukee LaTeX komentoja.",
+        "ENG" : "Fill here the assignment variation instructions. This input box supports LaTeX commands."
     }
 }
