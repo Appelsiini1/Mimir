@@ -4,11 +4,14 @@ Mímir Main
 Functions to start Mímir
 """
 
+import logging
 import dearpygui.dearpygui as dpg
 
+dpg.create_context()
+
+#pylint: disable=wrong-import-position
 from src.constants import VERSION
 from src.initialize import init_environment
-from src.tex_generator import gen_one_week
 from src.ui_handler import main_window, setup_ui
 
 def main():
@@ -16,7 +19,8 @@ def main():
     Main entry point to Mímir
     """
     init_environment()
-    dpg.create_context()
+    logging.info("Environment initialized.")
+
     dpg.create_viewport(title=f'Mimir v{VERSION}', width=1500, height=800)
 
     setup_ui()
