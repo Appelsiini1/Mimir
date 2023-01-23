@@ -1,5 +1,6 @@
 """
 Mímir TeX Generator
+
 Functions to generate instruction TeX file from available data
 """
 
@@ -177,6 +178,8 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
     text = ""
     for i, assignment in enumerate(assignment_list):
+        # TODO Switch to use "\addcontentsline"
+        # https://www.overleaf.com/learn/latex/Sections_and_chapters#Numbered_and_unnumbered_sections
         text += f"\\addsec{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
@@ -187,14 +190,14 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
             )
 
         for i, example_run in enumerate(assignment["example_runs"], start=1):
-            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['tex_ex_run'][LANGUAGE]}{i}}}\n"
+            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE]}{i}}}\n"
             text += "\\vspace{0.1cm,}\n"
             if example_run["CMD"]:
-                text += _block_gen("tex_cmd_input", example_run["CMD"])
+                text += _block_gen("cmd_input", example_run["CMD"])
             if example_run["inputs"]:
-                text += _block_gen("tex_ex_input", example_run["inputs"])
+                text += _block_gen("ex_input", example_run["inputs"])
             if example_run["output"]:
-                text += _block_gen("tex_ex_output", example_run["output"])
+                text += _block_gen("ex_output", example_run["output"])
             if example_run["outputfiles"]:
                 for resultfile in example_run["outputfiles"]:
                     text += _block_gen(

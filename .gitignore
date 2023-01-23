@@ -166,5 +166,6 @@ log.txt
 # Kivy environment and config
 /config
 
-# Test file
+# Test files
 demo.py
+test.py
