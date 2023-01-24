@@ -13,61 +13,76 @@ import dearpygui.dearpygui as dpg
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
 from src.common import resource_path
 
-class _EX_RUN_UUIDS():
+
+class _EX_RUN_UUIDS:
     def __init__(self) -> None:
         self.uuid = dpg.generate_uuid()
         self.item_uuids = []
+
     def add_uuid(self) -> int | str:
         """Adds item UUID to the internal list and returns the generated UUID"""
         new_id = dpg.generate_uuid()
         self.item_uuids.append(new_id)
         return new_id
+
     def get_group_uuid(self) -> int | str:
         """Returns the parent UUID"""
         return self.uuid
+
     def get_item_uuids(self) -> list:
         """Returns a list of item UUIDs inside the parent"""
         return self.item_uuids
 
-class _VARIATION_UUIDS():
+
+class _VARIATION_UUIDS:
     def __init__(self) -> None:
         self.variation_uuid = dpg.generate_uuid()
         self.ex_run_group_uuid = dpg.generate_uuid()
         self.letter = ""
         self.example_runs = []
+
     def add_ex_run(self) -> _EX_RUN_UUIDS:
         """Adds an example run and returns an example run instance"""
         new_ex_run = _EX_RUN_UUIDS()
         self.example_runs.append(new_ex_run)
         return new_ex_run
+
     def get_ex_runs(self) -> list:
         """Returns a list of all example runs"""
         return self.example_runs
+
     def get_ex_run_group(self):
         """Returns the parent ID of the example run header group"""
         return self.ex_run_group_uuid
+
     def get_run_number(self):
         """Returns amount of example runs currently present"""
         return len(self.example_runs)
+
     def get_uuid(self) -> int | str:
         """Returns the variation uuid"""
         return self.variation_uuid
 
-class _VARIATION():
+
+class _VARIATION:
     def __init__(self) -> None:
         self.variations = []
+
     def get_all_variations(self) -> list:
         """Get current list of variations"""
         return self.variations
+
     def get_var_count(self) -> int:
         """Returns how many variations are saved"""
         return len(self.variations)
+
     def get_variation(self, v_id) -> _VARIATION_UUIDS:
         """Returns variation with variation id 'v_id'"""
         for var in self.variations:
             if var.get_uuid() == v_id:
                 return var
         return None
+
     def add_variation(self) -> int | str:
         """Add one to variations and return the new variation id"""
         new = _VARIATION_UUIDS()
@@ -164,6 +179,7 @@ def setup_ui():
     _set_style()
     _setup_textures()
 
+
 def _help(message):
     """
     Display help popup "(?)" next to the title with 'message' in it.
@@ -177,6 +193,7 @@ def _help(message):
     with dpg.tooltip(t):
         dpg.add_text(message)
 
+
 def _toggle_enabled(sender, app_data, item):
     if dpg.is_item_enabled(item):
         dpg.disable_item(item)
@@ -188,7 +205,7 @@ def main_window():
     """
     Create main window
     """
-    #TODO Move label to a normal text bc primary window hides title bar
+    # TODO Move label to a normal text bc primary window hides title bar
     label = "Mímir - " + DISPLAY_TEXTS["ui_main"][LANGUAGE]
     with dpg.window(
         label=label,
@@ -197,7 +214,7 @@ def main_window():
         menubar=True,
         no_close=True,
         no_move=True,
-        tag=UI_ITEM_TAGS["MAIN_WINDOW"]
+        tag=UI_ITEM_TAGS["MAIN_WINDOW"],
     ):
         with dpg.menu_bar():
             with dpg.menu(label=DISPLAY_TEXTS["menu_file"][LANGUAGE]):
@@ -279,13 +296,18 @@ def main_window():
                             init_width_or_weight=410,
                         )
                         with dpg.table_row():
-                            dpg.add_button(label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE], callback=add_assignment_window)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
+                                callback=add_assignment_window,
+                            )
 
-def _add_variation(var:_VARIATION) -> tuple[int | str, str]:
+
+def _add_variation(var: _VARIATION) -> tuple[int | str, str]:
     new_id = var.add_variation()
     letter = _get_variation_letter(var.get_var_count())
     var.get_variation(new_id)
     return new_id, letter
+
 
 def _get_variation_letter(var):
     base = len(ascii_uppercase)
@@ -296,19 +318,25 @@ def _get_variation_letter(var):
     return result
 
 
-def _add_example_run_header(sender:int|str, app_data, user_data:tuple[_VARIATION, int|str, int|str]):
+def _add_example_run_header(
+    sender: int | str, app_data, user_data: tuple[_VARIATION, int | str, int | str]
+):
     var = user_data[0].get_variation(user_data[1])
     parent_group = user_data[2]
     ex_run = var.add_ex_run()
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE] + " " + str(var.get_run_number())
-    with dpg.collapsing_header(label=label, parent=parent_group, tag=ex_run.get_group_uuid()):
+    with dpg.collapsing_header(
+        label=label, parent=parent_group, tag=ex_run.get_group_uuid()
+    ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
                 dpg.add_text(DISPLAY_TEXTS["ex_input"][LANGUAGE])
                 _help(DISPLAY_TEXTS["help_inputs"][LANGUAGE])
-                dpg.add_input_text(multiline=True, height=150, tab_input=True, tag=ex_run.add_uuid())
+                dpg.add_input_text(
+                    multiline=True, height=150, tab_input=True, tag=ex_run.add_uuid()
+                )
                 dpg.add_spacer(height=5)
                 dpg.add_text(DISPLAY_TEXTS["cmd_input"][LANGUAGE])
                 _help(DISPLAY_TEXTS["help_cmd_inputs"][LANGUAGE])
@@ -317,16 +345,23 @@ def _add_example_run_header(sender:int|str, app_data, user_data:tuple[_VARIATION
                 with dpg.group(horizontal=True):
                     dpg.add_text(DISPLAY_TEXTS["ui_gen_ex_checkbox"][LANGUAGE])
                     _help(DISPLAY_TEXTS["help_gen_ex_checkbox"][LANGUAGE])
-                    dpg.add_checkbox(tag=ex_run.add_uuid(), callback=_toggle_enabled, user_data=output_text_id)
+                    dpg.add_checkbox(
+                        tag=ex_run.add_uuid(),
+                        callback=_toggle_enabled,
+                        user_data=output_text_id,
+                    )
                 dpg.add_text(DISPLAY_TEXTS["ex_output"][LANGUAGE])
                 _help(DISPLAY_TEXTS["help_ex_output"][LANGUAGE])
                 dpg.add_input_text(tag=output_text_id, multiline=True, height=150)
                 dpg.add_spacer(height=5)
                 with dpg.group(horizontal=True):
-                    dpg.add_button(label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE], callback=None)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE],
+                        callback=None,
+                    )
                     dpg.add_spacer(width=5)
                     dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE])
-                #TODO Add selectable file list
+                # TODO Add selectable file list
                 dpg.add_text(DISPLAY_TEXTS["ui_output_filename"][LANGUAGE])
                 _help(DISPLAY_TEXTS["help_output_filename"][LANGUAGE])
                 dpg.add_input_text(tag=ex_run.add_uuid())
@@ -337,7 +372,9 @@ def _add_variation_header(sender, app_data, user_data: _VARIATION):
     variation_id, var_letter = _add_variation(user_data)
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE] + " " + var_letter
     ex_run_group_uuid = user_data.get_variation(variation_id).get_ex_run_group()
-    with dpg.collapsing_header(label=label, parent=UI_ITEM_TAGS["VARIATION_GROUP"], tag=variation_id):
+    with dpg.collapsing_header(
+        label=label, parent=UI_ITEM_TAGS["VARIATION_GROUP"], tag=variation_id
+    ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
@@ -347,35 +384,42 @@ def _add_variation_header(sender, app_data, user_data: _VARIATION):
                 dpg.add_input_text(multiline=True, height=150, tab_input=True)
                 dpg.add_spacer(width=5)
                 with dpg.group(tag=ex_run_group_uuid):
-                    _add_example_run_header(None, None, (user_data, variation_id, ex_run_group_uuid))
+                    _add_example_run_header(
+                        None, None, (user_data, variation_id, ex_run_group_uuid)
+                    )
         dpg.add_spacer(height=5)
         dpg.add_separator()
         dpg.add_spacer(height=5)
-        dpg.add_button(label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE], callback=_add_example_run_header, user_data=(user_data, variation_id, ex_run_group_uuid))
+        dpg.add_button(
+            label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE],
+            callback=_add_example_run_header,
+            user_data=(user_data, variation_id, ex_run_group_uuid),
+        )
         dpg.add_spacer(height=5)
         dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE])
         _help(DISPLAY_TEXTS["help_used_in"][LANGUAGE])
         dpg.add_input_text()
         dpg.add_spacer(width=5)
         with dpg.group(horizontal=True):
-            dpg.add_button(label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE], callback=None)
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE], callback=None
+            )
             dpg.add_spacer(width=5)
             dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE])
         dpg.add_spacer(height=5)
-
 
 
 def add_assignment_window():
     """
     UI components for "Add assingment" window
     """
-    label = (
-        "Mímir - {} - {}".format(DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE],
-        DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE])
+    label = "Mímir - {} - {}".format(
+        DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE],
+        DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
     )
     var = _VARIATION()
     with dpg.window(label=label, width=750, height=700):
-        header1_label = DISPLAY_TEXTS['ui_general'][LANGUAGE]
+        header1_label = DISPLAY_TEXTS["ui_general"][LANGUAGE]
         with dpg.collapsing_header(label=header1_label, default_open=True):
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
@@ -392,12 +436,12 @@ def add_assignment_window():
                         init_width_or_weight=410,
                     )
                     with dpg.table_row():
-                        dpg.add_text(DISPLAY_TEXTS["ui_assignment_title"][LANGUAGE] + ":")
+                        dpg.add_text(
+                            DISPLAY_TEXTS["ui_assignment_title"][LANGUAGE] + ":"
+                        )
                         dpg.add_input_text(callback=None, width=400)
                     with dpg.table_row():
-                        dpg.add_text(
-                            DISPLAY_TEXTS["ui_lecture_week"][LANGUAGE] + ":"
-                        )
+                        dpg.add_text(DISPLAY_TEXTS["ui_lecture_week"][LANGUAGE] + ":")
                         dpg.add_input_int(
                             callback=None, width=150, min_value=0, min_clamped=True
                         )
@@ -413,16 +457,30 @@ def add_assignment_window():
                         dpg.add_input_text(callback=None, width=400)
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_exp_assignment"][LANGUAGE] + ":")
-                        dpg.add_checkbox(callback=_toggle_enabled, tag=UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"], user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"])
+                        dpg.add_checkbox(
+                            callback=_toggle_enabled,
+                            tag=UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"],
+                            user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
+                        )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_prev_part"][LANGUAGE])
-                        dpg.add_combo(("Testi1", "Testi2", "Testi3"), default_value="", enabled=False, tag=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"])
+                        dpg.add_combo(
+                            ("Testi1", "Testi2", "Testi3"),
+                            default_value="",
+                            enabled=False,
+                            tag=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
+                        )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_code_lang"][LANGUAGE])
-                        dpg.add_combo(("Python", "C"), tag=UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
+                        dpg.add_combo(
+                            ("Python", "C"), tag=UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"]
+                        )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_inst_lang"][LANGUAGE])
-                        dpg.add_combo(("Suomi", "Englanti"), tag=UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"])
+                        dpg.add_combo(
+                            ("Suomi", "Englanti"),
+                            tag=UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"],
+                        )
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
@@ -433,12 +491,19 @@ def add_assignment_window():
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
-                dpg.add_button(label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE], callback=_add_variation_header, user_data=var)
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE],
+                    callback=_add_variation_header,
+                    user_data=var,
+                )
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
                 dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None)
-                dpg.add_button(label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE], callback=None)
-                dpg.add_button(label=DISPLAY_TEXTS["ui_delete"][LANGUAGE], callback=None)
-
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE], callback=None
+                )
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_delete"][LANGUAGE], callback=None
+                )
