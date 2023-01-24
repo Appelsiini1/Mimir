@@ -33,7 +33,7 @@ def _get_texts():
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
-VERSION = "0.2.0"
+VERSION = "0.2.2"
 LOG_LEVEL = DEBUG
 
 # Unique UI item tags
@@ -43,5 +43,7 @@ UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"] = generate_uuid()
 UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"] = generate_uuid()
 UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"] = generate_uuid()
 UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"] = generate_uuid()
+UI_ITEM_TAGS["VARIATION_GROUP"] = generate_uuid()
+UI_ITEM_TAGS["MAIN_WINDOW"] = generate_uuid()
 
 # Misc constants

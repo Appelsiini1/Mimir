@@ -10,7 +10,7 @@ import dearpygui.dearpygui as dpg
 dpg.create_context()
 
 #pylint: disable=wrong-import-position
-from src.constants import VERSION
+from src.constants import VERSION, UI_ITEM_TAGS
 from src.initialize import init_environment
 from src.ui_handler import main_window, setup_ui
 
@@ -25,6 +25,7 @@ def main():
 
     setup_ui()
     main_window()
+    dpg.set_primary_window(UI_ITEM_TAGS["MAIN_WINDOW"], True)
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
