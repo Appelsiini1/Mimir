@@ -277,5 +277,29 @@
     "help_inst" : {
         "FI" : "Täytä tähän tehtävän variaation tehtävänanto. Tämä syötelaatikko tukee LaTeX komentoja.",
         "ENG" : "Fill here the assignment variation instructions. This input box supports LaTeX commands."
+    },
+    "help_inputs" : {
+        "FI" : "Syötä testiajon syötteet. Erota syötteet rivinvaihdolla.",
+        "ENG" : "Input the inputs used in the example run. Separate inputs with a line break."
+    },
+    "help_cmd_inputs" : {
+        "FI" : "Jotain",
+        "ENG" : "TBD"
+    },
+    "help_gen_ex_checkbox" : {
+        "FI" : "TBD",
+        "ENG" : "TBD"
+    },
+    "help_ex_output" : {
+        "FI" : "TBD",
+        "ENG" : "TBD"
+    },
+    "help_output_filename" : {
+        "FI" : "TBD",
+        "ENG" : "TBD"
+    },
+    "help_used_in" : {
+        "FI" : "TBD",
+        "ENG" : "TBD"
     }
 }
