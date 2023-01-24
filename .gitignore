@@ -152,7 +152,6 @@ Data/
 
 # TeX test files
 result.*
-unnumberedtotoc.sty
 
 # Log files
 log.txt
@@ -166,3 +165,7 @@ log.txt
 
 # Kivy environment and config
 /config
+
+# Test files
+demo.py
+test.py

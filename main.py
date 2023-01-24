@@ -1,25 +1,37 @@
 """
 Mímir Main
+
 Functions to start Mímir
 """
 
-from os import environ
-environ['KIVY_HOME'] = "./config"   # set Kivy config path
+import logging
+import dearpygui.dearpygui as dpg
 
-from kivy import require            #pylint: disable=wrong-import-position
-require('2.1.0')                    # sets the minimum version of UI library and raises an
-                                    # exception if the installed version is less than required
+dpg.create_context()
 
-from kivy.app import App            #pylint: disable=wrong-import-position
-from kivy.uix.label import Label    #pylint: disable=wrong-import-position
+#pylint: disable=wrong-import-position
+from src.constants import VERSION, UI_ITEM_TAGS
+from src.initialize import init_environment
+from src.ui_handler import main_window, setup_ui
 
+def main():
+    """
+    Main entry point to Mímir
+    """
+    init_environment()
+    logging.info("Environment initialized.")
 
-class Mimir(App):
-    """Base class and starting script for Mímir program"""
-    def build(self):
-        return Label(text='Hello world!')
+    dpg.create_viewport(title=f'Mimir v{VERSION}', width=1500, height=800)
+
+    setup_ui()
+    main_window()
+    dpg.set_primary_window(UI_ITEM_TAGS["MAIN_WINDOW"], True)
+
+    dpg.setup_dearpygui()
+    dpg.show_viewport()
+    dpg.start_dearpygui()
+
 
 
 if __name__ == "__main__":
-    app = Mimir()
-    app.run()
+    main()

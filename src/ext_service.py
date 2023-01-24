@@ -4,12 +4,13 @@ Functions to handle connections to external services like
 compilers or runtime environments
 """
 
+# pylint: disable=import-error
 import logging
 import subprocess
 from os import path
 
-from constants import ENV
-from custom_errors import CannotMoveFileError
+from src.constants import ENV
+from src.custom_errors import CannotMoveFileError
 
 def run_command(command:str, inputs:str|None, process_timeout=10):
     """
@@ -56,27 +57,31 @@ def run_command(command:str, inputs:str|None, process_timeout=10):
         return output
 
 
-def generate_pdf(filepath_in:str, filepath_out:str):
+def generate_pdf(filepath_out:str, filename:str):
     """
     Runs pdflatex command to generate the PDF from generated TeX file.
 
     Params:
-    filepath_in: the path to the TeX file
     filepath_out: the path to move the finished PDF file to
     """
 
-    #TODO change filepath_in to PROGRAM_DATA and add a 'cd' command before pdflatex and move
     #TODO add error handling if pdflatex command returns an exception
 
-    command = f"pdflatex {filepath_in}"
+    command = "pdflatex output.tex"
 
     output= run_command(command, None)
 
     if output is type(subprocess.CompletedProcess):
         if ENV["OS"] == "nt":
-            command = f"move /Y \"{filepath_in}\" \"{filepath_out}\""
+            filepath_out = path.join(filepath_out, filename)
+            command = f"cd \"{ENV['PROGRAM_DATA']}\" \
+                && move /Y output.pdf \"{filepath_out}\""
         else:
-            command = f"mv \"{filepath_in}\" \"{filepath_out}\""
+            filepath_dest = path.join(filepath_out, "output.pdf")
+            command = f"cd \"{ENV['PROGRAM_DATA']}\" \
+                && mv output.pdf \"{filepath_dest}\" \
+                && cd \"{filepath_out}\" \
+                && mv output.pdf {filename}"
 
         output = run_command(command, None)
         if output is not type(subprocess.CompletedProcess):
