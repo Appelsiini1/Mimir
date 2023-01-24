@@ -45,5 +45,8 @@ UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"] = generate_uuid()
 UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"] = generate_uuid()
 UI_ITEM_TAGS["VARIATION_GROUP"] = generate_uuid()
 UI_ITEM_TAGS["MAIN_WINDOW"] = generate_uuid()
+UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"] = generate_uuid()
+UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"] = generate_uuid()
+UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"] = generate_uuid()
 
 # Misc constants
