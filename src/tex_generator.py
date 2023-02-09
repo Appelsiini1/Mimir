@@ -4,9 +4,9 @@ Mímir TeX Generator
 Functions to generate instruction TeX file from available data
 """
 
-# pylint: disable=import-error
+# pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
-from os.path import join
+from os.path import join, split
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
 from src.data_handler import get_texdoc_settings
@@ -91,6 +91,8 @@ bottom={margins[3]}mm]\
     for t in hyphenation:
         hyphenation_cmd += t + "\n"
 
+    other = "\n".join(preamble["other"])
+
     result = [
         doc_class_cmd,
         font_cmd,
@@ -98,6 +100,7 @@ bottom={margins[3]}mm]\
         margins_cmd,
         head_height,
         hyphenation_cmd,
+        other,
     ]
     logging.debug("TEX PREAMBLE")
     logging.debug(result)
@@ -114,7 +117,7 @@ def _starting_instructions_gen(gen_info: dict):
     gen_info: General instructions as a dict
     """
     text = ""
-    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['tex_assignment'][LANGUAGE]}}}\n"
+    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['assignments'][LANGUAGE]}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
@@ -146,18 +149,29 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     """
 
     text = "{"
+    text = "\\normalsize"
+    if not ex_file:
+        text += "\\textit{"
+    text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE]}"
     if ex_file:
-        text += "\\large "
-    text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key]}"
-    if ex_file:
-        text += f"'{ex_file}'"
-    text += ":}}"
-    text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
-    text += data + "\n\end{verbatim}\n}\n"
+        text += f" '{split(ex_file)[1]}'"
+    text += ":}"
+    if not ex_file:
+        text += "}"
+    text += "{\\fontfamily{{cmr}}\\selectfont\n\\begin{minted}[bgcolor=bg, fontsize=\\small]{text}\n"
+    if display_text_key == "ex_input":
+        for line in data:
+            text += str(line) + "\n"
+    elif display_text_key == "cmd_input":
+        for line in data:
+            text += str(line) + " "
+    else:
+        text += data
+    text += "\n\end{minted}\n}\n"
     text += "\\vspace{0.1cm}\n"
 
     logging.debug("TEX BLOCK GENERATOR")
-    logging.debug("DISPLAY KEY: "+display_text_key)
+    logging.debug("DISPLAY KEY: %s" % display_text_key)
     logging.debug(text)
 
     return text
@@ -177,21 +191,23 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     # TODO Add code formatting
 
     text = ""
-    for i, assignment in enumerate(assignment_list):
+    for i, assignment in enumerate(assignment_list, start=1):
         # TODO Switch to use "\addcontentsline"
         # https://www.overleaf.com/learn/latex/Sections_and_chapters#Numbered_and_unnumbered_sections
         text += f"\\addsec{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
 
-        for datafile in assignment["datafiles"]:
-            text += _block_gen(
-                "tex_ex_input_datafile", datafile["data"], datafile["filename"]
-            )
+        if "datafiles" in assignment:
+            text += "\\hfill\\break\\newline\n"
+            for datafile in assignment["datafiles"]:
+                text += _block_gen(
+                    "tex_ex_input_datafile", datafile["data"], datafile["filename"]
+                )
 
         for i, example_run in enumerate(assignment["example_runs"], start=1):
-            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE]}{i}}}\n"
-            text += "\\vspace{0.1cm,}\n"
+            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE]} {i}}}\n"
+            text += "\\hfill\\break\\newline\n"
             if example_run["CMD"]:
                 text += _block_gen("cmd_input", example_run["CMD"])
             if example_run["inputs"]:
@@ -205,13 +221,15 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                     )
 
         if incl_solution:
-            text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\n"
+            text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\\newline\n"
             for code in assignment["example_codes"]:
-                text += f"\\textbf{{'{code['filename']}':}}"
-                text += "{\\fontfamily{{qcr}}\\selectfont\n\\begin{verbatim}\n"
-                text += code["code"].replace("\t", "    ") + "\end{verbatim}\n}\n"
+                text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
+                text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
+                text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
+                text += code["code"].replace("\t", "    ") + "\end{minted}\n}\n"
 
         text += "\\vspace{0.5cm}\n"
+        text += "\\fontfamily{lmr}\\selectfont\n"
 
     return text
 
@@ -255,7 +273,7 @@ def _tex_gen(
     return tex_data
 
 
-def _write_tex_file(texdata: str):
+def _write_tex_file(texdata: str, filename:str):
     """
     Write 'texdata' to 'filepath'. Uses UTF-8 encoding.
     Returns True if writing is succesfull, otherwise False.
@@ -265,7 +283,7 @@ def _write_tex_file(texdata: str):
     """
     # XXX should this be changed to return the exception?
 
-    filepath = join(ENV["PROGRAM_DATA"], "output.tex")
+    filepath = join(ENV["PROGRAM_DATA"], filename)
     try:
         with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
@@ -274,11 +292,11 @@ def _write_tex_file(texdata: str):
         logging.exception("Exception occured when writing to file.")
         return False
     else:
-        logging.info("TeX file written to " + filepath)
+        logging.info("TeX file written to %s" % filepath)
         return True
 
 
-def gen_one_week(gen_info: dict, assignment_list: list, incl_solution: bool):
+def gen_one_week(gen_info: dict, assignment_list: list, incl_solution: bool, filename:str):
     """
     Generates a briefing for a spesified week.
 
@@ -291,6 +309,6 @@ def gen_one_week(gen_info: dict, assignment_list: list, incl_solution: bool):
 
     tex_data = _tex_gen(assignment_list, gen_info, document_settings, incl_solution)
 
-    result = _write_tex_file(tex_data)
+    result = _write_tex_file(tex_data, filename)
 
     return result
