@@ -15,3 +15,12 @@
  ```
 
  Start the program by running `main.py`.
+
+ To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Mímir uses WSL
+ to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` to use highlighting.
+ 
+ You can install them using these commands on Ubuntu:
+ ```
+sudo apt install texlive
+sudo apt install python3-pygments
+```
