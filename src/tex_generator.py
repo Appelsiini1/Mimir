@@ -92,6 +92,7 @@ bottom={margins[3]}mm]\
         hyphenation_cmd += t + "\n"
 
     other = "\n".join(preamble["other"])
+    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}"
 
     result = [
         doc_class_cmd,
@@ -101,6 +102,7 @@ bottom={margins[3]}mm]\
         head_height,
         hyphenation_cmd,
         other,
+        toc,
     ]
     logging.debug("TEX PREAMBLE")
     logging.debug(result)
@@ -192,9 +194,8 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):
-        # TODO Switch to use "\addcontentsline"
-        # https://www.overleaf.com/learn/latex/Sections_and_chapters#Numbered_and_unnumbered_sections
-        text += f"\\addsec{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        text += "\\addcontentsline{toc}{section}"
+        text += f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
 
@@ -221,7 +222,9 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                     )
 
         if incl_solution:
-            text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\\newline\n"
+            text += (
+                f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\\newline\n"
+            )
             for code in assignment["example_codes"]:
                 text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
                 text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
@@ -273,7 +276,7 @@ def _tex_gen(
     return tex_data
 
 
-def _write_tex_file(texdata: str, filename:str):
+def _write_tex_file(texdata: str, filename: str):
     """
     Write 'texdata' to 'filepath'. Uses UTF-8 encoding.
     Returns True if writing is succesfull, otherwise False.
@@ -296,7 +299,9 @@ def _write_tex_file(texdata: str, filename:str):
         return True
 
 
-def gen_one_week(gen_info: dict, assignment_list: list, incl_solution: bool, filename:str):
+def gen_one_week(
+    gen_info: dict, assignment_list: list, incl_solution: bool, filename: str
+):
     """
     Generates a briefing for a spesified week.
 
