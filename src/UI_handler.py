@@ -7,11 +7,15 @@ Functions to handle UI
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
 from os.path import join
+from os import getcwd
 from string import ascii_uppercase
+from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.data_handler import FILEPATHCARRIER
 from src.common import resource_path
+from src.set_generator import temp_creator
 
 
 class _EX_RUN_UUIDS:
@@ -278,6 +282,9 @@ def main_window():
         header2_label = DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE]
         with dpg.collapsing_header(label=header2_label):
             dpg.add_text("Under construction", indent=25)
+
+            #dpg.add_button(label="Avaa...", callback=_openfilebrowser, user_data=files)
+            dpg.add_button(label="Luo tehtäväpaperi", callback=temp_creator, user_data=None)
         header3_label = DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE]
         with dpg.collapsing_header(label=header3_label):
             dpg.add_text("Under construction", indent=25)
@@ -561,3 +568,4 @@ def close_window(sender: None, app_data: None, window_id: int | str):
 
 def get_input_values(s, a, u):
     pass
+
