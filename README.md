@@ -1,4 +1,5 @@
 # Mimir
+ ![Mímir logo](resource/logoV3.png)
  ## A dynamic programming assignment manager
 
  This tool is intended to be used for managing large volumes of progrgramming assignments on programming courses. Assignments are imported into the program with a sleek UI. The user can then create assignment sets from the imported assignments. The sets are then exported into a LaTeX file, that can then be turned into a PDF using pdflatex.
