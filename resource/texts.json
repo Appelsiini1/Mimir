@@ -325,5 +325,9 @@
     "file_json" : {
         "FI" : "Metadatatiedostot",
         "ENG" : "Metadata files"
+    },
+    "tex_toc" : {
+        "FI" : "Sisällysluettelo",
+        "ENG" : "Contents"
     }
 }
