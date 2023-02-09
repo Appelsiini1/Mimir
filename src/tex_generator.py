@@ -195,7 +195,9 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):
         text += "\\addcontentsline{toc}{section}"
-        text += f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        text += title
+        text += "\\section*" + title
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
 
@@ -229,7 +231,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
                 text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
                 text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
-                text += code["code"].replace("\t", "    ") + "\end{minted}\n}\n"
+                text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
 
         text += "\\vspace{0.5cm}\n"
         text += "\\fontfamily{lmr}\\selectfont\n"
