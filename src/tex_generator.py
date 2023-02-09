@@ -167,9 +167,10 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     elif display_text_key == "cmd_input":
         for line in data:
             text += str(line) + " "
+        text += "\n"
     else:
         text += data
-    text += "\n\end{minted}\n}\n"
+    text += "\end{minted}\n}\n"
     text += "\\vspace{0.1cm}\n"
 
     logging.debug("TEX BLOCK GENERATOR")
@@ -190,7 +191,6 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     """
 
     # TODO Add numbered list generator for lines starting with '-'
-    # TODO Add code formatting
 
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):

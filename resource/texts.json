@@ -20,7 +20,7 @@
         "ENG" : "Inputs"
     },
     "cmd_input" : {
-        "FI" : "Komentoriviargumentit",
+        "FI" : "Komentoriviparametrit",
         "ENG" : "Commandline arguments"
     },
     "tex_ex_input_datafile" : {
