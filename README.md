@@ -1,4 +1,4 @@
-# Mimir
+ # Mímir
  ![Mímir logo](resource/logoV3.png)
  ## A dynamic programming assignment manager
 
