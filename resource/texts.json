@@ -301,5 +301,29 @@
     "help_used_in" : {
         "FI" : "TBD",
         "ENG" : "TBD"
+    },
+    "ui_assig_man_warning_popup" : {
+        "FI" : "'Lisää tehtävä' ikkuna on jo avattuna.",
+        "ENG" : "The 'Add assingment' window is already open."
+    },
+    "ui_ok" : {
+        "FI" : "OK",
+        "ENG" : "OK"
+    },
+    "file_c" : {
+        "FI" : "C-tiedostot",
+        "ENG" : "C-files"
+    },
+    "file_text" : {
+        "FI" : "Tekstitiedostot",
+        "ENG" : "Text files"
+    },
+    "file_any" : {
+        "FI" : "Muut",
+        "ENG" : "Other"
+    },
+    "file_json" : {
+        "FI" : "Metadatatiedostot",
+        "ENG" : "Metadata files"
     }
 }

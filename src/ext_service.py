@@ -1,5 +1,6 @@
 """
 Mímir External Service Handler
+
 Functions to handle connections to external services like
 compilers or runtime environments
 """
@@ -67,7 +68,7 @@ def generate_pdf(filepath_out:str, filename:str):
 
     #TODO add error handling if pdflatex command returns an exception
 
-    command = "pdflatex output.tex"
+    command = "pdflatex -shell-escape output.tex"
 
     output= run_command(command, None)
 

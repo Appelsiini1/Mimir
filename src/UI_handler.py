@@ -7,11 +7,15 @@ Functions to handle UI
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
 from os.path import join
+from os import getcwd
 from string import ascii_uppercase
+from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.data_handler import FILEPATHCARRIER
 from src.common import resource_path
+from src.set_generator import temp_creator
 
 
 class _EX_RUN_UUIDS:
@@ -278,6 +282,9 @@ def main_window():
         header2_label = DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE]
         with dpg.collapsing_header(label=header2_label):
             dpg.add_text("Under construction", indent=25)
+
+            #dpg.add_button(label="Avaa...", callback=_openfilebrowser, user_data=files)
+            dpg.add_button(label="Luo tehtäväpaperi", callback=temp_creator, user_data=None)
         header3_label = DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE]
         with dpg.collapsing_header(label=header3_label):
             dpg.add_text("Under construction", indent=25)
@@ -298,7 +305,8 @@ def main_window():
                         with dpg.table_row():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
-                                callback=add_assignment_window,
+                                callback=open_assignment_window,
+                                tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
                             )
 
 
@@ -409,7 +417,7 @@ def _add_variation_header(sender, app_data, user_data: _VARIATION):
         dpg.add_spacer(height=5)
 
 
-def add_assignment_window():
+def _assignment_window():
     """
     UI components for "Add assingment" window
     """
@@ -418,7 +426,13 @@ def add_assignment_window():
         DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
     )
     var = _VARIATION()
-    with dpg.window(label=label, width=750, height=700):
+    with dpg.window(
+        label=label,
+        width=750,
+        height=700,
+        tag=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+        no_close=True,
+    ):
         header1_label = DISPLAY_TEXTS["ui_general"][LANGUAGE]
         with dpg.collapsing_header(label=header1_label, default_open=True):
             dpg.add_spacer(height=5)
@@ -502,8 +516,56 @@ def add_assignment_window():
             with dpg.group(horizontal=True):
                 dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None)
                 dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE], callback=None
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
+                    callback=close_window,
+                    user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                 )
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_delete"][LANGUAGE], callback=None
                 )
+
+
+def open_assignment_window():
+    """
+    A function to check whether the 'Add assingment' window is already open.
+    If it is not, open it. If it is, open a popup for user.
+    """
+    with dpg.popup(
+        UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+        mousebutton=dpg.mvMouseButton_Left,
+        tag=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
+        modal=True,
+    ):
+        dpg.add_spacer(height=5)
+        dpg.add_text(DISPLAY_TEXTS["ui_assig_man_warning_popup"][LANGUAGE])
+        dpg.add_spacer(height=5)
+        dpg.add_separator()
+        dpg.add_spacer(height=5)
+        dpg.add_button(
+            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE],
+            callback=lambda: dpg.configure_item(UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"], show=False),
+            user_data=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
+            width=75,
+        )
+    if not UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"] in dpg.get_windows():
+        _assignment_window()
+    else:
+        dpg.show_item(UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"])
+
+
+
+def close_window(sender: None, app_data: None, window_id: int | str):
+    """
+    Closes a UI window.
+
+    Params:
+    sender: Not used.
+    app_data: Not used.
+    window_id: The UUID of the window to close.
+    """
+    dpg.delete_item(window_id)
+
+
+def get_input_values(s, a, u):
+    pass
+

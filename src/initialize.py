@@ -24,6 +24,7 @@ def _init_logging():
         datefmt="%d/%m/%Y %H:%M:%S",
     )
 
+    logging.info("-#################-")
     logging.info(
         f"Mímir v{VERSION}"
     )
@@ -34,6 +35,7 @@ def _init_env_path():
     """
     if path.exists(ENV["PROGRAM_DATA"]) is False:
         mkdir(ENV["PROGRAM_DATA"])
+
 
 def init_environment():
     """

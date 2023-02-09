@@ -1,5 +1,6 @@
 """
 Mímir Data Handlers
+
 Functions for loading and saving exercise data
 """
 
@@ -11,7 +12,7 @@ from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 
-from src.constants import ENV
+from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE
 from src.custom_errors import ConflictingAssignmentID, IndexExistsError
 
 # pylint: disable=consider-using-f-string
@@ -42,6 +43,33 @@ class Assignment:
         self.json_path = jsonpath
         self.used_in = used_in
         self.is_expanding = exp
+
+
+class FILEPATHCARRIER:
+    """
+    A class to carry extension information to file browser and bring back
+    the selected files as paths
+    """
+
+    def __init__(self) -> None:
+        self.filepaths = []
+        self.extensions = []
+
+    def c_files(self):
+        """Set extensions to C-code files"""
+        self.extensions = [[DISPLAY_TEXTS["file_c"][LANGUAGE], [".c", ".h"]]]
+
+    def text_files(self):
+        """Set extensions to text files"""
+        self.extensions = [[DISPLAY_TEXTS["file_text"][LANGUAGE], [".txt"]]]
+
+    def any_files(self):
+        """Set extensions to any"""
+        self.extensions = [[DISPLAY_TEXTS["file_any"][LANGUAGE], [".*"]]]
+
+    def json_files(self):
+        """Set extensions to json"""
+        self.extensions = [[DISPLAY_TEXTS["file_json"][LANGUAGE], [".json"]]]
 
 
 def data_path_handler(directory_path: str):
@@ -92,10 +120,21 @@ def get_assignment_code(data_path: str, a_id: str):
     try:
         with open(data_path, "r", encoding="UTF-8") as code_file:
             code = code_file.read()
-            if not code.startswith(a_id):
-                raise ConflictingAssignmentID
+            # TODO uncomment
+            # if not code.startswith(a_id):
+            #    raise ConflictingAssignmentID
             code = code.strip(a_id)
             return code
+    except OSError:
+        logging.exception("Unable to read code file!")
+        return None
+
+
+def read_datafile(filename: str):
+    try:
+        with open(filename, "r", encoding="UTF-8") as _file:
+            data = _file.read()
+            return data
     except OSError:
         logging.exception("Unable to read code file!")
         return None
@@ -174,7 +213,9 @@ def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
     try:
         mtime = path.getmtime(data.json_path)
     except OSError:
-        logging.exception("Could not get modification time(s) for assignment data file(s)")
+        logging.exception(
+            "Could not get modification time(s) for assignment data file(s)"
+        )
         return False
 
     writer = ix.writer()
@@ -187,7 +228,7 @@ def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
         json_path=data.json_path,
         is_expanding=data.is_expanding,
         used_in=used_in,
-        mtimes=mtime
+        mtimes=mtime,
     )
     writer.commit()
     return True
@@ -200,6 +241,7 @@ def get_expanding_assignments(a_ix: index.FileIndex):
     Params:
     a_index: The assignment index from where to search
     """
+
 
 def update_index(a_ix: index.FileIndex):
     """
@@ -217,22 +259,91 @@ def update_index(a_ix: index.FileIndex):
     with a_ix.searcher() as searcher:
 
         for fields in searcher.all_stored_fields():
-            ind_json_path = fields['json_path']
+            ind_json_path = fields["json_path"]
 
             if not path.exists(ind_json_path):
-                deleted.append(fields['a_id'])
+                deleted.append(fields["a_id"])
             else:
-                ind_times = fields['mtimes']
+                ind_times = fields["mtimes"]
                 ind_json_time = ind_times.split(",")[0]
                 json_time = path.getmtime(ind_json_path)
 
                 if json_time > ind_json_time:
-                    to_index.append(fields['a_id'])
-    #TODO Add document updating logic
+                    to_index.append(fields["a_id"])
+    # TODO Add document updating logic
+
 
 def get_texdoc_settings():
-    _path = path.join(ENV['PROGRAM_DATA'], "document_settings.json")
+    """
+    Gets TeX document settings from file. Returns a dict.
+    """
+    _path = path.join(ENV["PROGRAM_DATA"], "document_settings.json")
     with open(_path, "r", encoding="UTF-8") as _file:
         _json = json.loads(_file.read())
 
     return _json
+
+
+def create_course(sender, user_data, app_data):
+    """
+    Initializes a course.
+    """
+    pass
+
+
+def format_general_json(data: dict, lecture_no: int):
+    general = {}
+    general["course_id"] = data["course_id"]
+    general["course_name"] = data["course_name"]
+    general["lecture"] = lecture_no
+    general["topics"] = data["lectures"][lecture_no-1]["topics"]
+    general["instructions"] = data["lectures"][lecture_no-1]["instructions"]
+    return general
+
+
+def format_metadata_json(data: dict):
+    # TODO Format better later
+    new = {}
+    new["title"] = data["title"]
+    new["code_lang"] = data["code_language"]
+    variation = None
+    variation = data["variations"][0]
+    new["instructions"] = variation["instructions"]
+    example_runs = []
+    for i, ex_run in enumerate(variation["example_runs"]):
+        n = {
+            "inputs": variation["example_runs"][i][
+                "inputs"
+            ],
+            "output": variation["example_runs"][i]["output"],
+            "CMD": variation["example_runs"][i]["cmd_inputs"],
+            "outputfiles": [
+                {
+                    "filename": variation["example_runs"][i]["outputfiles"][0],
+                    "data": read_datafile(
+                        variation["example_runs"][i]["outputfiles"][0]
+                    ),
+                }
+            ]
+            if variation["example_runs"][i]["outputfiles"]
+            else [],
+        }
+        example_runs.append(n)
+    new["example_runs"] = example_runs
+    if variation["datafiles"]:
+        new["datafiles"] = [
+            {
+                "filename": variation["datafiles"][0],
+                "data": read_datafile(variation["datafiles"][0]),
+            }
+        ]
+    new["example_codes"] = [
+        {
+            "filename": variation["codefiles"][0],
+            "code": get_assignment_code(
+                variation["codefiles"][0], data["assignment_id"] + variation["variation_id"]
+            ),
+        }
+    ]
+
+    return new
