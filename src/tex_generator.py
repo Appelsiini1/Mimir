@@ -194,6 +194,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):
+        text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
         title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
         text += title
