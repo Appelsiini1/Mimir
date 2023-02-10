@@ -52,7 +52,7 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
     return ""
 
 
-def _preamble_gen(doc_settings):
+def _preamble_gen(doc_settings: dict, lecture: int):
     """
     Create preamble for the TeX document.
     This includes most of the general settings for the document.
@@ -92,7 +92,9 @@ bottom={margins[3]}mm]\
         hyphenation_cmd += t + "\n"
 
     other = "\n".join(preamble["other"])
-    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}"
+    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}\n"
+    metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
+    metadata += ", pdftitle={L" + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE]}" + "}}"
 
     result = [
         doc_class_cmd,
@@ -103,6 +105,7 @@ bottom={margins[3]}mm]\
         hyphenation_cmd,
         other,
         toc,
+        metadata,
     ]
     logging.debug("TEX PREAMBLE")
     logging.debug(result)
@@ -260,7 +263,7 @@ def _tex_gen(
     content = _assignment_text_gen(gen_info, assignment_list, incl_solution)
     end = "\\end{document}"
 
-    preamble = _preamble_gen(doc_settings)
+    preamble = _preamble_gen(doc_settings, gen_info['lecture'])
     header, footer = _hdr_ftr_gen(doc_settings, gen_info)
 
     tex_cmd = preamble + [
