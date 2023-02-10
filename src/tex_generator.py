@@ -173,6 +173,8 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
         text += "\n"
     else:
         text += data
+    if text[-1] != "\n":
+        text += "\n"
     text += "\end{minted}\n}\n"
     text += "\\vspace{0.1cm}\n"
 
