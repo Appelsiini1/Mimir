@@ -33,7 +33,7 @@ def _get_texts():
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
-VERSION = "0.2.11"
+VERSION = "0.2.12"
 LOG_LEVEL = DEBUG
 
 # Unique UI item tags

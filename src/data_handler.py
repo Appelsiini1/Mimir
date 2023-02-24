@@ -318,6 +318,7 @@ def format_metadata_json(data: dict):
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
+                # TODO Add handling for multiple output files
                 {
                     "filename": variation["example_runs"][i]["outputfiles"][0],
                     "data": read_datafile(
@@ -331,19 +332,25 @@ def format_metadata_json(data: dict):
         example_runs.append(n)
     new["example_runs"] = example_runs
     if variation["datafiles"]:
-        new["datafiles"] = [
+        new["datafiles"] = []
+        for df in variation["datafiles"]:
+            new["datafiles"].append(
             {
-                "filename": variation["datafiles"][0],
-                "data": read_datafile(variation["datafiles"][0]),
+                "filename": df,
+                "data": read_datafile(df),
             }
-        ]
-    new["example_codes"] = [
-        {
-            "filename": variation["codefiles"][0],
+            )
+    new["example_codes"] = []
+    for cf in variation["codefiles"]:
+        new["example_codes"].append(
+            {
+            "filename": cf,
             "code": get_assignment_code(
-                variation["codefiles"][0], data["assignment_id"] + variation["variation_id"]
+                cf, data["assignment_id"] + variation["variation_id"]
             ),
         }
-    ]
+        )
+
+
 
     return new
