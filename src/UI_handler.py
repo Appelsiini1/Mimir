@@ -12,8 +12,8 @@ from string import ascii_uppercase
 from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
-from src.data_handler import FILEPATHCARRIER
+from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS
+from src.data_handler import FILEPATHCARRIER, save_course_info, save_assignment
 from src.common import resource_path
 from src.set_generator import temp_creator
 
@@ -281,23 +281,25 @@ def main_window():
                         with dpg.table_row():
                             dpg.add_text(DISPLAY_TEXTS["ui_course_id"][LANGUAGE] + ":")
                             dpg.add_input_text(
-                                callback=None, width=400, hint="No course selected"
+                                callback=None, width=400, hint="No course selected", tag=UI_ITEM_TAGS["COURSE_ID"]
                             )
                         with dpg.table_row():
                             dpg.add_text(
                                 DISPLAY_TEXTS["ui_course_name"][LANGUAGE] + ":"
                             )
-                            dpg.add_input_text(callback=None, width=400)
+                            dpg.add_input_text(callback=None, width=400, tag=UI_ITEM_TAGS["COURSE_TITLE"])
                         with dpg.table_row():
                             dpg.add_text(DISPLAY_TEXTS["ui_no_weeks"][LANGUAGE] + ":")
                             dpg.add_input_int(
-                                callback=None, width=150, min_value=0, min_clamped=True
+                                callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["COURSE_WEEKS"]
                             )
                         with dpg.table_row():
                             dpg.add_text(
                                 DISPLAY_TEXTS["ui_no_assignments_index"][LANGUAGE] + ":"
                             )
                             dpg.add_text("0", tag=UI_ITEM_TAGS["total_index"])
+                        with dpg.table_row():
+                            dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=save_course_info, user_data=COURSE_GENERAL_TAGS)
                 dpg.add_spacer(width=50)
                 dpg.add_image("mimir_logo")
             dpg.add_spacer(height=25)
@@ -476,22 +478,22 @@ def _assignment_window(sender, app_data, user_data):
                         dpg.add_text(
                             DISPLAY_TEXTS["ui_assignment_title"][LANGUAGE] + ":"
                         )
-                        dpg.add_input_text(callback=None, width=430)
+                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TITLE"])
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_lecture_week"][LANGUAGE] + ":")
                         dpg.add_input_int(
-                            callback=None, width=150, min_value=0, min_clamped=True
+                            callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"]
                         )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_assignment_no"][LANGUAGE] + ":")
                         _help(DISPLAY_TEXTS["help_assignment_no"][LANGUAGE])
-                        dpg.add_input_text(callback=None, width=150)
+                        dpg.add_input_text(callback=None, width=150, tag=UI_ITEM_TAGS["ASSIGNMENT_NO"])
                     with dpg.table_row():
                         dpg.add_text(
                             DISPLAY_TEXTS["ui_assignment_tags"][LANGUAGE] + ":"
                         )
                         _help(DISPLAY_TEXTS["help_assignment_tags"][LANGUAGE])
-                        dpg.add_input_text(callback=None, width=430)
+                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TAGS"])
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_exp_assignment"][LANGUAGE] + ":")
                         dpg.add_checkbox(
@@ -502,6 +504,7 @@ def _assignment_window(sender, app_data, user_data):
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_prev_part"][LANGUAGE])
                         dpg.add_combo(
+                            # TODO Previous part combobox
                             ("Testi1", "Testi2", "Testi3"),
                             default_value="",
                             enabled=False,
@@ -538,7 +541,7 @@ def _assignment_window(sender, app_data, user_data):
             dpg.add_separator()
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None)
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=_VARIATION)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
                     callback=close_window,
@@ -572,6 +575,5 @@ def close_window(sender: None, app_data: None, window_id: int | str):
     dpg.delete_item(window_id)
 
 
-def get_input_values(s, a, u):
-    pass
+
 
