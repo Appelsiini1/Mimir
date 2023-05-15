@@ -33,13 +33,13 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
         if footer_opt["include_week"]:
-            ftr_cmd += f"\\fancyfoot[C]{{Viikko {gen_info['lecture']}}}\n"
+            ftr_cmd += f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_week'][LANGUAGE]} {gen_info['lecture']}}}\n"
 
         if footer_opt["include_program"]:
             ftr_cmd += f"\\fancyfoot[L]{{Mímir v{VERSION}}}"
 
         page_numbering = f"\\fancyhead[{header_opt['page_numbering'][0]}]\
-{{Sivu {header_opt['page_numbering'][1]}}}\n"
+{{{DISPLAY_TEXTS['tex_page'][LANGUAGE]} {header_opt['page_numbering'][1]}}}\n"
         hdr_cmd += page_numbering
 
         logging.debug("TEX HEADER")
@@ -52,7 +52,7 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
     return ""
 
 
-def _preamble_gen(doc_settings):
+def _preamble_gen(doc_settings: dict, lecture: int):
     """
     Create preamble for the TeX document.
     This includes most of the general settings for the document.
@@ -92,7 +92,9 @@ bottom={margins[3]}mm]\
         hyphenation_cmd += t + "\n"
 
     other = "\n".join(preamble["other"])
-    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}"
+    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}\n"
+    metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
+    metadata += ", pdftitle={L" + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE]}" + "}}"
 
     result = [
         doc_class_cmd,
@@ -103,6 +105,7 @@ bottom={margins[3]}mm]\
         hyphenation_cmd,
         other,
         toc,
+        metadata,
     ]
     logging.debug("TEX PREAMBLE")
     logging.debug(result)
@@ -167,9 +170,12 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     elif display_text_key == "cmd_input":
         for line in data:
             text += str(line) + " "
+        text += "\n"
     else:
         text += data
-    text += "\n\end{minted}\n}\n"
+    if text[-1] != "\n":
+        text += "\n"
+    text += "\end{minted}\n}\n"
     text += "\\vspace{0.1cm}\n"
 
     logging.debug("TEX BLOCK GENERATOR")
@@ -190,12 +196,14 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     """
 
     # TODO Add numbered list generator for lines starting with '-'
-    # TODO Add code formatting
 
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):
+        text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
-        text += f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        text += title
+        text += "\\section*" + title
         text += assignment["instructions"] + "\n"
         text += "\\vspace{0.1cm}\n"
 
@@ -229,7 +237,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
                 text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
                 text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
-                text += code["code"].replace("\t", "    ") + "\end{minted}\n}\n"
+                text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
 
         text += "\\vspace{0.5cm}\n"
         text += "\\fontfamily{lmr}\\selectfont\n"
@@ -257,7 +265,7 @@ def _tex_gen(
     content = _assignment_text_gen(gen_info, assignment_list, incl_solution)
     end = "\\end{document}"
 
-    preamble = _preamble_gen(doc_settings)
+    preamble = _preamble_gen(doc_settings, gen_info['lecture'])
     header, footer = _hdr_ftr_gen(doc_settings, gen_info)
 
     tex_cmd = preamble + [

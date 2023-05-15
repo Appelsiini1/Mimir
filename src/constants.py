@@ -24,6 +24,7 @@ elif OSname == "POSIX":
 
 
 def _get_texts():
+    # TODO Add error handling
     with open(resource_path("resource/texts.json"), "r", encoding="utf-8") as _file:
         _data = _file.read()
         _display_texts = json.loads(_data)
@@ -33,7 +34,7 @@ def _get_texts():
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
-VERSION = "0.2.7"
+VERSION = "0.2.13"
 LOG_LEVEL = DEBUG
 
 # Unique UI item tags

@@ -20,7 +20,7 @@
         "ENG" : "Inputs"
     },
     "cmd_input" : {
-        "FI" : "Komentoriviargumentit",
+        "FI" : "Komentoriviparametrit",
         "ENG" : "Commandline arguments"
     },
     "tex_ex_input_datafile" : {
@@ -329,5 +329,17 @@
     "tex_toc" : {
         "FI" : "Sisällysluettelo",
         "ENG" : "Contents"
+    },
+    "tex_page" : {
+        "FI" : "Sivu",
+        "ENG" : "Page"
+    },
+    "language_FI" : {
+        "FI" : "Suomi",
+        "ENG": "Finnish"
+    },
+    "language_ENG" : {
+        "FI" : "Englanti",
+        "ENG" : "English"
     }
 }
