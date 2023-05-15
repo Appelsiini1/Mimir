@@ -9,17 +9,24 @@
 
  ## Requirements
 
- In order to run directly from source, install dependecies from `requirements.txt` with
+ In order to run directly from source, install all dependecies with the install script in the root folder by running
+ 
+ ```
+ ./install.sh
+ ```
+**OR** by installing them individually from `requirements.txt` with
  ```
  pip install -r requirements.txt
  ```
 
  Start the program by running `main.py`.
 
- To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Mímir uses WSL
- to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` to use highlighting.
+ To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Mímir can use this either via PowerShell or WSL to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` to use highlighting.
  
  You can install them using these commands on Ubuntu:
+
+ _**NOTE: The install script will also install these, so onlu use these if not using the install script.**_
+
  ```
 sudo apt install texlive
 sudo apt install python3-pygments
