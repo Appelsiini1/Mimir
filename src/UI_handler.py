@@ -175,6 +175,28 @@ def _setup_textures():
     i = 1  # number of textures added so far
     logging.info("Texture registry added, with %d textures inside." % i)
 
+# def _create_AA_warning_popup():
+#     """
+#     Creates warning popup for "Add assignment" window ready for use later.
+#     """
+
+#     with dpg.popup(
+#         parent=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+#         mousebutton=dpg.mvMouseButton_Left,
+#         tag=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
+#         modal=True,
+#     ):
+#         dpg.add_spacer(height=5)
+#         dpg.add_text(DISPLAY_TEXTS["ui_assig_man_warning_popup"][LANGUAGE])
+#         dpg.add_spacer(height=5)
+#         dpg.add_separator()
+#         dpg.add_spacer(height=5)
+#         dpg.add_button(
+#             label=DISPLAY_TEXTS["ui_ok"][LANGUAGE],
+#             callback=lambda: dpg.configure_item(UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"], show=False),
+#             user_data=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
+#             width=75,
+#         )
 
 def setup_ui():
     """
@@ -249,7 +271,7 @@ def main_window():
                         dpg.add_table_column(
                             label="Course info one",
                             width_fixed=True,
-                            init_width_or_weight=200,
+                            init_width_or_weight=230,
                         )
                         dpg.add_table_column(
                             label="Course info two",
@@ -276,7 +298,7 @@ def main_window():
                                 DISPLAY_TEXTS["ui_no_assignments_index"][LANGUAGE] + ":"
                             )
                             dpg.add_text("0", tag=UI_ITEM_TAGS["total_index"])
-                dpg.add_spacer(width=100)
+                dpg.add_spacer(width=50)
                 dpg.add_image("mimir_logo")
             dpg.add_spacer(height=25)
         header2_label = DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE]
@@ -305,8 +327,9 @@ def main_window():
                         with dpg.table_row():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
-                                callback=open_assignment_window,
+                                callback=open_new_assignment_window,
                                 tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+                                user_data=False
                             )
 
 
@@ -417,7 +440,7 @@ def _add_variation_header(sender, app_data, user_data: _VARIATION):
         dpg.add_spacer(height=5)
 
 
-def _assignment_window():
+def _assignment_window(sender, app_data, user_data):
     """
     UI components for "Add assingment" window
     """
@@ -442,18 +465,18 @@ def _assignment_window():
                     dpg.add_table_column(
                         label="Assignment info one",
                         width_fixed=True,
-                        init_width_or_weight=200,
+                        init_width_or_weight=220,
                     )
                     dpg.add_table_column(
                         label="Assignment info two",
                         width_fixed=True,
-                        init_width_or_weight=410,
+                        init_width_or_weight=450,
                     )
                     with dpg.table_row():
                         dpg.add_text(
                             DISPLAY_TEXTS["ui_assignment_title"][LANGUAGE] + ":"
                         )
-                        dpg.add_input_text(callback=None, width=400)
+                        dpg.add_input_text(callback=None, width=430)
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_lecture_week"][LANGUAGE] + ":")
                         dpg.add_input_int(
@@ -468,7 +491,7 @@ def _assignment_window():
                             DISPLAY_TEXTS["ui_assignment_tags"][LANGUAGE] + ":"
                         )
                         _help(DISPLAY_TEXTS["help_assignment_tags"][LANGUAGE])
-                        dpg.add_input_text(callback=None, width=400)
+                        dpg.add_input_text(callback=None, width=430)
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_exp_assignment"][LANGUAGE] + ":")
                         dpg.add_checkbox(
@@ -492,7 +515,8 @@ def _assignment_window():
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_inst_lang"][LANGUAGE])
                         dpg.add_combo(
-                            ("Suomi", "Englanti"),
+                            #TODO do dynamically
+                            (DISPLAY_TEXTS['language_FI'][LANGUAGE], DISPLAY_TEXTS['language_ENG'][LANGUAGE]),
                             tag=UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"],
                         )
             dpg.add_spacer(height=5)
@@ -525,32 +549,14 @@ def _assignment_window():
                 )
 
 
-def open_assignment_window():
+def open_new_assignment_window():
     """
     A function to check whether the 'Add assingment' window is already open.
-    If it is not, open it. If it is, open a popup for user.
+    If it is not, open it.
     """
-    with dpg.popup(
-        UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
-        mousebutton=dpg.mvMouseButton_Left,
-        tag=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
-        modal=True,
-    ):
-        dpg.add_spacer(height=5)
-        dpg.add_text(DISPLAY_TEXTS["ui_assig_man_warning_popup"][LANGUAGE])
-        dpg.add_spacer(height=5)
-        dpg.add_separator()
-        dpg.add_spacer(height=5)
-        dpg.add_button(
-            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE],
-            callback=lambda: dpg.configure_item(UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"], show=False),
-            user_data=UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"],
-            width=75,
-        )
-    if not UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"] in dpg.get_windows():
-        _assignment_window()
-    else:
-        dpg.show_item(UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"])
+
+    if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"]):
+        _assignment_window(None, None, None)
 
 
 

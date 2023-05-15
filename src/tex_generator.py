@@ -33,13 +33,13 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
         if footer_opt["include_week"]:
-            ftr_cmd += f"\\fancyfoot[C]{{Viikko {gen_info['lecture']}}}\n"
+            ftr_cmd += f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_week'][LANGUAGE]} {gen_info['lecture']}}}\n"
 
         if footer_opt["include_program"]:
             ftr_cmd += f"\\fancyfoot[L]{{Mímir v{VERSION}}}"
 
         page_numbering = f"\\fancyhead[{header_opt['page_numbering'][0]}]\
-{{Sivu {header_opt['page_numbering'][1]}}}\n"
+{{{DISPLAY_TEXTS['tex_page'][LANGUAGE]} {header_opt['page_numbering'][1]}}}\n"
         hdr_cmd += page_numbering
 
         logging.debug("TEX HEADER")
