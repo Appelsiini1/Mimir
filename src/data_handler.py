@@ -11,9 +11,10 @@ from os import path, mkdir
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
+from dearpygui.dearpygui import get_values
 
-from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE
-from src.custom_errors import ConflictingAssignmentID, IndexExistsError
+from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, GENERAL_ASSIGNMENT_TAGS, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH
+from src.custom_errors import ConflictingAssignmentID, IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
@@ -144,11 +145,12 @@ def create_index(ix_path: str, name: str, force=False):
     """
     Creates an assignment index and its schema that are used to store paths to all available
     assingments.
-    Returns an index object.
+    Sets the created index as a global constant.
 
     Params:
     path: A path where to create the index
     name: Name of the created index
+    force: Force the creation of the index if it already exists.
     """
 
     data_path = path.join(ix_path, "data")
@@ -176,12 +178,12 @@ def create_index(ix_path: str, name: str, force=False):
         logging.exception("Unable to save index file.")
         return None
 
-    return ix
+    OPEN_IX = ix
 
 
 def open_index(ix_path: str, name: str):
     """
-    Opens a previously created assignment index. Returns an index object.
+    Opens a previously created assignment index. Sets the opened index as a global constant.
 
     Params:
     path: Path to the index
@@ -194,17 +196,20 @@ def open_index(ix_path: str, name: str):
         logging.exception("Could not open index file.")
         return None
 
-    return ix
+    OPEN_IX = ix
 
 
-def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
+def add_assignment_to_index(data: Assignment):
     """
-    Adds given assignements to index.
+    Adds given assignements to the index currently open.
 
     Params:
-    ix: FileIndex object where to index the assignment to
     data: an Assignment object containing assignment data
     """
+
+    if not OPEN_IX:
+        raise IndexNotOpenError
+    ix = OPEN_IX
 
     positions = ",".join(f"L{data.lecture:02d}T{i:02d}" for i in data.a_pos)
     tags = ",".join(data.tags)
@@ -232,6 +237,33 @@ def add_assignment_to_index(ix: index.FileIndex, data: Assignment):
     )
     writer.commit()
     return True
+
+def _save_course_file():
+    """
+    Save course metadata to file
+    """
+    f_path = path.join(OPEN_COURSE_PATH, COURSE_INFO["course_id"])
+    with open(f_path, "w", encoding="utf-8") as f:
+        to_write = json.dumps(COURSE_INFO)
+        f.write(to_write)
+
+
+def save_course_info(s, a, u:list):
+    """
+    Function to save course information from main window
+
+    Params:
+    s: not in use
+    a: not in use
+    u: list of item tags
+    """
+    if OPEN_COURSE_PATH:
+        values = get_input_values(None, None, u)
+        COURSE_INFO["course_title"] = values[1]
+        COURSE_INFO["course_id"] = values[0]
+        COURSE_INFO["course_weeks"] = values[2]
+
+        _save_course_file()
 
 
 def get_expanding_assignments(a_ix: index.FileIndex):
@@ -352,6 +384,22 @@ def format_metadata_json(data: dict):
         )
     return new
 
+def save_assignment(s, a, u):
+    general_values = get_input_values(None, None, GENERAL_ASSIGNMENT_TAGS)
+
+
+
+def get_input_values(s, a, u:list):
+    """
+    Gets input values and returns them as a list.
+
+    Params:
+    u: A list of UUIDs to get inputs from
+    """
+    
+    values = get_values(u)
+    return values
+
 def get_empty_assignment():
     """
     Returns an empty instance of an assignment dictionary
@@ -359,4 +407,40 @@ def get_empty_assignment():
     empty = {}
     empty["title"] = ""
     empty["tags"] = ""
-    empty["exp_lecture"]
+    empty["exp_lecture"] = ""
+    empty["exp_assignment_no"] = ""
+    empty["next, last"] = ""
+    empty["code_language"] = ""
+    empty["instruction_language"] = ""
+    empty["variations"] = []
+
+    return empty
+
+def get_empty_variation():
+    """
+    Returns an empty instance of an assignment variation dictionary
+    """
+
+    empty = {}
+    empty["variation_id"] = ""
+    empty["instructions"] = ""
+    empty["example_runs"] = []
+    empty["codefiles"] = []
+    empty["datafiles"] = []
+    empty["used_in"] = []
+
+    return empty
+
+def get_empty_example_run():
+    """
+    Returns an empty instace of an example run dictionary
+    """
+
+    empty = {}
+    empty["generate"] = None
+    empty["inputs"] = []
+    empty["cmd_inputs"] = []
+    empty["output"] = []
+    empty["outputfiles"] = []
+
+    return empty
