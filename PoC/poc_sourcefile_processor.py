@@ -1,7 +1,7 @@
 with open("inst.txt", "r", encoding='utf-8') as file:
     data = file.read()
     #print(data)
-    new_data = data.replace("\\", "\\\\").replace("\\n", "\\\n").replace('"', "'").replace("\t", "\\t")
+    new_data = data.replace("\\", "\\\\").replace("\\n", "\\\n").replace('"', "'").replace("\t", "\\t").replace('"','\\"').replace("%", "\\\\%").replace("_", "\\\\_")
     new_data = new_data.replace("\n", "\\n")
 with open("res.txt", "w", encoding='utf-8') as new_file:
     new_file.write(new_data)

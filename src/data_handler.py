@@ -350,7 +350,13 @@ def format_metadata_json(data: dict):
             ),
         }
         )
-
-
-
     return new
+
+def get_empty_assignment():
+    """
+    Returns an empty instance of an assignment dictionary
+    """
+    empty = {}
+    empty["title"] = ""
+    empty["tags"] = ""
+    empty["exp_lecture"]
