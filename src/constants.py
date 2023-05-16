@@ -5,7 +5,7 @@ from os import name as OSname
 from os import getenv
 from os.path import join
 from logging import DEBUG, INFO
-from sys import exit
+from sys import exit as sysexit
 import json
 
 from dearpygui.dearpygui import generate_uuid
@@ -17,7 +17,7 @@ def _get_texts():
             _data = _file.read()
             _display_texts = json.loads(_data)
     except OSError:
-        exit(1)
+        sysexit(1)
     return _display_texts
 
 #################################
@@ -40,24 +40,32 @@ LOG_LEVEL = DEBUG
 
 #################################
 # Unique UI item tags
-UI_ITEM_TAGS = {}
-UI_ITEM_TAGS["total_index"] = generate_uuid()
-UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"] = generate_uuid()
-UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"] = generate_uuid()
-UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"] = generate_uuid()
-UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"] = generate_uuid()
-UI_ITEM_TAGS["VARIATION_GROUP"] = generate_uuid()
-UI_ITEM_TAGS["MAIN_WINDOW"] = generate_uuid()
-UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"] = generate_uuid()
-UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"] = generate_uuid()
-UI_ITEM_TAGS["WARNING_POPUP_ADD_ASSIG_WINDOW"] = generate_uuid()
-UI_ITEM_TAGS["ASSIGNMENT_TITLE"] = generate_uuid()
-UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"] = generate_uuid()
-UI_ITEM_TAGS["ASSIGNMENT_NO"] = generate_uuid()
-UI_ITEM_TAGS["ASSIGNMENT_TAGS"] = generate_uuid()
-UI_ITEM_TAGS["COURSE_ID"] = generate_uuid()
-UI_ITEM_TAGS["COURSE_TITLE"] = generate_uuid()
-UI_ITEM_TAGS["COURSE_WEEKS"] = generate_uuid()
+
+_GENERAL_KEY_LIST = [
+    "total_index",
+    "PREVIOUS_PART_CHECKBOX",
+    "PREVIOUS_PART_COMBOBOX",
+    "CODE_LANGUAGE_COMBOBOX",
+    "INST_LANGUAGE_COMBOBOX",
+    "VARIATION_GROUP",
+    "MAIN_WINDOW",
+    "ADD_ASSIGNMENT_WINDOW",
+    "OPEN_ADD_ASSINGMENT_BUTTON",
+    "WARNING_POPUP_ADD_ASSIG_WINDOW",
+    "ASSIGNMENT_TITLE",
+    "ASSIGNMENT_LECTURE_WEEK",
+    "ASSIGNMENT_NO",
+    "ASSIGNMENT_TAGS",
+    "COURSE_ID",
+    "COURSE_TITLE",
+    "COURSE_WEEKS",
+
+]
+VARIATION_KEY_LIST = [
+    
+]
+
+UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
 
 #################################
 # Item tag lists
@@ -77,14 +85,6 @@ GENERAL_ASSIGNMENT_TAGS = [
     UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"],
     UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
     
-]
-
-VARIATION_TAGS = [
-
-]
-
-EXAMPLE_RUN_TAGS = [
-
 ]
 
 #################################
