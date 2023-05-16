@@ -5,12 +5,22 @@ from os import name as OSname
 from os import getenv
 from os.path import join
 from logging import DEBUG, INFO
+from sys import exit
 import json
 
 from dearpygui.dearpygui import generate_uuid
 from src.common import resource_path
 
+def _get_texts():
+    try:
+        with open(resource_path("resource/texts.json"), "r", encoding="utf-8") as _file:
+            _data = _file.read()
+            _display_texts = json.loads(_data)
+    except OSError:
+        exit(1)
+    return _display_texts
 
+#################################
 # Environment spesific variables
 # OS = operating system name
 # PROGRAM_DATA = path to data/cache folder
@@ -22,21 +32,13 @@ elif OSname == "POSIX":
     ENV["OS"] = "POSIX"
     ENV["PROGRAM_DATA"] = join(getenv("HOME"), "MimirData")
 
-
-def _get_texts():
-    # TODO Add error handling
-    with open(resource_path("resource/texts.json"), "r", encoding="utf-8") as _file:
-        _data = _file.read()
-        _display_texts = json.loads(_data)
-    return _display_texts
-
-
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
 VERSION = "0.2.13"
 LOG_LEVEL = DEBUG
 
+#################################
 # Unique UI item tags
 UI_ITEM_TAGS = {}
 UI_ITEM_TAGS["total_index"] = generate_uuid()
@@ -57,8 +59,8 @@ UI_ITEM_TAGS["COURSE_ID"] = generate_uuid()
 UI_ITEM_TAGS["COURSE_TITLE"] = generate_uuid()
 UI_ITEM_TAGS["COURSE_WEEKS"] = generate_uuid()
 
+#################################
 # Item tag lists
-
 COURSE_GENERAL_TAGS = [
     UI_ITEM_TAGS["COURSE_ID"],
     UI_ITEM_TAGS["COURSE_TITLE"],
@@ -85,8 +87,8 @@ EXAMPLE_RUN_TAGS = [
 
 ]
 
+#################################
 # Misc constants
-
 OPEN_IX = None
 OPEN_COURSE_PATH = None
 COURSE_INFO = {
