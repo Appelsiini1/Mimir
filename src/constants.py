@@ -62,7 +62,10 @@ _GENERAL_KEY_LIST = [
 
 ]
 VARIATION_KEY_LIST = [
-    
+    "USED_IN"
+    "EXAMPLE_LISTBOX",
+    "CODEFILE_LISTBOX",
+    "DATAFILE_LISTBOX"
 ]
 
 UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}

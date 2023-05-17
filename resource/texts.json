@@ -341,5 +341,13 @@
     "language_ENG" : {
         "FI" : "Englanti",
         "ENG" : "English"
+    },
+    "ui_codefiles" : {
+        "FI" : "Kooditiedostot",
+        "ENG" : "Code files"
+    },
+    "ui_datafiles" : {
+        "FI" : "Datatiedostot",
+        "ENG" : "Data files"
     }
 }

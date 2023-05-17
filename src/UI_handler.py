@@ -13,7 +13,7 @@ from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS, VARIATION_KEY_LIST
-from src.data_handler import FILEPATHCARRIER, save_course_info, save_assignment, get_empty_variation
+from src.data_handler import FILEPATHCARRIER, save_course_info, save_assignment, get_empty_variation, path_leaf
 from src.set_generator import temp_creator
 from src.ui_helper import VARIATION, set_style, setup_textures, help_, add_variation, cancel_variation, close_window
 
@@ -184,13 +184,6 @@ def _add_example_run_header(
                 help_(DISPLAY_TEXTS["help_ex_output"][LANGUAGE])
                 dpg.add_input_text(tag=output_text_id, multiline=True, height=150)
                 dpg.add_spacer(height=5)
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE],
-                        callback=None,
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE])
                 # TODO Add selectable file list
                 dpg.add_text(DISPLAY_TEXTS["ui_output_filename"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_output_filename"][LANGUAGE])
@@ -198,15 +191,15 @@ def _add_example_run_header(
         dpg.add_spacer(height=5)
 
 
-def _add_variation_window(sender, app_data, user_data: tuple):
+def _add_variation_window(sender, app_data, user_data: tuple[VARIATION, list, dict]):
     variation_id, var_letter = add_variation(user_data[0])
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE] + " " + var_letter
     user_data[1].append(label)
-    ex_run_group_uuid = user_data[0].get_variation(variation_id).get_ex_run_group()
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in VARIATION_KEY_LIST}
-
+    data = user_data[2]
+    window_id = dpg.generate_uuid()
     with dpg.window(
-        label=label, tag=variation_id, width=750, height=700, no_close=True
+        label=label, tag=window_id, width=750, height=700, no_close=True
     ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
@@ -216,36 +209,52 @@ def _add_variation_window(sender, app_data, user_data: tuple):
                 help_(DISPLAY_TEXTS["help_inst"][LANGUAGE])
                 dpg.add_input_text(multiline=True, height=150, tab_input=True)
                 dpg.add_spacer(width=5)
-                with dpg.group(tag=ex_run_group_uuid):
-                    _add_example_run_header(
-                        None, None, (user_data[0], variation_id, ex_run_group_uuid)
-                    )
+                with dpg.group():
+                    runs = [] if not data["example_runs"] else ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE], i) for i, _ in enumerate(data["example_runs"])]
+                    dpg.add_listbox(runs, tag=UUIDs["EXAMPLE_LISTBOX"])
         dpg.add_spacer(height=5)
         dpg.add_separator()
         dpg.add_spacer(height=5)
         dpg.add_button(
             label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE],
             callback=_add_example_run_header,
-            user_data=(user_data, variation_id, ex_run_group_uuid),
+            user_data=(user_data, variation_id),
         )
         dpg.add_spacer(height=5)
         dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE])
         help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE])
-        dpg.add_input_text()
+        dpg.add_input_text(tag=UUIDs["USED_IN"], default_value=data["used_in"])
         dpg.add_spacer(width=5)
+        
+        dpg.add_text(DISPLAY_TEXTS["ui_codefiles"][LANGUAGE])
+        files = [] if not data["codefiles"] else [path_leaf(f_p) for f_p in data["codefiles"]]
+        dpg.add_listbox(files, tag=UUIDs["CODEFILE_LISTBOX"])
         with dpg.group(horizontal=True):
             dpg.add_button(
                 label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE], callback=None
             )
             dpg.add_spacer(width=5)
-            dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE])
+            dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=None)
         dpg.add_spacer(height=5)
+
+        dpg.add_text(DISPLAY_TEXTS["ui_datafiles"][LANGUAGE])
+        files = [] if not data["datafiles"] else [path_leaf(f_p) for f_p in data["datafiles"]]
+        dpg.add_listbox(files, tag=UUIDs["DATAFILE_LISTBOX"])
+        with dpg.group(horizontal=True):
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE],
+                callback=None,
+            )
+            dpg.add_spacer(width=5)
+            dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=None)
+        dpg.add_spacer(height=5)
+
         with dpg.group():
-            dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=VARIATION)
+            dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=UUIDs)
             dpg.add_button(
                 label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
-                callback=cancel_variation,
-                user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                callback=close_window,
+                user_data=window_id,
             )
 
 
