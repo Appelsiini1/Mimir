@@ -12,6 +12,7 @@ from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 from dearpygui.dearpygui import get_values
+from ntpath import split, basename
 
 from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, GENERAL_ASSIGNMENT_TAGS, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH
 from src.custom_errors import ConflictingAssignmentID, IndexExistsError, IndexNotOpenError
@@ -444,3 +445,8 @@ def get_empty_example_run():
     empty["outputfiles"] = []
 
     return empty
+
+def path_leaf(f_path):
+    """Return the filename from a filepath"""
+    head, tail = split(f_path)
+    return tail or basename(head)
