@@ -5,11 +5,11 @@ import logging
 from os.path import join
 from os import getcwd
 from string import ascii_uppercase
-from tkinter import filedialog
+from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS
-from src.data_handler import FILEPATHCARRIER, save_course_info, save_assignment, get_empty_variation
+from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE
+from src.data_handler import path_leaf
 from src.common import resource_path
 
 ################################
@@ -26,11 +26,15 @@ class VARIATION:
         """Returns how many variations are saved"""
         return len(self.variations)
 
-    def add_variation(self, data:dict) -> None:
+    def add(self, data:dict) -> None:
         """Add variation dict to list"""
         self.variations.append(data)
 
-    def delete_var(self, var_letter) -> None:
+    def update(self, data:dict) -> None:
+        """Updates variation with new data if it already exists"""
+        # TODO
+
+    def delete(self, var_letter) -> None:
         found = next((i for i, item in enumerate(self.variations) if item["variation_id"] == var_letter), None)
         if found:
             self.variations.remove(found)
@@ -127,23 +131,13 @@ def help_(message):
     with dpg.tooltip(t):
         dpg.add_text(message)
 
-def add_variation(var: VARIATION) -> tuple[int | str, str]:
-    new_id = dpg.generate_uuid()
-    letter = _get_variation_letter(var.get_var_count())
-    return new_id, letter
-
-
-def _get_variation_letter(var):
+def get_variation_letter(var):
     base = len(ascii_uppercase)
     result = ""
     while var > 0:
         result = ascii_uppercase[(var - 1) % base] + result
         var = (var - 1) // base
     return result
-
-
-def cancel_variation(sender, app_data, user_data):
-    pass
 
 
 def close_window(sender: None, app_data: None, window_id: int | str):
@@ -156,3 +150,85 @@ def close_window(sender: None, app_data: None, window_id: int | str):
     window_id: The UUID of the window to close.
     """
     dpg.delete_item(window_id)
+
+def extract_variation_data(var:dict, data:dict, UUIDS:list):
+    pass
+
+def get_files(s, a, u:tuple):
+    """
+    Gets file paths from the user and adds them to the spesified list box
+
+    Params:
+    u: A tuple that contains the dict to save to, listbox UUID and file type group name
+    """
+    save_to = u[0]
+    listbox = u[1]
+    f_type = u[2]
+
+    if f_type == "codefile":
+        files = openfilebrowser(f_type)
+        save_to["codefiles"] = list(files)
+    elif f_type == "datafiles":
+        files = openfilebrowser("textfile")
+        save_to["datafiles"] = files
+
+    leafs = [path_leaf(i) for i in files]
+    dpg.configure_item(listbox, items=leafs)
+
+def openfilebrowser(f_type:str) -> list:
+    """
+    Opens the filebrowser with f_type file extensions available.
+    Allows the selection of multiple files. Returns a list of paths of the selected files.
+    """
+    if f_type not in FILETYPES["types"]:
+        raise TypeError("Filetype not found")
+    if f_type != "any":
+        extensions = FILETYPES[f_type] + FILETYPES["any"]
+    else:
+        extensions = FILETYPES[f_type]
+    file_paths = askopenfilenames(initialdir=getcwd(), filetypes=extensions)
+    return list(file_paths)
+
+def remove_selected(s, a, u):
+    """
+    Removes the selected item from the listbox.
+
+    Params:
+    u: A tuple that contains:
+        0. The listbox to remove from
+        1. The data structure to remove from
+        2. The type of data to remove
+    """
+    selected = dpg.get_value(u[0])
+    data = u[1]
+    i_type = u[2]
+    final = []
+
+    if selected == "":
+        return
+
+    if i_type == "variation":
+        for i, item in enumerate(data["variations"]):
+            if item["variation_id"] == selected.split(" ")[1]:
+                data["variations"].pop(i)
+                final = data["variations"]
+                break
+    elif i_type == "datafiles":
+        for i, item in enumerate(data["datafiles"]):
+            if path_leaf(item) == selected:
+                data["datafiles"].pop(i)
+                final = [path_leaf(i) for i in data["datafiles"]]
+                break
+    elif i_type == "codefiles":
+        for i, item in enumerate(data["codefiles"]):
+            if path_leaf(item) == selected:
+                data["codefiles"].pop(i)
+                final = [path_leaf(i) for i in data["codefiles"]]
+                break
+    elif i_type == "ex_run":
+        index = selected.split(" ")[1]-1
+        data["example_runs"].pop(index)
+        final = ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE], i) for i, _ in enumerate(data["example_runs"])]
+
+
+    dpg.configure_item(u[0], items=final)
