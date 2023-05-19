@@ -6,7 +6,7 @@
     ],
     "codefile" : [
         ["C", [".c", ".h"]],
-        ["python", [".py"]]
+        ["Python", [".py"]]
     ],
     "textfile" : [
         ["txt", [".txt"]],
