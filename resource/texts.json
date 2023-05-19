@@ -319,8 +319,8 @@
         "ENG" : "Text files"
     },
     "file_any" : {
-        "FI" : "Muut",
-        "ENG" : "Other"
+        "FI" : "Kaikki tiedostot",
+        "ENG" : "All files"
     },
     "file_json" : {
         "FI" : "Metadatatiedostot",
