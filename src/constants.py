@@ -24,7 +24,7 @@ def _get_filetypes():
     try:
         with open(resource_path("resource/filetypes.json"), "r", encoding="utf-8") as _file:
             _data = json.loads(_file.read())
-            _data["any"][0] = DISPLAY_TEXTS["file_any"][LANGUAGE] # not a great solution
+            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][LANGUAGE] # not a great solution
     except OSError:
         sysexit(1)
     return _data
@@ -72,7 +72,7 @@ _GENERAL_KEY_LIST = [
 
 ]
 VARIATION_KEY_LIST = [
-    "USED_IN"
+    "USED_IN",
     "EXAMPLE_LISTBOX",
     "CODEFILE_LISTBOX",
     "DATAFILE_LISTBOX"
