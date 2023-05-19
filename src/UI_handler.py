@@ -13,9 +13,9 @@ from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS, VARIATION_KEY_LIST
-from src.data_handler import FILEPATHCARRIER, save_course_info, save_assignment, get_empty_variation, path_leaf
+from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment
 from src.set_generator import temp_creator
-from src.ui_helper import VARIATION, set_style, setup_textures, help_, add_variation, cancel_variation, close_window
+from src.ui_helper import VARIATION, set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected
 
 
 def _stop():
@@ -191,17 +191,20 @@ def _add_example_run_header(
         dpg.add_spacer(height=5)
 
 
-def _add_variation_window(sender, app_data, user_data: tuple[VARIATION, list, dict]):
-    variation_id, var_letter = add_variation(user_data[0])
+def _add_variation_window(sender, app_data, user_data: tuple[dict, list]):
+    parent_data = user_data[0]
+    var_letter = get_variation_letter(len(parent_data["variations"]))
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE] + " " + var_letter
-    user_data[1].append(label)
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in VARIATION_KEY_LIST}
-    data = user_data[2]
     window_id = dpg.generate_uuid()
+    data = get_empty_variation()
+
     with dpg.window(
         label=label, tag=window_id, width=750, height=700, no_close=True
     ):
         dpg.add_spacer(height=5)
+
+        # Instruction textbox
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
@@ -209,53 +212,85 @@ def _add_variation_window(sender, app_data, user_data: tuple[VARIATION, list, di
                 help_(DISPLAY_TEXTS["help_inst"][LANGUAGE])
                 dpg.add_input_text(multiline=True, height=150, tab_input=True)
                 dpg.add_spacer(width=5)
+
+        # Example run list box and its buttons
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                dpg.add_text(DISPLAY_TEXTS["ui_ex_runs"][LANGUAGE])
                 with dpg.group():
                     runs = [] if not data["example_runs"] else ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE], i) for i, _ in enumerate(data["example_runs"])]
                     dpg.add_listbox(runs, tag=UUIDs["EXAMPLE_LISTBOX"])
-        dpg.add_spacer(height=5)
+                dpg.add_spacer(height=5)
+
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE],
+                        callback=_add_example_run_header,
+                        user_data=(user_data),
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run"))
+    
+        # Used in text box
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                dpg.add_spacer(height=5)
+                dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE])
+                help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE])
+                dpg.add_input_text(tag=UUIDs["USED_IN"], default_value=", ".join(data["used_in"]))
+                dpg.add_spacer(width=5)
+        
+        # Code files listbox and its buttons
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                dpg.add_text(DISPLAY_TEXTS["ui_codefiles"][LANGUAGE])
+                files = [] if not data["codefiles"] else [path_leaf(f_p) for f_p in data["codefiles"]]
+                dpg.add_listbox(files, tag=UUIDs["CODEFILE_LISTBOX"])
+                dpg.add_spacer(height=5)
+
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE], callback=get_files, user_data=(data, UUIDs["CODEFILE_LISTBOX"], "codefile")
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["CODEFILE_LISTBOX"], data, "codefiles"))
+                dpg.add_spacer(height=5)
+
+        # Datafiles listbox and its buttons
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                dpg.add_text(DISPLAY_TEXTS["ui_datafiles"][LANGUAGE])
+                files = [] if not data["datafiles"] else [path_leaf(f_p) for f_p in data["datafiles"]]
+                dpg.add_listbox(files, tag=UUIDs["DATAFILE_LISTBOX"])
+                dpg.add_spacer(height=5)
+
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE],
+                        callback=get_files,
+                        user_data=(data, UUIDs["DATAFILE_LISTBOX"], "datafiles")
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["DATAFILE_LISTBOX"], data, "datafiles"))
+                dpg.add_spacer(height=5)
+
+        # Window buttons
         dpg.add_separator()
         dpg.add_spacer(height=5)
-        dpg.add_button(
-            label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE],
-            callback=_add_example_run_header,
-            user_data=(user_data, variation_id),
-        )
-        dpg.add_spacer(height=5)
-        dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE])
-        help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE])
-        dpg.add_input_text(tag=UUIDs["USED_IN"], default_value=data["used_in"])
-        dpg.add_spacer(width=5)
-        
-        dpg.add_text(DISPLAY_TEXTS["ui_codefiles"][LANGUAGE])
-        files = [] if not data["codefiles"] else [path_leaf(f_p) for f_p in data["codefiles"]]
-        dpg.add_listbox(files, tag=UUIDs["CODEFILE_LISTBOX"])
         with dpg.group(horizontal=True):
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE], callback=None
-            )
-            dpg.add_spacer(width=5)
-            dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=None)
-        dpg.add_spacer(height=5)
-
-        dpg.add_text(DISPLAY_TEXTS["ui_datafiles"][LANGUAGE])
-        files = [] if not data["datafiles"] else [path_leaf(f_p) for f_p in data["datafiles"]]
-        dpg.add_listbox(files, tag=UUIDs["DATAFILE_LISTBOX"])
-        with dpg.group(horizontal=True):
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE],
-                callback=None,
-            )
-            dpg.add_spacer(width=5)
-            dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=None)
-        dpg.add_spacer(height=5)
-
-        with dpg.group():
-            dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=UUIDs)
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
-                callback=close_window,
-                user_data=window_id,
-            )
+            dpg.add_spacer(width=25)
+            with dpg.group(horizontal=True):
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=(UUIDs, label))
+                dpg.add_spacer(width=5)
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
+                    callback=close_window,
+                    user_data=window_id,
+                )
 
 
 def _assignment_window(sender, app_data, user_data):
@@ -266,8 +301,9 @@ def _assignment_window(sender, app_data, user_data):
         DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE],
         DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
     )
-    var = VARIATION()
+    var = get_empty_assignment()
     variation_listbox = None
+    variation_list = []
     with dpg.window(
         label=label,
         width=750,
@@ -342,9 +378,8 @@ def _assignment_window(sender, app_data, user_data):
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
-                with dpg.group(tag=UI_ITEM_TAGS["VARIATION_GROUP"]):
-                    items = []
-                    dpg.add_listbox(items)
+                with dpg.group():
+                    dpg.add_listbox(variation_list, tag=UI_ITEM_TAGS["VARIATION_GROUP"])
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
@@ -355,6 +390,7 @@ def _assignment_window(sender, app_data, user_data):
                     callback=_add_variation_window,
                     user_data=(var, variation_listbox),
                 )
+                dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], user_data=(UI_ITEM_TAGS["VARIATION_GROUP"], var, "variation"), callback=remove_selected)
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)

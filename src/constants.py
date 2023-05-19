@@ -45,7 +45,7 @@ elif OSname == "POSIX":
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
 
-VERSION = "0.2.13"
+VERSION = "0.2.14"
 LOG_LEVEL = DEBUG
 
 #################################
