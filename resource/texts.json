@@ -349,5 +349,9 @@
     "ui_datafiles" : {
         "FI" : "Datatiedostot",
         "ENG" : "Data files"
+    },
+    "ui_ex_runs" : {
+        "FI" : "Esimerkkiajot",
+        "ENG" : "Example runs"
     }
 }
