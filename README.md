@@ -25,7 +25,7 @@
  
  You can install them using these commands on Ubuntu:
 
- _**NOTE: The install script will also install these, so onlu use these if not using the install script.**_
+ _**NOTE: The install script will also install these, so only use these if not using the install script.**_
 
  ```
 sudo apt install texlive
