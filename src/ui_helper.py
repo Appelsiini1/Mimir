@@ -14,33 +14,6 @@ from src.common import resource_path
 
 ################################
 
-class VARIATION:
-    def __init__(self) -> None:
-        self.variations = []
-
-    def get_all_variations(self) -> list:
-        """Get current list of variations"""
-        return self.variations
-
-    def get_var_count(self) -> int:
-        """Returns how many variations are saved"""
-        return len(self.variations)
-
-    def add(self, data:dict) -> None:
-        """Add variation dict to list"""
-        self.variations.append(data)
-
-    def update(self, data:dict) -> None:
-        """Updates variation with new data if it already exists"""
-        # TODO
-
-    def delete(self, var_letter) -> None:
-        found = next((i for i, item in enumerate(self.variations) if item["variation_id"] == var_letter), None)
-        if found:
-            self.variations.remove(found)
-
-################################
-
 def _load_fonts():
     """
     Loads default fonts. Returns a dict of loaded fonts.
@@ -151,13 +124,47 @@ def close_window(sender: None, app_data: None, window_id: int | str):
     """
     dpg.delete_item(window_id)
 
-def extract_variation_data(var:dict, data:dict, UUIDS:list):
-    pass
+def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
+    """
+    Gets values from variation input fields and saves the data to parent dict
+    """
+    UUIDS = u[0]
+    var_letter = u[1]
+    parent_data = u[2]
+    data = u[3]
+    ix = u[4]
 
-def extract_exrun_data(s, a, u: tuple[dict, ]):
-    pass
+    data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
+    data["used_in"] = dpg.get_value(UUIDS["USED_IN"])
 
-def get_files(s, a, u:tuple):
+    if ix == -1:
+        data["variation_id"] = var_letter
+        parent_data["variations"].append(data)
+    else:
+        parent_data["variations"][ix] = data
+
+def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
+    """
+    Gets values from exrun input fields and saves the data to the parent dict.
+    """
+    UUIDS = u[0]
+    ex_run = u[1]
+    var = u[2]
+    new = u[3]
+    ix = u[4]
+
+    ex_run["generate"] = dpg.get_value(UUIDS["GEN_EX"])
+    ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"])
+    ex_run["cmd_inputs"] = dpg.get_value(UUIDS["CMD_INPUTS"])
+    if not ex_run["generate"]:
+        ex_run["output"] = dpg.get_value(UUIDS["OUTPUT"])
+
+    if new:
+        var["example_runs"].append(ex_run)
+    else:
+        var["example_runs"][ix] = ex_run
+
+def get_files(s, a, u:tuple[dict, int|str, str]):
     """
     Gets file paths from the user and adds them to the spesified list box
 
@@ -170,7 +177,7 @@ def get_files(s, a, u:tuple):
 
     if f_type == "codefile":
         files = openfilebrowser(f_type)
-        save_to["codefiles"] = list(files)
+        save_to["codefiles"] = files
     elif f_type == "datafiles":
         files = openfilebrowser("textfile")
         save_to["datafiles"] = files
@@ -230,6 +237,12 @@ def remove_selected(s, a, u):
             if path_leaf(item) == selected:
                 data["codefiles"].pop(i)
                 final = [path_leaf(i) for i in data["codefiles"]]
+                break
+    elif i_type == "outputfiles":
+        for i, item in enumerate(data["outputfiles"]):
+            if path_leaf(item) == selected:
+                data["outputfiles"].pop(i)
+                final = [path_leaf(i) for i in data["outputfiles"]]
                 break
     elif i_type == "ex_run":
         index = selected.split(" ")[1]-1

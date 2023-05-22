@@ -29,9 +29,13 @@ def _get_filetypes():
         sysexit(1)
     return _data
 
+#################################
+# Version
+
+VERSION = "0.3.0"
 
 #################################
-# Environment spesific variables
+# Environment spesific constants
 # OS = operating system name
 # PROGRAM_DATA = path to data/cache folder
 ENV = {}
@@ -42,11 +46,11 @@ elif OSname == "POSIX":
     ENV["OS"] = "POSIX"
     ENV["PROGRAM_DATA"] = join(getenv("HOME"), "MimirData")
 
+################################
+# UI constants
+
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = "FI"
-
-VERSION = "0.2.14"
-LOG_LEVEL = DEBUG
 
 #################################
 # Unique UI item tags
@@ -72,10 +76,19 @@ _GENERAL_KEY_LIST = [
 
 ]
 VARIATION_KEY_LIST = [
+    "INSTRUCTIONS",
     "USED_IN",
     "EXAMPLE_LISTBOX",
     "CODEFILE_LISTBOX",
     "DATAFILE_LISTBOX"
+]
+
+EXAMPLE_RUN_KEY_LIST = [
+    "INPUTS",
+    "CMD_INPUTS",
+    "OUTPUT",
+    "OUTPUT_FILES",
+    "GEN_EX"
 ]
 
 UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
@@ -110,3 +123,4 @@ COURSE_INFO = {
     "course_weeks": None
 }
 FILETYPES = _get_filetypes()
+LOG_LEVEL = DEBUG
