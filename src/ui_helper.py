@@ -154,6 +154,9 @@ def close_window(sender: None, app_data: None, window_id: int | str):
 def extract_variation_data(var:dict, data:dict, UUIDS:list):
     pass
 
+def extract_exrun_data(s, a, u: tuple[dict, ]):
+    pass
+
 def get_files(s, a, u:tuple):
     """
     Gets file paths from the user and adds them to the spesified list box
@@ -171,6 +174,9 @@ def get_files(s, a, u:tuple):
     elif f_type == "datafiles":
         files = openfilebrowser("textfile")
         save_to["datafiles"] = files
+    elif f_type == "outputfiles":
+        files = openfilebrowser("textfile")
+        save_to["outputfiles"] = files
 
     leafs = [path_leaf(i) for i in files]
     dpg.configure_item(listbox, items=leafs)
