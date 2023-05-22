@@ -12,10 +12,10 @@ from string import ascii_uppercase
 from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS, VARIATION_KEY_LIST
-from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment
+from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, COURSE_GENERAL_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST
+from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment, get_empty_example_run
 from src.set_generator import temp_creator
-from src.ui_helper import VARIATION, set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected
+from src.ui_helper import set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data
 
 
 def _stop():
@@ -148,56 +148,102 @@ def main_window():
 
 
 
-def _add_example_run_header(
-    sender: int | str, app_data, user_data: tuple[VARIATION, int | str, int | str]
+def _add_example_run_window(
+    sender, app_data, user_data: tuple[dict, int]
 ):
-    var = user_data[0].get_variation(user_data[1])
-    parent_group = user_data[2]
-    ex_run = var.add_ex_run()
-    label = DISPLAY_TEXTS["ex_run"][LANGUAGE] + " " + str(var.get_run_number())
-    with dpg.collapsing_header(
-        label=label, parent=parent_group, tag=ex_run.get_group_uuid()
+    var = user_data[0]
+    new = 0
+    try:
+        ex_run = var["example_runs"][user_data[1]]
+    except IndexError:
+        ex_run = get_empty_example_run()
+        new = 1
+    
+    UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
+    window_id = dpg.generate_uuid()
+    label = DISPLAY_TEXTS["ex_run"][LANGUAGE] + " " + str(user_data[1])
+    with dpg.window(
+        label=label, tag=window_id, width=750, height=700, no_close=True
     ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
+
+                # Inputs
                 dpg.add_text(DISPLAY_TEXTS["ex_input"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_inputs"][LANGUAGE])
                 dpg.add_input_text(
-                    multiline=True, height=150, tab_input=True, tag=ex_run.add_uuid()
+                    multiline=True, height=150, tab_input=True, tag=UUIDs["INPUTS"]
                 )
                 dpg.add_spacer(height=5)
+
+                # Command line inputs
                 dpg.add_text(DISPLAY_TEXTS["cmd_input"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_cmd_inputs"][LANGUAGE])
-                dpg.add_input_text(tag=ex_run.add_uuid())
-                output_text_id = ex_run.add_uuid()
+                dpg.add_input_text(tag=UUIDs["CMD_INPUTS"])
+                
+                # Generate ex run checkbox
+                dpg.add_spacer(height=5)
                 with dpg.group(horizontal=True):
                     dpg.add_text(DISPLAY_TEXTS["ui_gen_ex_checkbox"][LANGUAGE])
                     help_(DISPLAY_TEXTS["help_gen_ex_checkbox"][LANGUAGE])
                     dpg.add_checkbox(
-                        tag=ex_run.add_uuid(),
+                        tag=UUIDs["GEN_EX"],
                         callback=_toggle_enabled,
-                        user_data=output_text_id,
+                        user_data=UUIDs["OUTPUT"],
                     )
+                
+                # Output text
                 dpg.add_text(DISPLAY_TEXTS["ex_output"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_ex_output"][LANGUAGE])
-                dpg.add_input_text(tag=output_text_id, multiline=True, height=150)
+                dpg.add_input_text(tag=UUIDs["OUTPUT"], multiline=True, height=150)
                 dpg.add_spacer(height=5)
-                # TODO Add selectable file list
+                
+                # Output files
                 dpg.add_text(DISPLAY_TEXTS["ui_output_filename"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_output_filename"][LANGUAGE])
-                dpg.add_input_text(tag=ex_run.add_uuid())
+                with dpg.group():
+                    files = [] if not ex_run["outputfiles"] else [path_leaf(f_p) for f_p in ex_run["outputfiles"]]
+                    dpg.add_listbox(files, tag=UUIDs["OUTPUT_FILES"])
+                    dpg.add_spacer(height=5)
+
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_import_outputfiles"][LANGUAGE],
+                            callback=get_files,
+                            user_data=(ex_run, UUIDs["OUTPUT_FILES"], "outputfiles")
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["OUTPUT_FILES"], ex_run, "outputfiles"))
+        dpg.add_spacer(height=10)
+            
+        # Window buttons
+        dpg.add_separator()
         dpg.add_spacer(height=5)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group(horizontal=True):
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_exrun_data, user_data=(UUIDs, ex_run, var, new))
+                dpg.add_spacer(width=5)
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
+                    callback=close_window,
+                    user_data=window_id,
+                )
 
 
-def _add_variation_window(sender, app_data, user_data: tuple[dict, list]):
+def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
     parent_data = user_data[0]
     var_letter = get_variation_letter(len(parent_data["variations"]))
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE] + " " + var_letter
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in VARIATION_KEY_LIST}
     window_id = dpg.generate_uuid()
-    data = get_empty_variation()
+    
+    if user_data[1] == -1:
+        data = get_empty_variation()
+    else:
+        data = parent_data["variations"][user_data[1]]
 
     with dpg.window(
         label=label, tag=window_id, width=750, height=700, no_close=True
@@ -210,7 +256,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, list]):
             with dpg.group():
                 dpg.add_text(DISPLAY_TEXTS["ui_inst"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_inst"][LANGUAGE])
-                dpg.add_input_text(multiline=True, height=150, tab_input=True)
+                dpg.add_input_text(multiline=True, height=150, tab_input=True, default_value=data["instructions"])
                 dpg.add_spacer(width=5)
 
         # Example run list box and its buttons
@@ -226,11 +272,13 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, list]):
                 with dpg.group(horizontal=True):
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE],
-                        callback=_add_example_run_header,
-                        user_data=(user_data),
+                        callback=_add_example_run_window,
+                        user_data=(data, len(data["example_runs"])+1)
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run"))
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE], callback=_add_example_run_window, user_data=(data, 1 if not data["example_runs"] else data["example_runs"].index(dpg.get_value(UUIDs["EXAMPLE_LISTBOX"]))))
     
         # Used in text box
         with dpg.group(horizontal=True):
@@ -284,7 +332,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, list]):
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=None, user_data=(UUIDs, label))
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_variation_data, user_data=(UUIDs, var_letter, parent_data))
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
@@ -301,9 +349,10 @@ def _assignment_window(sender, app_data, user_data):
         DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE],
         DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE],
     )
-    var = get_empty_assignment()
-    variation_listbox = None
-    variation_list = []
+    if not user_data:
+        var = get_empty_assignment()
+    else:
+        var = user_data
     with dpg.window(
         label=label,
         width=750,
@@ -331,28 +380,29 @@ def _assignment_window(sender, app_data, user_data):
                         dpg.add_text(
                             DISPLAY_TEXTS["ui_assignment_title"][LANGUAGE] + ":"
                         )
-                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TITLE"])
+                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TITLE"], default_value=var["title"])
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_lecture_week"][LANGUAGE] + ":")
                         dpg.add_input_int(
-                            callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"]
+                            callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"], default_value=var["exp_lecture"]
                         )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_assignment_no"][LANGUAGE] + ":")
                         help_(DISPLAY_TEXTS["help_assignment_no"][LANGUAGE])
-                        dpg.add_input_text(callback=None, width=150, tag=UI_ITEM_TAGS["ASSIGNMENT_NO"])
+                        dpg.add_input_text(callback=None, width=150, tag=UI_ITEM_TAGS["ASSIGNMENT_NO"], default_value=", ".join(var["exp_assignment_no"]))
                     with dpg.table_row():
                         dpg.add_text(
                             DISPLAY_TEXTS["ui_assignment_tags"][LANGUAGE] + ":"
                         )
                         help_(DISPLAY_TEXTS["help_assignment_tags"][LANGUAGE])
-                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TAGS"])
+                        dpg.add_input_text(callback=None, width=430, tag=UI_ITEM_TAGS["ASSIGNMENT_TAGS"], default_value=", ".join(var["tags"]))
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_exp_assignment"][LANGUAGE] + ":")
                         dpg.add_checkbox(
                             callback=_toggle_enabled,
                             tag=UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"],
                             user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
+                            default_value=False if not var["next, last"] else True
                         )
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_prev_part"][LANGUAGE])
@@ -379,7 +429,7 @@ def _assignment_window(sender, app_data, user_data):
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
                 with dpg.group():
-                    dpg.add_listbox(variation_list, tag=UI_ITEM_TAGS["VARIATION_GROUP"])
+                    dpg.add_listbox(var["variations"], tag=UI_ITEM_TAGS["VARIATION_GROUP"])
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
@@ -388,9 +438,12 @@ def _assignment_window(sender, app_data, user_data):
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE],
                     callback=_add_variation_window,
-                    user_data=(var, variation_listbox),
+                    user_data=(var, -1),
                 )
+                dpg.add_spacer(width=5)
                 dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], user_data=(UI_ITEM_TAGS["VARIATION_GROUP"], var, "variation"), callback=remove_selected)
+                dpg.add_spacer(width=5)
+                dpg.add_button(label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE], callback=_add_variation_window, user_data=(var, -1 if not var["variations"] else var["variations"].index(dpg.get_value(UI_ITEM_TAGS["VARIATION_GROUP"]))))
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
