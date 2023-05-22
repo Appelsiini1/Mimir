@@ -408,7 +408,7 @@ def get_empty_assignment():
     empty = {}
     empty["title"] = ""
     empty["tags"] = ""
-    empty["exp_lecture"] = ""
+    empty["exp_lecture"] = 0
     empty["exp_assignment_no"] = ""
     empty["next, last"] = ""
     empty["code_language"] = ""
