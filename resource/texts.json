@@ -353,5 +353,9 @@
     "ui_ex_runs" : {
         "FI" : "Esimerkkiajot",
         "ENG" : "Example runs"
+    },
+    "ui_import_outputfiles" : {
+        "FI" : "Tuo tulostiedostot",
+        "ENG" : "Import output files"
     }
 }
