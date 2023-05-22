@@ -32,7 +32,10 @@ def setup_ui():
     setup_textures()
 
 
-def _toggle_enabled(sender, app_data, item):
+def _toggle_enabled(sender, app_data, item:int|str):
+    """
+    Toggles item on or off depending on its previous state
+    """
     if dpg.is_item_enabled(item):
         dpg.disable_item(item)
     else:
@@ -151,13 +154,17 @@ def main_window():
 def _add_example_run_window(
     sender, app_data, user_data: tuple[dict, int]
 ):
+    """
+    Adds an example run input window
+    """
     var = user_data[0]
-    new = 0
+    ix = user_data[1]
+    new = False
     try:
-        ex_run = var["example_runs"][user_data[1]]
+        ex_run = var["example_runs"][ix]
     except IndexError:
         ex_run = get_empty_example_run()
-        new = 1
+        new = True
     
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
     window_id = dpg.generate_uuid()
@@ -212,7 +219,7 @@ def _add_example_run_window(
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_import_outputfiles"][LANGUAGE],
                             callback=get_files,
-                            user_data=(ex_run, UUIDs["OUTPUT_FILES"], "outputfiles")
+                            user_data=(UUIDs["OUTPUT_FILES"], ex_run, "outputfiles")
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE], callback=remove_selected, user_data=(UUIDs["OUTPUT_FILES"], ex_run, "outputfiles"))
@@ -224,7 +231,7 @@ def _add_example_run_window(
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_exrun_data, user_data=(UUIDs, ex_run, var, new))
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_exrun_data, user_data=(UUIDs, ex_run, var, new, ix))
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
@@ -256,7 +263,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
             with dpg.group():
                 dpg.add_text(DISPLAY_TEXTS["ui_inst"][LANGUAGE])
                 help_(DISPLAY_TEXTS["help_inst"][LANGUAGE])
-                dpg.add_input_text(multiline=True, height=150, tab_input=True, default_value=data["instructions"])
+                dpg.add_input_text(multiline=True, height=150, tab_input=True, default_value=data["instructions"], tag=UUIDs["INSTRUCTIONS"])
                 dpg.add_spacer(width=5)
 
         # Example run list box and its buttons
@@ -332,7 +339,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_variation_data, user_data=(UUIDs, var_letter, parent_data))
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE], callback=extract_variation_data, user_data=(UUIDs, var_letter, parent_data, data, user_data[1]))
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE],
