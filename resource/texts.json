@@ -357,5 +357,9 @@
     "ui_import_outputfiles" : {
         "FI" : "Tuo tulostiedostot",
         "ENG" : "Import output files"
+    },
+    "ui_coursedir" : {
+        "FI" : "Avaa kurssikansion",
+        "ENG" : "Open course directory"
     }
 }

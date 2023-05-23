@@ -7,14 +7,16 @@ Functions for loading and saving exercise data
 # pylint: disable=import-error
 import json
 import logging
-from os import path, mkdir
+from os import path, mkdir, getcwd
+from ntpath import split, basename
+from tkinter.filedialog import askdirectory
+
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
-from dearpygui.dearpygui import get_values
-from ntpath import split, basename
+from dearpygui.dearpygui import get_value
 
-from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, GENERAL_ASSIGNMENT_TAGS, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH
+from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH, UI_ITEM_TAGS, RECENTS
 from src.custom_errors import ConflictingAssignmentID, IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
@@ -45,33 +47,6 @@ class Assignment:
         self.json_path = jsonpath
         self.used_in = used_in
         self.is_expanding = exp
-
-
-class FILEPATHCARRIER:
-    """
-    A class to carry extension information to file browser and bring back
-    the selected files as paths
-    """
-
-    def __init__(self) -> None:
-        self.filepaths = []
-        self.extensions = []
-
-    def c_files(self):
-        """Set extensions to C-code files"""
-        self.extensions = [[DISPLAY_TEXTS["file_c"][LANGUAGE], [".c", ".h"]]]
-
-    def text_files(self):
-        """Set extensions to text files"""
-        self.extensions = [[DISPLAY_TEXTS["file_text"][LANGUAGE], [".txt"]]]
-
-    def any_files(self):
-        """Set extensions to any"""
-        self.extensions = [[DISPLAY_TEXTS["file_any"][LANGUAGE], [".*"]]]
-
-    def json_files(self):
-        """Set extensions to json"""
-        self.extensions = [[DISPLAY_TEXTS["file_json"][LANGUAGE], [".json"]]]
 
 
 def data_path_handler(directory_path: str):
@@ -243,28 +218,24 @@ def _save_course_file():
     """
     Save course metadata to file
     """
-    f_path = path.join(OPEN_COURSE_PATH, COURSE_INFO["course_id"])
+    f_path = path.join(OPEN_COURSE_PATH.get(), COURSE_INFO["course_id"], ".mcif")
     with open(f_path, "w", encoding="utf-8") as f:
         to_write = json.dumps(COURSE_INFO)
         f.write(to_write)
 
 
-def save_course_info(s, a, u:list):
+def save_course_info(**args):
     """
     Function to save course information from main window
-
-    Params:
-    s: not in use
-    a: not in use
-    u: list of item tags
     """
-    if OPEN_COURSE_PATH:
-        values = get_input_values(None, None, u)
-        COURSE_INFO["course_title"] = values[1]
-        COURSE_INFO["course_id"] = values[0]
-        COURSE_INFO["course_weeks"] = values[2]
 
-        _save_course_file()
+    COURSE_INFO["course_title"] = get_value(UI_ITEM_TAGS["COURSE_TITLE"])
+    COURSE_INFO["course_id"] = get_value(UI_ITEM_TAGS["COURSE_ID"])
+    COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
+
+    if not OPEN_COURSE_PATH.get():
+        ask_course_dir()
+    _save_course_file()
 
 
 def get_expanding_assignments(a_ix: index.FileIndex):
@@ -385,21 +356,8 @@ def format_metadata_json(data: dict):
         )
     return new
 
-def save_assignment(s, a, u):
-    general_values = get_input_values(None, None, GENERAL_ASSIGNMENT_TAGS)
-
-
-
-def get_input_values(s, a, u:list):
-    """
-    Gets input values and returns them as a list.
-
-    Params:
-    u: A list of UUIDs to get inputs from
-    """
-    
-    values = get_values(u)
-    return values
+def save_assignment(s, a, u:dict):
+    pass
 
 def get_empty_assignment():
     """
@@ -450,3 +408,64 @@ def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
     return tail or basename(head)
+
+def ask_course_dir(**args):
+    """
+    Ask course directory from user
+    """
+    _dir = askdirectory(initialdir=getcwd(), mustexist=False, title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()])
+
+    if not path.exists(_dir):
+        mkdir(_dir)
+    OPEN_COURSE_PATH.set(_dir)
+    save_recent()
+    logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
+
+def save_recent(**args):
+    """
+    Save current course to recents
+    """
+    rec = RECENTS.get()
+    if not OPEN_COURSE_PATH in rec:
+        if len(rec) < 5:
+            rec.reverse()
+            rec.append(OPEN_COURSE_PATH.get())
+            rec.reverse()
+        else:
+            rec.pop(4)
+            rec.reverse()
+            rec.append(OPEN_COURSE_PATH.get())
+            rec.reverse()
+    f_path = path.join(ENV["PROGRAM_DATA"], "recents.txt")
+    try:
+        with open(f_path, "w", encoding="utf-8") as f:
+            for item in rec:
+                print(item)
+                f.write(item + "\n")
+    except OSError:
+        logging.exception("Error occured while saving recents to file!")
+    RECENTS.set(rec)
+    logging.info("Recent courses set as: %s", rec)
+
+def get_recents(**args):
+    """
+    Get a list of recent courses
+    """
+    f_path = path.join(ENV["PROGRAM_DATA"], "recents.txt")
+    if path.exists(f_path):
+        try:
+            with open(f_path, "r", encoding="utf-8") as f:
+                paths = f.read().split("\n")
+                for i, p in enumerate(paths):
+                    if p == "":
+                        paths.pop(i)
+                RECENTS.set(paths)
+        except OSError:
+            logging.exception("Error occured while getting recent courses.")
+    logging.info("Set recent course list as: %s", RECENTS.get())
+
+def open_course(**args):
+    """
+    Opens a course to view
+    """
+    # TODO open course dir, open index, set course info on main page

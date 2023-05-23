@@ -1,6 +1,6 @@
 """Mímir constants"""
 
-# pylint: disable=import-error
+# pylint: disable=import-error, missing-function-docstring
 from os import name as OSname
 from os import getenv
 from os.path import join
@@ -10,6 +10,7 @@ import json
 
 from dearpygui.dearpygui import generate_uuid
 from src.common import resource_path
+from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG
 
 def _get_texts():
     try:
@@ -24,7 +25,7 @@ def _get_filetypes():
     try:
         with open(resource_path("resource/filetypes.json"), "r", encoding="utf-8") as _file:
             _data = json.loads(_file.read())
-            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][LANGUAGE] # not a great solution
+            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][LANGUAGE.get()] # not a great solution
     except OSError:
         sysexit(1)
     return _data
@@ -32,7 +33,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 #################################
 # Environment spesific constants
@@ -50,7 +51,7 @@ elif OSname == "POSIX":
 # UI constants
 
 DISPLAY_TEXTS = _get_texts()
-LANGUAGE = "FI"
+LANGUAGE = LANG()
 
 #################################
 # Unique UI item tags
@@ -94,29 +95,9 @@ EXAMPLE_RUN_KEY_LIST = [
 UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
 
 #################################
-# Item tag lists
-COURSE_GENERAL_TAGS = [
-    UI_ITEM_TAGS["COURSE_ID"],
-    UI_ITEM_TAGS["COURSE_TITLE"],
-    UI_ITEM_TAGS["COURSE_WEEKS"]
-]
-
-GENERAL_ASSIGNMENT_TAGS = [
-    UI_ITEM_TAGS["ASSIGNMENT_TITLE"],
-    UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"],
-    UI_ITEM_TAGS["ASSIGNMENT_NO"],
-    UI_ITEM_TAGS["ASSIGNMENT_TAGS"],
-    UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"],
-    UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
-    UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"],
-    UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
-    
-]
-
-#################################
 # Misc constants
 OPEN_IX = None
-OPEN_COURSE_PATH = None
+OPEN_COURSE_PATH = COURSE_PATH()
 COURSE_INFO = {
     "course_title": None,
     "course_id": None,
@@ -124,3 +105,4 @@ COURSE_INFO = {
 }
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
+RECENTS = RECENTS_LIST()
