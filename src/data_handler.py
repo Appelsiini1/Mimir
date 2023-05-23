@@ -154,7 +154,7 @@ def create_index(ix_path: str, name: str, force=False):
         logging.exception("Unable to save index file.")
         return None
 
-    OPEN_IX = ix
+    OPEN_IX.set(ix)
 
 
 def open_index(ix_path: str, name: str):
@@ -172,7 +172,7 @@ def open_index(ix_path: str, name: str):
         logging.exception("Could not open index file.")
         return None
 
-    OPEN_IX = ix
+    OPEN_IX.set(ix)
 
 
 def add_assignment_to_index(data: Assignment):
@@ -183,9 +183,9 @@ def add_assignment_to_index(data: Assignment):
     data: an Assignment object containing assignment data
     """
 
-    if not OPEN_IX:
+    if not OPEN_IX.get():
         raise IndexNotOpenError
-    ix = OPEN_IX
+    ix = OPEN_IX.get()
 
     positions = ",".join(f"L{data.lecture:02d}T{i:02d}" for i in data.a_pos)
     tags = ",".join(data.tags)

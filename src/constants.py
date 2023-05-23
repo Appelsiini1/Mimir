@@ -33,7 +33,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.3.2"
+VERSION = "0.3.3"
 
 #################################
 # Environment spesific constants
@@ -96,7 +96,7 @@ UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
 
 #################################
 # Misc constants
-OPEN_IX = None
+OPEN_IX = IX()
 OPEN_COURSE_PATH = COURSE_PATH()
 COURSE_INFO = {
     "course_title": None,
