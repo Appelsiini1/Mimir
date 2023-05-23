@@ -8,6 +8,7 @@ from os import path, mkdir
 import logging
 
 from src.constants import ENV, VERSION, LOG_LEVEL
+from src.data_handler import get_recents
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -44,3 +45,5 @@ def init_environment():
     _init_env_path()
     _init_logging()
     logging.info("Mímir initializing...")
+    get_recents()
+    logging.info("Mímir initialized.")
