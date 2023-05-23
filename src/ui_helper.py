@@ -247,7 +247,7 @@ def remove_selected(s, a, u):
     elif i_type == "ex_run":
         index = selected.split(" ")[1]-1
         data["example_runs"].pop(index)
-        final = ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE], i) for i, _ in enumerate(data["example_runs"])]
+        final = ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i) for i, _ in enumerate(data["example_runs"])]
 
 
     dpg.configure_item(u[0], items=final)
