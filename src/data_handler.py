@@ -17,7 +17,7 @@ from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 from dearpygui.dearpygui import get_value
 
 from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH, UI_ITEM_TAGS, RECENTS
-from src.custom_errors import ConflictingAssignmentID, IndexExistsError, IndexNotOpenError
+from src.custom_errors import IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
@@ -357,7 +357,11 @@ def format_metadata_json(data: dict):
     return new
 
 def save_assignment(s, a, u:dict):
-    pass
+    """
+    Saves assignment to database
+    """
+
+
 
 def get_empty_assignment():
     """
@@ -417,6 +421,8 @@ def ask_course_dir(**args):
 
     if not path.exists(_dir):
         mkdir(_dir)
+        _subdir = path.join(_dir, "metadata")
+        mkdir(_subdir)
     OPEN_COURSE_PATH.set(_dir)
     save_recent()
     logging.info("Course path set as %s", OPEN_COURSE_PATH.get())

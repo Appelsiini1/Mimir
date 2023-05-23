@@ -1,9 +1,14 @@
 """Mímir classes for constants"""
 
+from os.path import join
+
 class COURSE_PATH:
     _path = None
     def get(self):
         return self._path
+    def get_subdir(self, metadata=False):
+        if metadata:
+            return join(self._path, "metadata")
     def set(self, path):
         self._path = path
 
