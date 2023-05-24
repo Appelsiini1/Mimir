@@ -8,8 +8,8 @@ from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
-from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE
-from src.data_handler import path_leaf
+from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.data_handler import path_leaf, save_course_info, ask_course_dir
 from src.common import resource_path
 
 ################################
@@ -260,3 +260,15 @@ def toggle_enabled(sender, app_data, item:int|str):
         dpg.disable_item(item)
     else:
         dpg.enable_item(item)
+
+def move_info(s, a, u:list):
+    """
+    Move course information to main window from popup and close it
+    """
+    if dpg.get_value(u["id"]):
+        dpg.configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"]))
+        dpg.configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=dpg.get_value(u["title"]))
+        dpg.configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"]))
+        ask_course_dir()
+        save_course_info()
+    close_window(None, None, u["popup"])

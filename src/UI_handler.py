@@ -12,11 +12,11 @@ from string import ascii_uppercase
 from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS, OPEN_COURSE_PATH
-from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment, get_empty_example_run, ask_course_dir
+from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS, OPEN_COURSE_PATH, COURSE_INFO
+from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment, get_empty_example_run, open_course
 from src.set_generator import temp_creator
 from src.ui_helper import set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data, toggle_enabled
-from src.popups import popup_no_course_open
+from src.popups import popup_ok, popup_create_course
 
 #############################################################
 
@@ -53,15 +53,15 @@ def main_window():
             with dpg.menu(label=DISPLAY_TEXTS["menu_file"][LANGUAGE.get()]):
                 # TODO Add callbacks
                 dpg.add_menu_item(
-                    label=DISPLAY_TEXTS["menu_create"][LANGUAGE.get()], callback=None
+                    label=DISPLAY_TEXTS["menu_create"][LANGUAGE.get()], callback=popup_create_course
                 )
                 dpg.add_menu_item(
-                    label=DISPLAY_TEXTS["menu_open"][LANGUAGE.get()], callback=ask_course_dir
+                    label=DISPLAY_TEXTS["menu_open"][LANGUAGE.get()], callback=open_course
                 )
                 with dpg.menu(label=DISPLAY_TEXTS["menu_open_recent"][LANGUAGE.get()]):
                     for item in RECENTS.get():
                         dpg.add_menu_item(
-                            label=path_leaf(item), callback=None
+                            label=path_leaf(item), callback=lambda s, a, item: open_course(dir=item), user_data=item
                         )
                 dpg.add_menu_item(
                     label=DISPLAY_TEXTS["menu_update"][LANGUAGE.get()], callback=None
@@ -469,6 +469,9 @@ def open_new_assignment_window():
 
     if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"]):
         if OPEN_COURSE_PATH.get():
-            _assignment_window(None, None, None)
+            if COURSE_INFO["course_id"]:
+                _assignment_window(None, None, None)
+            else:
+                popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
-            popup_no_course_open(UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"])
+            popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])

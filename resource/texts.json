@@ -365,5 +365,9 @@
     "popup_nocourse" : {
         "FI" : "Mitään kurssia ei ole avattuna.",
         "ENG" : "No course has been opened."
+    },
+    "popup_courseinfo_missing" : {
+        "FI" : "Kurssitietoja puuttuu, lisää tiedot pääsivulle ja paina 'Tallenna'.",
+        "ENG" : "Some course information seems to be missing, please add them on the main window and press 'Save'."
     }
 }
