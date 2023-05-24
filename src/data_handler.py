@@ -210,7 +210,7 @@ def _save_course_file():
     """
     Save course metadata to file
     """
-    f_path = path.join(OPEN_COURSE_PATH.get(), "course_info", ".mcif")
+    f_path = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
     with open(f_path, "w", encoding="utf-8") as f:
         to_write = json.dumps(COURSE_INFO)
         f.write(to_write)
@@ -440,13 +440,14 @@ def ask_course_dir(**args):
     """
     _dir = askdirectory(initialdir=getcwd(), mustexist=False, title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()])
 
-    if not path.exists(_dir):
-        mkdir(_dir)
-        _subdir = path.join(_dir, "metadata")
-        mkdir(_subdir)
-    OPEN_COURSE_PATH.set(_dir)
-    save_recent()
-    logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
+    if _dir != "":
+        if not path.exists(_dir):
+            mkdir(_dir)
+            _subdir = path.join(_dir, "metadata")
+            mkdir(_subdir)
+        OPEN_COURSE_PATH.set(_dir)
+        save_recent()
+        logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
 
 def save_recent(**args):
     """
@@ -459,7 +460,8 @@ def save_recent(**args):
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
         else:
-            rec.pop(4)
+            ind = rec.index(OPEN_COURSE_PATH.get())
+            rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
@@ -467,7 +469,6 @@ def save_recent(**args):
     try:
         with open(f_path, "w", encoding="utf-8") as f:
             for item in rec:
-                print(item)
                 f.write(item + "\n")
     except OSError:
         logging.exception("Error occured while saving recents to file!")
@@ -495,8 +496,16 @@ def open_course(**args):
     """
     Opens a course to view
     """
-    ask_course_dir()
-    _file = path.join(OPEN_COURSE_PATH.get(), "course_info", ".mcif")
+    try:
+        _dir = args["dir"]
+    except KeyError:
+        ask_course_dir()
+    else:
+        OPEN_COURSE_PATH.set(_dir)
+        save_recent()
+    finally:
+        _file = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
+
     try:
         with open(_file, "r", encoding="utf-8") as f:
             _data = f.read()
