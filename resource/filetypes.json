@@ -1,0 +1,18 @@
+{
+    "types" : [
+        "codefile",
+        "textfile",
+        "any"
+    ],
+    "codefile" : [
+        ["C", [".c", ".h"]],
+        ["Python", [".py"]]
+    ],
+    "textfile" : [
+        ["txt", [".txt"]],
+        ["json", [".json"]]
+    ],
+    "any" : [
+        ["any", [".*"]]
+    ]
+}

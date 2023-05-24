@@ -33,13 +33,13 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
         if footer_opt["include_week"]:
-            ftr_cmd += f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_week'][LANGUAGE]} {gen_info['lecture']}}}\n"
+            ftr_cmd += f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_week'][LANGUAGE.get()]} {gen_info['lecture']}}}\n"
 
         if footer_opt["include_program"]:
             ftr_cmd += f"\\fancyfoot[L]{{Mímir v{VERSION}}}"
 
         page_numbering = f"\\fancyhead[{header_opt['page_numbering'][0]}]\
-{{{DISPLAY_TEXTS['tex_page'][LANGUAGE]} {header_opt['page_numbering'][1]}}}\n"
+{{{DISPLAY_TEXTS['tex_page'][LANGUAGE.get()]} {header_opt['page_numbering'][1]}}}\n"
         hdr_cmd += page_numbering
 
         logging.debug("TEX HEADER")
@@ -92,9 +92,9 @@ bottom={margins[3]}mm]\
         hyphenation_cmd += t + "\n"
 
     other = "\n".join(preamble["other"])
-    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE] + "}\n"
+    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE.get()] + "}\n"
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
-    metadata += ", pdftitle={L" + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE]}" + "}}"
+    metadata += ", pdftitle={L" + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}" + "}}"
 
     result = [
         doc_class_cmd,
@@ -122,7 +122,7 @@ def _starting_instructions_gen(gen_info: dict):
     gen_info: General instructions as a dict
     """
     text = ""
-    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['assignments'][LANGUAGE]}}}\n"
+    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
@@ -157,7 +157,7 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     text = "\\normalsize"
     if not ex_file:
         text += "\\textit{"
-    text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE]}"
+    text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE.get()]}"
     if ex_file:
         text += f" '{split(ex_file)[1]}'"
     text += ":}"
@@ -201,7 +201,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     for i, assignment in enumerate(assignment_list, start=1):
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
-        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE]}{i}: {assignment['title']}}}\n"
+        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}}}\n"
         text += title
         text += "\\section*" + title
         text += assignment["instructions"] + "\n"
@@ -215,7 +215,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 )
 
         for i, example_run in enumerate(assignment["example_runs"], start=1):
-            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE]} {i}}}\n"
+            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
             text += "\\hfill\\break\\newline\n"
             if example_run["CMD"]:
                 text += _block_gen("cmd_input", example_run["CMD"])
@@ -231,7 +231,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
         if incl_solution:
             text += (
-                f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE]}}}\\newline\n"
+                f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
             )
             for code in assignment["example_codes"]:
                 text += f"\\textbf{{'{split(code['filename'])[1]}':}}"

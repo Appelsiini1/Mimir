@@ -42,3 +42,15 @@ class IndexExistsError(Exception):
     def __init__(self, msg="Index already exists"):
         self.message = msg
         super().__init__(self.message)
+
+class IndexNotOpenError(Exception):
+    """
+    Raised if no index in opened.
+
+    Params:
+    msg: Message to display with exception
+    """
+
+    def __init__(self, msg="No index has been opened") -> None:
+        self.message = msg
+        super().__init__(self.message)

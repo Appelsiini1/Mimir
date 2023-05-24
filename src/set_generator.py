@@ -11,7 +11,7 @@ from tkinter.filedialog import askopenfilename, askopenfilenames
 import src.data_handler as DH
 from src.tex_generator import gen_one_week
 
-def _openfilebrowser(_, app_data, carrier:DH.FILEPATHCARRIER) -> list:
+def _openfilebrowser(_, app_data, carrier) -> list:
     file_paths = askopenfilenames(filetypes=carrier.extensions)
     print(file_paths)
     return file_paths
