@@ -361,5 +361,9 @@
     "ui_coursedir" : {
         "FI" : "Avaa kurssikansion",
         "ENG" : "Open course directory"
+    },
+    "popup_nocourse" : {
+        "FI" : "Mitään kurssia ei ole avattuna.",
+        "ENG" : "No course has been opened."
     }
 }
