@@ -12,11 +12,13 @@ from string import ascii_uppercase
 from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS
+from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS, OPEN_COURSE_PATH
 from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment, get_empty_example_run, ask_course_dir
 from src.set_generator import temp_creator
-from src.ui_helper import set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data
+from src.ui_helper import set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data, toggle_enabled
+from src.popups import popup_no_course_open
 
+#############################################################
 
 def _stop():
     logging.info("Stopping program.")
@@ -30,16 +32,6 @@ def setup_ui():
     """
     set_style()
     setup_textures()
-
-
-def _toggle_enabled(sender, app_data, item:int|str):
-    """
-    Toggles item on or off depending on its previous state
-    """
-    if dpg.is_item_enabled(item):
-        dpg.disable_item(item)
-    else:
-        dpg.enable_item(item)
 
 
 def main_window():
@@ -98,7 +90,7 @@ def main_window():
                         with dpg.table_row():
                             dpg.add_text(DISPLAY_TEXTS["ui_course_id"][LANGUAGE.get()] + ":")
                             dpg.add_input_text(
-                                callback=None, width=400, hint="No course selected", tag=UI_ITEM_TAGS["COURSE_ID"]
+                                callback=None, width=400, hint="No course selected", tag=UI_ITEM_TAGS["COURSE_ID"],
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -108,7 +100,7 @@ def main_window():
                         with dpg.table_row():
                             dpg.add_text(DISPLAY_TEXTS["ui_no_weeks"][LANGUAGE.get()] + ":")
                             dpg.add_input_int(
-                                callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["COURSE_WEEKS"]
+                                callback=None, width=150, min_value=0, min_clamped=True, tag=UI_ITEM_TAGS["COURSE_WEEKS"],
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -199,7 +191,7 @@ def _add_example_run_window(
                     help_(DISPLAY_TEXTS["help_gen_ex_checkbox"][LANGUAGE.get()])
                     dpg.add_checkbox(
                         tag=UUIDs["GEN_EX"],
-                        callback=_toggle_enabled,
+                        callback=toggle_enabled,
                         user_data=UUIDs["OUTPUT"],
                     )
                 
@@ -360,8 +352,10 @@ def _assignment_window(sender, app_data, user_data):
     )
     if not user_data:
         var = get_empty_assignment()
+        new = True
     else:
         var = user_data
+        new = False
     with dpg.window(
         label=label,
         width=750,
@@ -408,7 +402,7 @@ def _assignment_window(sender, app_data, user_data):
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_exp_assignment"][LANGUAGE.get()] + ":")
                         dpg.add_checkbox(
-                            callback=_toggle_enabled,
+                            callback=toggle_enabled,
                             tag=UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"],
                             user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
                             default_value=False if not var["next, last"] else True
@@ -457,7 +451,7 @@ def _assignment_window(sender, app_data, user_data):
             dpg.add_separator()
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()], callback=None, user_data=var)
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()], callback=save_assignment, user_data=(var, new))
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                     callback=close_window,
@@ -474,4 +468,7 @@ def open_new_assignment_window():
     """
 
     if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"]):
-        _assignment_window(None, None, None)
+        if OPEN_COURSE_PATH.get():
+            _assignment_window(None, None, None)
+        else:
+            popup_no_course_open(UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"])

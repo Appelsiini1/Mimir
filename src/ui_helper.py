@@ -251,3 +251,12 @@ def remove_selected(s, a, u):
 
 
     dpg.configure_item(u[0], items=final)
+
+def toggle_enabled(sender, app_data, item:int|str):
+    """
+    Toggles item on or off depending on its previous state
+    """
+    if dpg.is_item_enabled(item):
+        dpg.disable_item(item)
+    else:
+        dpg.enable_item(item)
