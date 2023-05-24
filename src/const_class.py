@@ -1,6 +1,6 @@
 """Mímir classes for constants"""
 
-from os.path import join
+from os.path import join, abspath
 
 class COURSE_PATH:
     _path = None
@@ -10,7 +10,7 @@ class COURSE_PATH:
         if metadata:
             return join(self._path, "metadata")
     def set(self, path):
-        self._path = path
+        self._path = abspath(path)
 
 class RECENTS_LIST:
     _recents = []
