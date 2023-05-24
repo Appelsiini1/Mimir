@@ -4,7 +4,7 @@
 from os import name as OSname
 from os import getenv
 from os.path import join
-from logging import DEBUG, INFO
+from logging import DEBUG#, INFO
 from sys import exit as sysexit
 import json
 
@@ -33,7 +33,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.3.3"
+VERSION = "0.3.4"
 
 #################################
 # Environment spesific constants

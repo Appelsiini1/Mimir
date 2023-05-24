@@ -4,17 +4,18 @@ Mímir Data Handlers
 Functions for loading and saving exercise data
 """
 
-# pylint: disable=import-error
+# pylint: disable=import-error, unused-argument
 import json
 import logging
 from os import path, mkdir, getcwd
 from ntpath import split, basename
 from tkinter.filedialog import askdirectory
+from hashlib import sha256
 
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
-from dearpygui.dearpygui import get_value
+from dearpygui.dearpygui import get_value, configure_item
 
 from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH, UI_ITEM_TAGS, RECENTS
 from src.custom_errors import IndexExistsError, IndexNotOpenError
@@ -117,20 +118,18 @@ def read_datafile(filename: str):
         return None
 
 
-def create_index(ix_path: str, name: str, force=False):
+def create_index(force=False, **args):
     """
     Creates an assignment index and its schema that are used to store paths to all available
     assingments.
     Sets the created index as a global constant.
 
     Params:
-    path: A path where to create the index
-    name: Name of the created index
     force: Force the creation of the index if it already exists.
     """
 
-    data_path = path.join(ix_path, "data")
-
+    ix_path = OPEN_COURSE_PATH.get()
+    name = COURSE_INFO["course_id"]
     schema = Schema(
         a_id=ID(stored=True, unique=True),
         position=KEYWORD(stored=True, commas=True),
@@ -142,9 +141,6 @@ def create_index(ix_path: str, name: str, force=False):
         mtimes=ID,
     )
 
-    if not path.exists(data_path):
-        mkdir(data_path)
-
     if index.exists_in(ix_path, name) and not force:
         raise IndexExistsError("Index '%s' already exists in '%s'" % (name, ix_path))
 
@@ -152,35 +148,31 @@ def create_index(ix_path: str, name: str, force=False):
         ix = index.create_in(ix_path, schema, name)
     except OSError:
         logging.exception("Unable to save index file.")
-        return None
+    else:
+        OPEN_IX.set(ix)
 
-    OPEN_IX.set(ix)
 
-
-def open_index(ix_path: str, name: str):
+def open_index(**args):
     """
     Opens a previously created assignment index. Sets the opened index as a global constant.
-
-    Params:
-    path: Path to the index
-    name: Name of the index
     """
 
+    ix_path = OPEN_COURSE_PATH.get()
+    name = COURSE_INFO["course_id"]
     try:
         ix = index.open_dir(ix_path, name)
     except OSError:
         logging.exception("Could not open index file.")
-        return None
+    else:
+        OPEN_IX.set(ix)
 
-    OPEN_IX.set(ix)
 
-
-def add_assignment_to_index(data: Assignment):
+def add_assignment_to_index(data: dict):
     """
     Adds given assignements to the index currently open.
 
     Params:
-    data: an Assignment object containing assignment data
+    data: a dictionary containing assignment data
     """
 
     if not OPEN_IX.get():
@@ -218,7 +210,7 @@ def _save_course_file():
     """
     Save course metadata to file
     """
-    f_path = path.join(OPEN_COURSE_PATH.get(), COURSE_INFO["course_id"], ".mcif")
+    f_path = path.join(OPEN_COURSE_PATH.get(), "course_info", ".mcif")
     with open(f_path, "w", encoding="utf-8") as f:
         to_write = json.dumps(COURSE_INFO)
         f.write(to_write)
@@ -229,6 +221,9 @@ def save_course_info(**args):
     Function to save course information from main window
     """
 
+    new = 0
+    if COURSE_INFO["course_id"] is None:
+        new = 1
     COURSE_INFO["course_title"] = get_value(UI_ITEM_TAGS["COURSE_TITLE"])
     COURSE_INFO["course_id"] = get_value(UI_ITEM_TAGS["COURSE_ID"])
     COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
@@ -236,6 +231,10 @@ def save_course_info(**args):
     if not OPEN_COURSE_PATH.get():
         ask_course_dir()
     _save_course_file()
+
+    if new:
+        create_index()
+
 
 
 def get_expanding_assignments(a_ix: index.FileIndex):
@@ -286,13 +285,6 @@ def get_texdoc_settings():
         _json = json.loads(_file.read())
 
     return _json
-
-
-def create_course(sender, user_data, app_data):
-    """
-    Initializes a course.
-    """
-    pass
 
 
 def format_general_json(data: dict, lecture_no: int):
@@ -356,11 +348,40 @@ def format_metadata_json(data: dict):
         )
     return new
 
-def save_assignment(s, a, u:dict):
+def save_assignment(s, a, u:tuple[dict, bool]):
     """
     Saves assignment to database
     """
+    assignment = u[0]
+    new = u[1]
+    if new:
+        assignment["course_id"] = COURSE_INFO["course_id"]
+        assignment["course_title"] = COURSE_INFO["course_title"]
+        _bytes = json.dumps(assignment).encode()
+        _hash = sha256(usedforsecurity=False)
+        _hash.update(_bytes)
+        _hex = _hash.hexdigest()
+        assignment["assignment_id"] = _hex
 
+        _json = json.dumps(assignment)
+        _filename = _hex + ".json"
+    else:
+        assignment["course_id"] = COURSE_INFO["course_id"]
+        assignment["course_title"] = COURSE_INFO["course_title"]
+
+        _filename = assignment["assignment_id"] + ".json"
+        _json = json.dumps(assignment)
+
+    #TODO Add/Update index
+
+    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
+
+    try:
+        with open(_filepath, "w", encoding="utf-8") as _file:
+            _file.write(_json)
+    except OSError:
+        # TODO Popup for user
+        logging.exception("Error while saving assignment data!")
 
 
 def get_empty_assignment():
@@ -474,4 +495,18 @@ def open_course(**args):
     """
     Opens a course to view
     """
-    # TODO open course dir, open index, set course info on main page
+    ask_course_dir()
+    _file = path.join(OPEN_COURSE_PATH.get(), "course_info", ".mcif")
+    try:
+        with open(_file, "r", encoding="utf-8") as f:
+            _data = f.read()
+    except OSError:
+        logging.exception("Error in reading course info!")
+    else:
+        _json = json.loads(_data)
+        for key in _json.keys():
+            COURSE_INFO[key] = _json[key]
+        open_index()
+        configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"])
+        configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"])
+        configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"])
