@@ -3,7 +3,7 @@
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.constants import DISPLAY_TEXTS, LANGUAGE
 from src.ui_helper import close_window, move_info
 
 
