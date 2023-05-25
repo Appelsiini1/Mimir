@@ -19,6 +19,9 @@ def popup_ok(msg: str, **args):
     popup_id = dpg.generate_uuid()
     with dpg.window(
         modal=True, tag=popup_id,
+        no_close=True,
+        no_title_bar=True,
+        autosize=True,
     ):
         dpg.add_spacer(height=5)
         dpg.add_text(msg)
@@ -26,7 +29,7 @@ def popup_ok(msg: str, **args):
         dpg.add_separator()
         dpg.add_spacer(height=5)
         dpg.add_button(
-            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE],
+            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE.get()],
             callback=close_window,
             user_data=popup_id,
             width=75,
