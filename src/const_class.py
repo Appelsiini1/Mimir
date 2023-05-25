@@ -2,6 +2,8 @@
 
 from os.path import join, abspath
 
+#pylint: disable=invalid-name, missing-class-docstring, missing-function-docstring
+
 class COURSE_PATH:
     _path = None
     def get(self):
@@ -9,6 +11,7 @@ class COURSE_PATH:
     def get_subdir(self, metadata=False):
         if metadata:
             return join(self._path, "metadata")
+        return None
     def set(self, path):
         self._path = abspath(path)
 

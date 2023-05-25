@@ -6,10 +6,6 @@ Functions to handle UI
 
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
-from os.path import join
-from os import getcwd
-from string import ascii_uppercase
-from tkinter import filedialog
 import dearpygui.dearpygui as dpg
 
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS, OPEN_COURSE_PATH, COURSE_INFO
