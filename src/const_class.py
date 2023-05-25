@@ -1,6 +1,7 @@
 """Mímir classes for constants"""
 
 from os.path import join, abspath
+from whoosh.index import FileIndex
 
 # pylint: disable=invalid-name, missing-class-docstring, missing-function-docstring
 
@@ -33,7 +34,7 @@ class RECENTS_LIST:
 class IX:
     _open_ix = None
 
-    def get(self):
+    def get(self) -> FileIndex:
         return self._open_ix
 
     def set(self, new):

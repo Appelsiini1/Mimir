@@ -39,6 +39,10 @@
         "FI" : "T",
         "ENG" : "E"
     },
+    "tex_lecture_letter" : {
+        "FI" : "L",
+        "ENG" : "L"
+    },
     "ui_general" : {
         "FI" : "Yleinen",
         "ENG" : "General"
