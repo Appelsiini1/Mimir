@@ -356,12 +356,11 @@ def format_metadata_json(data: dict):
     return new
 
 
-def save_assignment(s, a, u: tuple[dict, bool]):
+def save_assignment_data(assignment, new):
     """
     Saves assignment to database
     """
-    assignment = u[0]
-    new = u[1]
+
     if new:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
@@ -371,22 +370,25 @@ def save_assignment(s, a, u: tuple[dict, bool]):
         _hex = _hash.hexdigest()
         assignment["assignment_id"] = _hex
 
-        _json = json.dumps(assignment)
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
 
         _filename = assignment["assignment_id"] + ".json"
-        _json = json.dumps(assignment)
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
 
     # TODO Add/Update index
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
+    if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
+        mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
+        logging.info("Successfully saved assignment %s", assignment["assignment_id"])
     except OSError:
         # TODO Popup for user
         logging.exception("Error while saving assignment data!")

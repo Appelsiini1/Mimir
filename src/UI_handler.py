@@ -20,7 +20,6 @@ from src.constants import (
 )
 from src.data_handler import (
     save_course_info,
-    save_assignment,
     get_empty_variation,
     path_leaf,
     get_empty_assignment,
@@ -37,6 +36,7 @@ from src.ui_helper import (
     extract_exrun_data,
     extract_variation_data,
     toggle_enabled,
+    save_assignment
 )
 from src.popups import popup_ok, popup_create_course
 
@@ -363,6 +363,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                             else data["example_runs"].index(
                                 dpg.get_value(UUIDs["EXAMPLE_LISTBOX"])
                             ),
+                            UUIDs["EXAMPLE_LISTBOX"]
                         ),
                     )
 

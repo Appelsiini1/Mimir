@@ -9,7 +9,7 @@ from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
 from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
-from src.data_handler import path_leaf, save_course_info, ask_course_dir
+from src.data_handler import path_leaf, save_course_info, ask_course_dir, save_assignment_data
 from src.common import resource_path
 
 ################################
@@ -181,8 +181,8 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int | str]):
     ex_listbox = u[5]
 
     ex_run["generate"] = dpg.get_value(UUIDS["GEN_EX"])
-    ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"])
-    ex_run["cmd_inputs"] = dpg.get_value(UUIDS["CMD_INPUTS"])
+    ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"]).split("\n")
+    ex_run["cmd_inputs"] = [i.strip() for i in dpg.get_value(UUIDS["CMD_INPUTS"]).split(",")]
     if not ex_run["generate"]:
         ex_run["output"] = dpg.get_value(UUIDS["OUTPUT"])
 
@@ -326,3 +326,20 @@ def move_info(s, a, u: list):
         ask_course_dir()
         save_course_info()
     close_window(u["popup"])
+
+def save_assignment(s, a, u:tuple[dict, bool]):
+    """Save assignment data and close window"""
+
+    assig = u[0]
+
+    assig["title"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TITLE"])
+    assig["tags"] = [i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")]
+    assig["exp_assignment_no"] = [i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")]
+    assig["nex, last"] = [dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]), ""] # TODO handling for next if exists
+    assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
+    assig["instruction_language"] = dpg.get_value(UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"])
+    assig["exp_lecture"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"])
+
+    save_assignment_data(assig, u[1])
+    close_window(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"])
+    
