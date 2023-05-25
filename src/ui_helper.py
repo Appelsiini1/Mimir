@@ -134,16 +134,22 @@ def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
     data = u[3]
     ix = u[4]
 
+
     data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
     data["used_in"] = dpg.get_value(UUIDS["USED_IN"])
 
     if ix == -1:
         data["variation_id"] = var_letter
         parent_data["variations"].append(data)
+        _vars = [] if not parent_data["variations"] else ["{} {}".format(DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()], item["variation_id"]) for item in parent_data["variations"]]
+        dpg.configure_item(UI_ITEM_TAGS["VARIATION_GROUP"], items=_vars)
     else:
         parent_data["variations"][ix] = data
 
-def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
+    close_window(UUIDS["WINDOW_ID"])
+
+
+def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int|str]):
     """
     Gets values from exrun input fields and saves the data to the parent dict.
     """
@@ -152,6 +158,7 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
     var = u[2]
     new = u[3]
     ix = u[4]
+    ex_listbox = u[5]
 
     ex_run["generate"] = dpg.get_value(UUIDS["GEN_EX"])
     ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"])
@@ -161,8 +168,13 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
 
     if new:
         var["example_runs"].append(ex_run)
+        runs = [] if not var["example_runs"] else ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i) for i, _ in enumerate(var["example_runs"])]
+        dpg.configure_item(ex_listbox, items=runs)
     else:
         var["example_runs"][ix] = ex_run
+
+    close_window(UUIDS["WINDOW_ID"])
+
 
 def get_files(s, a, u:tuple[dict, int|str, str]):
     """

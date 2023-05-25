@@ -146,13 +146,14 @@ def main_window():
 
 
 def _add_example_run_window(
-    sender, app_data, user_data: tuple[dict, int]
+    sender, app_data, user_data: tuple[dict, int, int|str]
 ):
     """
     Adds an example run input window
     """
     var = user_data[0]
     ix = user_data[1]
+    var_listbox = user_data[2]
     new = False
     try:
         ex_run = var["example_runs"][ix]
@@ -224,7 +225,7 @@ def _add_example_run_window(
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group(horizontal=True):
-                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()], callback=extract_exrun_data, user_data=(UUIDs, ex_run, var, new, ix))
+                dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()], callback=extract_exrun_data, user_data=(UUIDs, ex_run, var, new, ix, var_listbox))
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
@@ -272,7 +273,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE.get()],
                         callback=_add_example_run_window,
-                        user_data=(data, len(data["example_runs"])+1)
+                        user_data=(data, len(data["example_runs"])+1, UUIDs["EXAMPLE_LISTBOX"])
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()], callback=remove_selected, user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run"))
@@ -430,7 +431,8 @@ def _assignment_window(sender, app_data, user_data):
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
                 with dpg.group():
-                    dpg.add_listbox(var["variations"], tag=UI_ITEM_TAGS["VARIATION_GROUP"])
+                    _vars = [] if not var["variations"] else ["{} {}".format(DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()], item["variation_id"]) for item in var["variations"]]
+                    dpg.add_listbox(_vars, tag=UI_ITEM_TAGS["VARIATION_GROUP"])
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
