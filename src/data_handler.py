@@ -506,3 +506,14 @@ def open_course(**args):
         configure_item(
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
+
+def get_all_indexed_assignments():
+    """Returns a Generator object with all the indexed documents and a count of how many in the current index."""
+
+    ix = OPEN_IX.get()
+
+    with ix.searcher() as srcr:
+        _all = srcr.documents()
+        _no = srcr.doc_count()
+
+    return (_all, _no)

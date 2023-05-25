@@ -7,6 +7,7 @@ Functions to handle UI
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
 import dearpygui.dearpygui as dpg
+from pprint import pprint
 
 from src.constants import (
     DISPLAY_TEXTS,
@@ -25,6 +26,7 @@ from src.data_handler import (
     get_empty_assignment,
     get_empty_example_run,
     open_course,
+    get_all_indexed_assignments,
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -36,7 +38,7 @@ from src.ui_helper import (
     extract_exrun_data,
     extract_variation_data,
     toggle_enabled,
-    save_assignment
+    save_assignment,
 )
 from src.popups import popup_ok, popup_create_course
 
@@ -164,27 +166,18 @@ def main_window():
             dpg.add_text("Under construction", indent=25)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
-                with dpg.group():
-                    with dpg.table(header_row=False):
-                        dpg.add_table_column(
-                            label="Course info one",
-                            width_fixed=True,
-                            init_width_or_weight=200,
-                        )
-                        dpg.add_table_column(
-                            label="Course info two",
-                            width_fixed=True,
-                            init_width_or_weight=410,
-                        )
-                        with dpg.table_row():
-                            dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_add_assignment"][
-                                    LANGUAGE.get()
-                                ],
-                                callback=open_new_assignment_window,
-                                tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
-                                user_data=False,
-                            )
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
+                        callback=open_new_assignment_window,
+                        tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+                        user_data=False,
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label="Current index (TEMP)",
+                        callback=lambda s, a, u: pprint(get_all_indexed_assignments),
+                    )
 
 
 def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | str]):
@@ -290,7 +283,7 @@ def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | 
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
     parent_data = user_data[0]
-    var_letter = get_variation_letter(len(parent_data["variations"])+1)
+    var_letter = get_variation_letter(len(parent_data["variations"]) + 1)
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
@@ -363,7 +356,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                             else data["example_runs"].index(
                                 dpg.get_value(UUIDs["EXAMPLE_LISTBOX"])
                             ),
-                            UUIDs["EXAMPLE_LISTBOX"]
+                            UUIDs["EXAMPLE_LISTBOX"],
                         ),
                     )
 
