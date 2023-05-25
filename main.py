@@ -12,7 +12,8 @@ dpg.create_context()
 #pylint: disable=wrong-import-position
 from src.constants import VERSION, UI_ITEM_TAGS
 from src.initialize import init_environment
-from src.ui_handler import main_window, setup_ui
+from src.ui_handler import main_window
+from src.ui_helper import setup_ui
 
 def main():
     """

@@ -15,7 +15,7 @@ import dearpygui.dearpygui as dpg
 from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, VARIATION_KEY_LIST, EXAMPLE_RUN_KEY_LIST, RECENTS, OPEN_COURSE_PATH, COURSE_INFO
 from src.data_handler import save_course_info, save_assignment, get_empty_variation, path_leaf, get_empty_assignment, get_empty_example_run, open_course
 from src.set_generator import temp_creator
-from src.ui_helper import set_style, setup_textures, help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data, toggle_enabled
+from src.ui_helper import help_, get_variation_letter, close_window, get_files, remove_selected, extract_exrun_data, extract_variation_data, toggle_enabled
 from src.popups import popup_ok, popup_create_course
 
 #############################################################
@@ -24,14 +24,6 @@ def _stop():
     logging.info("Stopping program.")
     dpg.stop_dearpygui()
     dpg.destroy_context()
-
-
-def setup_ui():
-    """
-    Shorthand for calling all UI setup functions
-    """
-    set_style()
-    setup_textures()
 
 
 def main_window():

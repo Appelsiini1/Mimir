@@ -91,6 +91,13 @@ def setup_textures():
     i = 1  # number of textures added so far
     logging.info("Texture registry added, with %d textures inside." % i)
 
+def setup_ui():
+    """
+    Shorthand for calling all UI setup functions
+    """
+    set_style()
+    setup_textures()
+
 def help_(message):
     """
     Display help popup "(?)" next to the title with 'message' in it.
