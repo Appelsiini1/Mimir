@@ -193,7 +193,7 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int | str]):
             if not var["example_runs"]
             else [
                 "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
-                for i, _ in enumerate(var["example_runs"])
+                for i, _ in enumerate(var["example_runs"], start=1)
             ]
         )
         dpg.configure_item(ex_listbox, items=runs)
@@ -216,13 +216,16 @@ def get_files(s, a, u: tuple[dict, int | str, str]):
 
     if f_type == "codefile":
         files = openfilebrowser(f_type)
-        save_to["codefiles"] = files
+        save_to["codefiles"] += files
+        files = save_to["codefiles"]
     elif f_type == "datafiles":
         files = openfilebrowser("textfile")
-        save_to["datafiles"] = files
+        save_to["datafiles"] += files
+        files = save_to["datafiles"]
     elif f_type == "outputfiles":
         files = openfilebrowser("textfile")
-        save_to["outputfiles"] = files
+        save_to["outputfiles"] += files
+        files = save_to["outputfiles"]
 
     leafs = [path_leaf(i) for i in files]
     dpg.configure_item(listbox, items=leafs)
@@ -290,7 +293,7 @@ def remove_selected(s, a, u):
         data["example_runs"].pop(index)
         final = [
             "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
-            for i, _ in enumerate(data["example_runs"])
+            for i, _ in enumerate(data["example_runs"], start=1)
         ]
 
     dpg.configure_item(u[0], items=final)

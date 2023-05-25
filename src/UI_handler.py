@@ -290,7 +290,7 @@ def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | 
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
     parent_data = user_data[0]
-    var_letter = get_variation_letter(len(parent_data["variations"]))
+    var_letter = get_variation_letter(len(parent_data["variations"])+1)
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
@@ -330,7 +330,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                         if not data["example_runs"]
                         else [
                             "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
-                            for i, _ in enumerate(data["example_runs"])
+                            for i, _ in enumerate(data["example_runs"], start=1)
                         ]
                     )
                     dpg.add_listbox(runs, tag=UUIDs["EXAMPLE_LISTBOX"])
