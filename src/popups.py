@@ -31,7 +31,7 @@ def popup_ok(msg: str, **args):
         dpg.add_spacer(height=5)
         dpg.add_button(
             label=DISPLAY_TEXTS["ui_ok"][LANGUAGE.get()],
-            callback=close_window,
+            callback=lambda s, a, u: close_window(u),
             user_data=popup_id,
             width=75,
         )
@@ -103,6 +103,6 @@ def popup_create_course(**args):
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
-                    callback=close_window,
+                    callback=lambda s, a, u: close_window(u),
                     user_data=field_ids["popup"],
                 )

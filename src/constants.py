@@ -40,7 +40,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.3.7"
+VERSION = "0.3.8"
 
 #################################
 # Environment spesific constants
@@ -96,7 +96,8 @@ EXAMPLE_RUN_KEY_LIST = [
     "CMD_INPUTS",
     "OUTPUT",
     "OUTPUT_FILES",
-    "GEN_EX" "WINDOW_ID",
+    "GEN_EX",
+    "WINDOW_ID",
 ]
 
 UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
