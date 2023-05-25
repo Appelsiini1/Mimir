@@ -12,6 +12,7 @@ from src.data_handler import get_recents
 
 # pylint: disable=logging-fstring-interpolation
 
+
 def _init_logging():
     """
     Initialize logging
@@ -26,9 +27,8 @@ def _init_logging():
     )
 
     logging.info("-#################-")
-    logging.info(
-        f"Mímir v{VERSION}"
-    )
+    logging.info(f"Mímir v{VERSION}")
+
 
 def _init_env_path():
     """

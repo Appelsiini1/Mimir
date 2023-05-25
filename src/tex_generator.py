@@ -92,9 +92,17 @@ bottom={margins[3]}mm]\
         hyphenation_cmd += t + "\n"
 
     other = "\n".join(preamble["other"])
-    toc = "\\renewcommand{\\contentsname}{" + DISPLAY_TEXTS["tex_toc"][LANGUAGE.get()] + "}\n"
+    toc = (
+        "\\renewcommand{\\contentsname}{"
+        + DISPLAY_TEXTS["tex_toc"][LANGUAGE.get()]
+        + "}\n"
+    )
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
-    metadata += ", pdftitle={L" + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}" + "}}"
+    metadata += (
+        ", pdftitle={L"
+        + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
+        + "}}"
+    )
 
     result = [
         doc_class_cmd,
@@ -215,7 +223,9 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 )
 
         for i, example_run in enumerate(assignment["example_runs"], start=1):
-            text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
+            text += (
+                f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
+            )
             text += "\\hfill\\break\\newline\n"
             if example_run["CMD"]:
                 text += _block_gen("cmd_input", example_run["CMD"])
@@ -230,9 +240,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                     )
 
         if incl_solution:
-            text += (
-                f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
-            )
+            text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
             for code in assignment["example_codes"]:
                 text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
                 text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
@@ -265,7 +273,7 @@ def _tex_gen(
     content = _assignment_text_gen(gen_info, assignment_list, incl_solution)
     end = "\\end{document}"
 
-    preamble = _preamble_gen(doc_settings, gen_info['lecture'])
+    preamble = _preamble_gen(doc_settings, gen_info["lecture"])
     header, footer = _hdr_ftr_gen(doc_settings, gen_info)
 
     tex_cmd = preamble + [

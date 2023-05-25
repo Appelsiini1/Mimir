@@ -18,7 +18,8 @@ def popup_ok(msg: str, **args):
 
     popup_id = dpg.generate_uuid()
     with dpg.window(
-        modal=True, tag=popup_id,
+        modal=True,
+        tag=popup_id,
         no_close=True,
         no_title_bar=True,
         autosize=True,
@@ -97,8 +98,11 @@ def popup_create_course(**args):
                     label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                     callback=move_info,
                     user_data=field_ids,
-                    width=75
+                    width=75,
                 )
                 dpg.add_spacer(width=5)
-                dpg.add_button(label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()], callback=close_window, user_data=field_ids["popup"])
-
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                    callback=close_window,
+                    user_data=field_ids["popup"],
+                )

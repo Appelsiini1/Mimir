@@ -4,13 +4,14 @@
 from os import name as OSname
 from os import getenv
 from os.path import join
-from logging import DEBUG#, INFO
+from logging import DEBUG  # , INFO
 from sys import exit as sysexit
 import json
 
 from dearpygui.dearpygui import generate_uuid
 from src.common import resource_path
 from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG
+
 
 def _get_texts():
     try:
@@ -21,14 +22,20 @@ def _get_texts():
         sysexit(1)
     return _display_texts
 
+
 def _get_filetypes():
     try:
-        with open(resource_path("resource/filetypes.json"), "r", encoding="utf-8") as _file:
+        with open(
+            resource_path("resource/filetypes.json"), "r", encoding="utf-8"
+        ) as _file:
             _data = json.loads(_file.read())
-            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][LANGUAGE.get()] # not a great solution
+            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][
+                LANGUAGE.get()
+            ]  # not a great solution
     except OSError:
         sysexit(1)
     return _data
+
 
 #################################
 # Version
@@ -74,7 +81,6 @@ _GENERAL_KEY_LIST = [
     "COURSE_ID",
     "COURSE_TITLE",
     "COURSE_WEEKS",
-
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
@@ -82,7 +88,7 @@ VARIATION_KEY_LIST = [
     "EXAMPLE_LISTBOX",
     "CODEFILE_LISTBOX",
     "DATAFILE_LISTBOX",
-    "WINDOW_ID"
+    "WINDOW_ID",
 ]
 
 EXAMPLE_RUN_KEY_LIST = [
@@ -90,21 +96,16 @@ EXAMPLE_RUN_KEY_LIST = [
     "CMD_INPUTS",
     "OUTPUT",
     "OUTPUT_FILES",
-    "GEN_EX"
-    "WINDOW_ID"
+    "GEN_EX" "WINDOW_ID",
 ]
 
-UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
+UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
 
 #################################
 # Misc constants
 OPEN_IX = IX()
 OPEN_COURSE_PATH = COURSE_PATH()
-COURSE_INFO = {
-    "course_title": None,
-    "course_id": None,
-    "course_weeks": None
-}
+COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": None}
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
 RECENTS = RECENTS_LIST()

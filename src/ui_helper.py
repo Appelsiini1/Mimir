@@ -14,6 +14,7 @@ from src.common import resource_path
 
 ################################
 
+
 def _load_fonts():
     """
     Loads default fonts. Returns a dict of loaded fonts.
@@ -91,12 +92,14 @@ def setup_textures():
     i = 1  # number of textures added so far
     logging.info("Texture registry added, with %d textures inside." % i)
 
+
 def setup_ui():
     """
     Shorthand for calling all UI setup functions
     """
     set_style()
     setup_textures()
+
 
 def help_(message):
     """
@@ -110,6 +113,7 @@ def help_(message):
     t = dpg.add_text("(?)", color=[0, 255, 0])
     with dpg.tooltip(t):
         dpg.add_text(message)
+
 
 def get_variation_letter(var):
     base = len(ascii_uppercase)
@@ -131,7 +135,8 @@ def close_window(window_id: int | str):
     """
     dpg.delete_item(window_id)
 
-def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
+
+def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     """
     Gets values from variation input fields and saves the data to parent dict
     """
@@ -141,14 +146,22 @@ def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
     data = u[3]
     ix = u[4]
 
-
     data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
     data["used_in"] = dpg.get_value(UUIDS["USED_IN"])
 
     if ix == -1:
         data["variation_id"] = var_letter
         parent_data["variations"].append(data)
-        _vars = [] if not parent_data["variations"] else ["{} {}".format(DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()], item["variation_id"]) for item in parent_data["variations"]]
+        _vars = (
+            []
+            if not parent_data["variations"]
+            else [
+                "{} {}".format(
+                    DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()], item["variation_id"]
+                )
+                for item in parent_data["variations"]
+            ]
+        )
         dpg.configure_item(UI_ITEM_TAGS["VARIATION_GROUP"], items=_vars)
     else:
         parent_data["variations"][ix] = data
@@ -156,7 +169,7 @@ def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
     close_window(UUIDS["WINDOW_ID"])
 
 
-def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int|str]):
+def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int | str]):
     """
     Gets values from exrun input fields and saves the data to the parent dict.
     """
@@ -175,7 +188,14 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int|str]):
 
     if new:
         var["example_runs"].append(ex_run)
-        runs = [] if not var["example_runs"] else ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i) for i, _ in enumerate(var["example_runs"])]
+        runs = (
+            []
+            if not var["example_runs"]
+            else [
+                "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+                for i, _ in enumerate(var["example_runs"])
+            ]
+        )
         dpg.configure_item(ex_listbox, items=runs)
     else:
         var["example_runs"][ix] = ex_run
@@ -183,7 +203,7 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int|str]):
     close_window(UUIDS["WINDOW_ID"])
 
 
-def get_files(s, a, u:tuple[dict, int|str, str]):
+def get_files(s, a, u: tuple[dict, int | str, str]):
     """
     Gets file paths from the user and adds them to the spesified list box
 
@@ -207,7 +227,8 @@ def get_files(s, a, u:tuple[dict, int|str, str]):
     leafs = [path_leaf(i) for i in files]
     dpg.configure_item(listbox, items=leafs)
 
-def openfilebrowser(f_type:str) -> list:
+
+def openfilebrowser(f_type: str) -> list:
     """
     Opens the filebrowser with f_type file extensions available.
     Allows the selection of multiple files. Returns a list of paths of the selected files.
@@ -220,6 +241,7 @@ def openfilebrowser(f_type:str) -> list:
         extensions = FILETYPES[f_type]
     file_paths = askopenfilenames(initialdir=getcwd(), filetypes=extensions)
     return list(file_paths)
+
 
 def remove_selected(s, a, u):
     """
@@ -264,14 +286,17 @@ def remove_selected(s, a, u):
                 final = [path_leaf(i) for i in data["outputfiles"]]
                 break
     elif i_type == "ex_run":
-        index = selected.split(" ")[1]-1
+        index = selected.split(" ")[1] - 1
         data["example_runs"].pop(index)
-        final = ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i) for i, _ in enumerate(data["example_runs"])]
-
+        final = [
+            "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+            for i, _ in enumerate(data["example_runs"])
+        ]
 
     dpg.configure_item(u[0], items=final)
 
-def toggle_enabled(sender, app_data, item:int|str):
+
+def toggle_enabled(sender, app_data, item: int | str):
     """
     Toggles item on or off depending on its previous state
     """
@@ -280,14 +305,21 @@ def toggle_enabled(sender, app_data, item:int|str):
     else:
         dpg.enable_item(item)
 
-def move_info(s, a, u:list):
+
+def move_info(s, a, u: list):
     """
     Move course information to main window from popup and close it
     """
     if dpg.get_value(u["id"]):
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"]))
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=dpg.get_value(u["title"]))
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"]))
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"])
+        )
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_TITLE"], default_value=dpg.get_value(u["title"])
+        )
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"])
+        )
         ask_course_dir()
         save_course_info()
     close_window(u["popup"])

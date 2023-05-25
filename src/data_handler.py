@@ -17,7 +17,16 @@ from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 from dearpygui.dearpygui import get_value, configure_item
 
-from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH, UI_ITEM_TAGS, RECENTS
+from src.constants import (
+    ENV,
+    DISPLAY_TEXTS,
+    LANGUAGE,
+    OPEN_IX,
+    COURSE_INFO,
+    OPEN_COURSE_PATH,
+    UI_ITEM_TAGS,
+    RECENTS,
+)
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
@@ -206,6 +215,7 @@ def add_assignment_to_index(data: dict):
     writer.commit()
     return True
 
+
 def _save_course_file():
     """
     Save course metadata to file
@@ -234,7 +244,6 @@ def save_course_info(**args):
 
     if new:
         create_index()
-
 
 
 def get_expanding_assignments(a_ix: index.FileIndex):
@@ -292,8 +301,8 @@ def format_general_json(data: dict, lecture_no: int):
     general["course_id"] = data["course_id"]
     general["course_name"] = data["course_name"]
     general["lecture"] = lecture_no
-    general["topics"] = data["lectures"][lecture_no-1]["topics"]
-    general["instructions"] = data["lectures"][lecture_no-1]["instructions"]
+    general["topics"] = data["lectures"][lecture_no - 1]["topics"]
+    general["instructions"] = data["lectures"][lecture_no - 1]["instructions"]
     return general
 
 
@@ -308,9 +317,7 @@ def format_metadata_json(data: dict):
     example_runs = []
     for i, ex_run in enumerate(variation["example_runs"]):
         n = {
-            "inputs": variation["example_runs"][i][
-                "inputs"
-            ],
+            "inputs": variation["example_runs"][i]["inputs"],
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
@@ -331,24 +338,25 @@ def format_metadata_json(data: dict):
         new["datafiles"] = []
         for df in variation["datafiles"]:
             new["datafiles"].append(
-            {
-                "filename": df,
-                "data": read_datafile(df),
-            }
+                {
+                    "filename": df,
+                    "data": read_datafile(df),
+                }
             )
     new["example_codes"] = []
     for cf in variation["codefiles"]:
         new["example_codes"].append(
             {
-            "filename": cf,
-            "code": get_assignment_code(
-                cf, data["assignment_id"] + variation["variation_id"]
-            ),
-        }
+                "filename": cf,
+                "code": get_assignment_code(
+                    cf, data["assignment_id"] + variation["variation_id"]
+                ),
+            }
         )
     return new
 
-def save_assignment(s, a, u:tuple[dict, bool]):
+
+def save_assignment(s, a, u: tuple[dict, bool]):
     """
     Saves assignment to database
     """
@@ -372,7 +380,7 @@ def save_assignment(s, a, u:tuple[dict, bool]):
         _filename = assignment["assignment_id"] + ".json"
         _json = json.dumps(assignment)
 
-    #TODO Add/Update index
+    # TODO Add/Update index
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
 
@@ -400,6 +408,7 @@ def get_empty_assignment():
 
     return empty
 
+
 def get_empty_variation():
     """
     Returns an empty instance of an assignment variation dictionary
@@ -415,6 +424,7 @@ def get_empty_variation():
 
     return empty
 
+
 def get_empty_example_run():
     """
     Returns an empty instace of an example run dictionary
@@ -429,16 +439,22 @@ def get_empty_example_run():
 
     return empty
 
+
 def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
     return tail or basename(head)
 
+
 def ask_course_dir(**args):
     """
     Ask course directory from user
     """
-    _dir = askdirectory(initialdir=getcwd(), mustexist=False, title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()])
+    _dir = askdirectory(
+        initialdir=getcwd(),
+        mustexist=False,
+        title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()],
+    )
 
     if _dir != "":
         if not path.exists(_dir):
@@ -448,6 +464,7 @@ def ask_course_dir(**args):
         OPEN_COURSE_PATH.set(_dir)
         save_recent()
         logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
+
 
 def save_recent(**args):
     """
@@ -475,6 +492,7 @@ def save_recent(**args):
     RECENTS.set(rec)
     logging.info("Recent courses set as: %s", rec)
 
+
 def get_recents(**args):
     """
     Get a list of recent courses
@@ -491,6 +509,7 @@ def get_recents(**args):
         except OSError:
             logging.exception("Error occured while getting recent courses.")
     logging.info("Set recent course list as: %s", RECENTS.get())
+
 
 def open_course(**args):
     """
@@ -516,6 +535,12 @@ def open_course(**args):
         for key in _json.keys():
             COURSE_INFO[key] = _json[key]
         open_index()
-        configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"])
-        configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"])
-        configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"])
+        configure_item(
+            UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"]
+        )
+        configure_item(
+            UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"]
+        )
+        configure_item(
+            UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
+        )
