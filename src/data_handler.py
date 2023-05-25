@@ -33,32 +33,6 @@ from src.custom_errors import IndexExistsError, IndexNotOpenError
 # pylint: disable=invalid-name
 
 
-class Assignment:
-    """
-    Class to hold basic assignment data.
-
-    Params:
-    a_id:   Assignment ID. Should include variation ID too.
-    title:  Assignment title
-    tags:   List of tags the assignment has
-    lecture: A tuple containing the lecture number and a list of positions
-                where the assignment can be assinged to
-    paths:  List containing the json and code path
-    used_in: A list of dates when the assignment has been previously used in
-    exp:    A boolean whether the assignment is expanding or not. Defaults to False.
-    """
-
-    def __init__(self, a_id, title, tags, lecture, jsonpath, used_in, exp=False):
-        self.a_id = a_id
-        self.title = title
-        self.tags = tags
-        self.lecture = lecture[0]
-        self.a_pos = lecture[1]
-        self.json_path = jsonpath
-        self.used_in = used_in
-        self.is_expanding = exp
-
-
 def data_path_handler(directory_path: str):
     """
     Takes a general path to the cache directory and returns a dictionary of paths
@@ -146,8 +120,6 @@ def create_index(force=False, **args):
         title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
         json_path=STORED,
         is_expanding=BOOLEAN,
-        used_in=KEYWORD(stored=True, commas=True),
-        mtimes=ID,
     )
 
     if index.exists_in(ix_path, name) and not force:
@@ -188,32 +160,22 @@ def add_assignment_to_index(data: dict):
         raise IndexNotOpenError
     ix = OPEN_IX.get()
 
-    positions = ",".join(f"L{data.lecture:02d}T{i:02d}" for i in data.a_pos)
-    tags = ",".join(data.tags)
-    used_in = ",".join(data.used_in)
-
-    try:
-        mtime = path.getmtime(data.json_path)
-    except OSError:
-        logging.exception(
-            "Could not get modification time(s) for assignment data file(s)"
-        )
-        return False
+    positions = f"{data['exp_lecture']:02d};"
+    positions += ",".join(data["exp_assignment_no"])
+    tags = ",".join(data["tags"])
+    json_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"]+".json")
+    expanding = bool(data["next, last"][0] or data["next, last"][1])
 
     writer = ix.writer()
-
     writer.add_document(
-        a_id=data.a_id,
+        a_id=data["assignment_id"],
         position=positions,
         tags=tags,
-        title=data.title,
-        json_path=data.json_path,
-        is_expanding=data.is_expanding,
-        used_in=used_in,
-        mtimes=mtime,
+        title=data["title"],
+        json_path=json_path,
+        is_expanding=expanding,
     )
     writer.commit()
-    return True
 
 
 def _save_course_file():
@@ -246,7 +208,7 @@ def save_course_info(**args):
         create_index()
 
 
-def get_expanding_assignments(a_ix: index.FileIndex):
+def get_expanding_assignments():
     """
     Returns a list of assignment objects that have 'is_expanding' argument set to TRUE.
 
@@ -255,34 +217,32 @@ def get_expanding_assignments(a_ix: index.FileIndex):
     """
 
 
-def update_index(a_ix: index.FileIndex):
+def update_index(data:dict):
     """
-    Updates the index if the files have changed. Uses modification time of the files.
-    If the files are deleted, returns a list of them. If no files were found to be deleted,
-    return an empty list.
+    Updates the index with the data from the updated assignment.
 
     Params:
-    a_ix: FileIndex object that has the index to update.
+    data: assignment to update
     """
 
-    deleted = []
-    to_index = []
+    ix = OPEN_IX.get()
 
-    with a_ix.searcher() as searcher:
+    positions = f"{data['exp_lecture']:02d};"
+    positions += ",".join(data["exp_assignment_no"])
+    tags = ",".join(data["tags"])
+    json_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"]+".json")
+    expanding = bool(data["next, last"][0] or data["next, last"][1])
 
-        for fields in searcher.all_stored_fields():
-            ind_json_path = fields["json_path"]
-
-            if not path.exists(ind_json_path):
-                deleted.append(fields["a_id"])
-            else:
-                ind_times = fields["mtimes"]
-                ind_json_time = ind_times.split(",")[0]
-                json_time = path.getmtime(ind_json_path)
-
-                if json_time > ind_json_time:
-                    to_index.append(fields["a_id"])
-    # TODO Add document updating logic
+    writer = ix.writer()
+    writer.update_document(
+        a_id=data["assignment_id"],
+        position=positions,
+        tags=tags,
+        title=data["title"],
+        json_path=json_path,
+        is_expanding=expanding,
+    )
+    writer.commit()           
 
 
 def get_texdoc_settings():
@@ -372,14 +332,14 @@ def save_assignment_data(assignment, new):
 
         _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
+        add_assignment_to_index(assignment)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
 
         _filename = assignment["assignment_id"] + ".json"
         _json = json.dumps(assignment, indent=4, ensure_ascii=False)
-
-    # TODO Add/Update index
+        update_index(assignment)
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
