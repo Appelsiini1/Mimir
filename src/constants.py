@@ -33,7 +33,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.3.5"
+VERSION = "0.3.6"
 
 #################################
 # Environment spesific constants
@@ -81,7 +81,8 @@ VARIATION_KEY_LIST = [
     "USED_IN",
     "EXAMPLE_LISTBOX",
     "CODEFILE_LISTBOX",
-    "DATAFILE_LISTBOX"
+    "DATAFILE_LISTBOX",
+    "WINDOW_ID"
 ]
 
 EXAMPLE_RUN_KEY_LIST = [
@@ -90,6 +91,7 @@ EXAMPLE_RUN_KEY_LIST = [
     "OUTPUT",
     "OUTPUT_FILES",
     "GEN_EX"
+    "WINDOW_ID"
 ]
 
 UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}

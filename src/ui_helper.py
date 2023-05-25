@@ -113,7 +113,7 @@ def get_variation_letter(var):
     return result
 
 
-def close_window(sender: None, app_data: None, window_id: int | str):
+def close_window(window_id: int | str):
     """
     Closes a UI window.
 
@@ -271,4 +271,4 @@ def move_info(s, a, u:list):
         dpg.configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"]))
         ask_course_dir()
         save_course_info()
-    close_window(None, None, u["popup"])
+    close_window(u["popup"])

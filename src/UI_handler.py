@@ -161,10 +161,9 @@ def _add_example_run_window(
         new = True
     
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
-    window_id = dpg.generate_uuid()
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1])
     with dpg.window(
-        label=label, tag=window_id, width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
     ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
@@ -213,7 +212,7 @@ def _add_example_run_window(
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_import_outputfiles"][LANGUAGE.get()],
                             callback=get_files,
-                            user_data=(UUIDs["OUTPUT_FILES"], ex_run, "outputfiles")
+                            user_data=(ex_run, UUIDs["OUTPUT_FILES"], "outputfiles")
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()], callback=remove_selected, user_data=(UUIDs["OUTPUT_FILES"], ex_run, "outputfiles"))
@@ -229,8 +228,8 @@ def _add_example_run_window(
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
-                    callback=close_window,
-                    user_data=window_id,
+                    callback=lambda s, a, u:close_window(u),
+                    user_data=UUIDs["WINDOW_ID"],
                 )
 
 
@@ -239,7 +238,6 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
     var_letter = get_variation_letter(len(parent_data["variations"]))
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     UUIDs = {'{}'.format(i):dpg.generate_uuid() for i in VARIATION_KEY_LIST}
-    window_id = dpg.generate_uuid()
     
     if user_data[1] == -1:
         data = get_empty_variation()
@@ -247,7 +245,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
         data = parent_data["variations"][user_data[1]]
 
     with dpg.window(
-        label=label, tag=window_id, width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
     ):
         dpg.add_spacer(height=5)
 
@@ -337,8 +335,8 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                 dpg.add_spacer(width=5)
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
-                    callback=close_window,
-                    user_data=window_id,
+                    callback=lambda s, a, u:close_window(u),
+                    user_data=UUIDs["WINDOW_ID"],
                 )
 
 
@@ -454,7 +452,7 @@ def _assignment_window(sender, app_data, user_data):
                 dpg.add_button(label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()], callback=save_assignment, user_data=(var, new))
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
-                    callback=close_window,
+                    callback=lambda s, a, u:close_window(u),
                     user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                 )
                 dpg.add_button(
