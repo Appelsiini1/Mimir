@@ -27,6 +27,7 @@ from src.data_handler import (
     get_empty_example_run,
     open_course,
     get_all_indexed_assignments,
+    get_number_of_docs,
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -143,7 +144,7 @@ def main_window():
                                 DISPLAY_TEXTS["ui_no_assignments_index"][LANGUAGE.get()]
                                 + ":"
                             )
-                            dpg.add_text("0", tag=UI_ITEM_TAGS["total_index"])
+                            dpg.add_text(str(get_number_of_docs()), tag=UI_ITEM_TAGS["total_index"])
                         with dpg.table_row():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
@@ -176,7 +177,7 @@ def main_window():
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label="Current index (TEMP)",
-                        callback=lambda s, a, u: pprint(get_all_indexed_assignments),
+                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
                     )
 
 
@@ -283,14 +284,17 @@ def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | 
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
     parent_data = user_data[0]
-    var_letter = get_variation_letter(len(parent_data["variations"]) + 1)
-    label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
-    UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
     if user_data[1] == -1:
         data = get_empty_variation()
+    elif user_data[1] == -2:
+        return
     else:
         data = parent_data["variations"][user_data[1]]
+
+    var_letter = get_variation_letter(len(parent_data["variations"]) + 1)
+    label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
+    UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
     with dpg.window(
         label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
@@ -598,7 +602,7 @@ def _assignment_window(sender, app_data, user_data):
                     callback=_add_variation_window,
                     user_data=(
                         var,
-                        -1
+                        -2
                         if not var["variations"]
                         else var["variations"].index(
                             dpg.get_value(UI_ITEM_TAGS["VARIATION_GROUP"])
