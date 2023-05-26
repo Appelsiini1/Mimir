@@ -9,6 +9,9 @@ from sys import exit as sysexit
 import json
 
 from dearpygui.dearpygui import generate_uuid
+from whoosh.analysis import StemmingAnalyzer
+from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
+
 from src.common import resource_path
 from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG
 
@@ -110,3 +113,11 @@ COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": None}
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
 RECENTS = RECENTS_LIST()
+INDEX_SCHEMA = Schema(
+    a_id=ID(stored=True, unique=True),
+    position=KEYWORD(stored=True, commas=True),
+    tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
+    title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+    json_path=STORED,
+    is_expanding=BOOLEAN(stored=True),
+)

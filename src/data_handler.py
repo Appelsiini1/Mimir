@@ -13,8 +13,6 @@ from tkinter.filedialog import askdirectory
 from hashlib import sha256
 
 from whoosh import index
-from whoosh.analysis import StemmingAnalyzer
-from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 from dearpygui.dearpygui import get_value, configure_item
 
 from src.constants import (
@@ -26,6 +24,7 @@ from src.constants import (
     OPEN_COURSE_PATH,
     UI_ITEM_TAGS,
     RECENTS,
+    INDEX_SCHEMA
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 
@@ -103,7 +102,7 @@ def read_datafile(filename: str):
 
 def create_index(force=False, **args):
     """
-    Creates an assignment index and its schema that are used to store paths to all available
+    Creates an assignment index from schema that is used to store paths to all available
     assingments.
     Sets the created index as a global constant.
 
@@ -113,20 +112,12 @@ def create_index(force=False, **args):
 
     ix_path = OPEN_COURSE_PATH.get()
     name = COURSE_INFO["course_id"]
-    schema = Schema(
-        a_id=ID(stored=True, unique=True),
-        position=KEYWORD(stored=True, commas=True),
-        tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
-        title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-        json_path=STORED,
-        is_expanding=BOOLEAN(stored=True),
-    )
 
     if index.exists_in(ix_path, name) and not force:
         raise IndexExistsError("Index '%s' already exists in '%s'" % (name, ix_path))
 
     try:
-        ix = index.create_in(ix_path, schema, name)
+        ix = index.create_in(ix_path, INDEX_SCHEMA, name)
     except OSError:
         logging.exception("Unable to save index file.")
     else:
