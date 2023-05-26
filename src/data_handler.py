@@ -24,14 +24,15 @@ from src.constants import (
     OPEN_COURSE_PATH,
     UI_ITEM_TAGS,
     RECENTS,
-    INDEX_SCHEMA
+    INDEX_SCHEMA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
 
-def get_assignment_json(json_path: str) -> dict|None:
+
+def get_assignment_json(json_path: str) -> dict | None:
     """
     Read JSON and use the data to get example code from its file.
     Returns a dictionary with all the assignment data or None if an exception
@@ -142,7 +143,9 @@ def add_assignment_to_index(data: dict):
     positions = f"{data['exp_lecture']};"
     positions += ",".join(data["exp_assignment_no"])
     tags = ",".join(data["tags"])
-    json_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"]+".json")
+    json_path = path.join(
+        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
+    )
     try:
         expanding = bool(data["next, last"][0] or data["next, last"][1])
     except IndexError:
@@ -199,7 +202,7 @@ def get_expanding_assignments():
     """
 
 
-def update_index(data:dict):
+def update_index(data: dict):
     """
     Updates the index with the data from the updated assignment.
 
@@ -212,7 +215,9 @@ def update_index(data:dict):
     positions = f"{data['exp_lecture']:02d};"
     positions += ",".join(data["exp_assignment_no"])
     tags = ",".join(data["tags"])
-    json_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"]+".json")
+    json_path = path.join(
+        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
+    )
     expanding = bool(data["next, last"][0] or data["next, last"][1])
 
     writer = ix.writer()
@@ -224,7 +229,7 @@ def update_index(data:dict):
         json_path=json_path,
         is_expanding=expanding,
     )
-    writer.commit()           
+    writer.commit()
 
 
 def get_texdoc_settings():
@@ -330,7 +335,10 @@ def save_assignment_data(assignment, new):
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
-        logging.info("Successfully saved assignment %s to file and index.", assignment["assignment_id"])
+        logging.info(
+            "Successfully saved assignment %s to file and index.",
+            assignment["assignment_id"],
+        )
     except OSError:
         # TODO Popup for user
         logging.exception("Error while saving assignment data!")
@@ -488,9 +496,8 @@ def open_course(**args):
         configure_item(
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
-        configure_item(
-            UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs()
-        )
+        configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
+
 
 def get_all_indexed_assignments() -> list:
     """Returns a list of all the documents in the index."""
@@ -504,6 +511,7 @@ def get_all_indexed_assignments() -> list:
 
     return docs
 
+
 def get_number_of_docs() -> int:
     """Returns the number of documents in the course index."""
 
@@ -514,6 +522,7 @@ def get_number_of_docs() -> int:
             no = sr.doc_count()
         return no
     return 0
+
 
 def close_index() -> None:
     """Closes the open indexes."""
