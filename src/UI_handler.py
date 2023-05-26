@@ -28,6 +28,7 @@ from src.data_handler import (
     open_course,
     get_all_indexed_assignments,
     get_number_of_docs,
+    close_index
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -48,6 +49,7 @@ from src.popups import popup_ok, popup_create_course
 
 def _stop():
     logging.info("Stopping program.")
+    close_index()
     dpg.stop_dearpygui()
     dpg.destroy_context()
 
@@ -69,7 +71,6 @@ def main_window():
     ):
         with dpg.menu_bar():
             with dpg.menu(label=DISPLAY_TEXTS["menu_file"][LANGUAGE.get()]):
-                # TODO Add callbacks
                 dpg.add_menu_item(
                     label=DISPLAY_TEXTS["menu_create"][LANGUAGE.get()],
                     callback=popup_create_course,

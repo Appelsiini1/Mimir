@@ -45,7 +45,7 @@ def data_path_handler(directory_path: str):
     """
 
 
-def get_assignment_json(json_path: str):
+def get_assignment_json(json_path: str) -> dict|None:
     """
     Read JSON and use the data to get example code from its file.
     Returns a dictionary with all the assignment data or None if an exception
@@ -122,6 +122,7 @@ def create_index(force=False, **args):
         logging.exception("Unable to save index file.")
     else:
         OPEN_IX.set(ix)
+        logging.debug("Index created and set.")
 
 
 def open_index(**args):
@@ -137,6 +138,7 @@ def open_index(**args):
         logging.exception("Could not open index file.")
     else:
         OPEN_IX.set(ix)
+        logging.debug("Index set.")
 
 
 def add_assignment_to_index(data: dict):
@@ -526,3 +528,12 @@ def get_number_of_docs() -> int:
             no = sr.doc_count()
         return no
     return 0
+
+def close_index() -> None:
+    """Closes the open indexes."""
+
+    ix = OPEN_IX.get()
+    if ix:
+        ix.close()
+
+    logging.info("Indexes closed.")
