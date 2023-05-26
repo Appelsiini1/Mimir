@@ -49,7 +49,7 @@ def set_style():
     """
     fonts = _load_fonts()
     dpg.bind_font(fonts["default"])
-    logging.info("Fonts loaded.")
+    logging.debug("Fonts loaded.")
 
     with dpg.theme() as global_theme:
         with dpg.theme_component(dpg.mvAll):
@@ -90,7 +90,7 @@ def setup_textures():
         parent="__main_texture_container",
     )
     i = 1  # number of textures added so far
-    logging.info("Texture registry added, with %d textures inside." % i)
+    logging.debug("Texture registry added, with %d textures inside." % i)
 
 
 def setup_ui():
