@@ -46,4 +46,3 @@ def init_environment():
     _init_logging()
     logging.info("Mímir initializing...")
     get_recents()
-    logging.info("Mímir initialized.")
