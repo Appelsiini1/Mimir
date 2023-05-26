@@ -31,20 +31,6 @@ from src.custom_errors import IndexExistsError, IndexNotOpenError
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
 
-
-def data_path_handler(directory_path: str):
-    """
-    Takes a general path to the cache directory and returns a dictionary of paths
-    to the files in that directory, separated into 'general', 'metadata' and 'assignment'.
-    Individual files can be accessed via assignment ID keys.
-    For example:
-    files['assignment']['L01T1']
-
-    Params:
-    directory_path: A path to the root DATA directory in cache
-    """
-
-
 def get_assignment_json(json_path: str) -> dict|None:
     """
     Read JSON and use the data to get example code from its file.
