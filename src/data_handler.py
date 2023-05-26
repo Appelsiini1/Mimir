@@ -119,7 +119,7 @@ def create_index(force=False, **args):
         tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
         title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
         json_path=STORED,
-        is_expanding=BOOLEAN,
+        is_expanding=BOOLEAN(stored=True),
     )
 
     if index.exists_in(ix_path, name) and not force:
@@ -160,11 +160,14 @@ def add_assignment_to_index(data: dict):
         raise IndexNotOpenError
     ix = OPEN_IX.get()
 
-    positions = f"{data['exp_lecture']:02d};"
+    positions = f"{data['exp_lecture']};"
     positions += ",".join(data["exp_assignment_no"])
     tags = ",".join(data["tags"])
     json_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"]+".json")
-    expanding = bool(data["next, last"][0] or data["next, last"][1])
+    try:
+        expanding = bool(data["next, last"][0] or data["next, last"][1])
+    except IndexError:
+        expanding = False
 
     writer = ix.writer()
     writer.add_document(
@@ -348,7 +351,7 @@ def save_assignment_data(assignment, new):
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
-        logging.info("Successfully saved assignment %s", assignment["assignment_id"])
+        logging.info("Successfully saved assignment %s to file and index.", assignment["assignment_id"])
     except OSError:
         # TODO Popup for user
         logging.exception("Error while saving assignment data!")
@@ -506,14 +509,29 @@ def open_course(**args):
         configure_item(
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
+        configure_item(
+            UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs()
+        )
 
-def get_all_indexed_assignments():
-    """Returns a Generator object with all the indexed documents and a count of how many in the current index."""
+def get_all_indexed_assignments() -> list:
+    """Returns a list of all the documents in the index."""
 
     ix = OPEN_IX.get()
 
+    docs = []
     with ix.searcher() as srcr:
         _all = srcr.documents()
-        _no = srcr.doc_count()
+        docs = list(_all)
 
-    return (_all, _no)
+    return docs
+
+def get_number_of_docs() -> int:
+    """Returns the number of documents in the course index."""
+
+    ix = OPEN_IX.get()
+
+    if ix:
+        with ix.searcher() as sr:
+            no = sr.doc_count()
+        return no
+    return 0
