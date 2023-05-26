@@ -423,8 +423,10 @@ def save_recent(**args):
     Save current course to recents
     """
     rec = RECENTS.get()
-    if not OPEN_COURSE_PATH in rec:
+    if not OPEN_COURSE_PATH.get() in rec:
         if len(rec) < 5:
+            ind = rec.index(OPEN_COURSE_PATH.get())
+            rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
@@ -434,6 +436,12 @@ def save_recent(**args):
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
+    else:
+        ind = rec.index(OPEN_COURSE_PATH.get())
+        rec.pop(ind)
+        rec.reverse()
+        rec.append(OPEN_COURSE_PATH.get())
+        rec.reverse()
     f_path = path.join(ENV["PROGRAM_DATA"], "recents.txt")
     try:
         with open(f_path, "w", encoding="utf-8") as f:
@@ -442,7 +450,7 @@ def save_recent(**args):
     except OSError:
         logging.exception("Error occured while saving recents to file!")
     RECENTS.set(rec)
-    logging.info("Recent courses set as: %s", rec)
+    logging.debug("Recent courses set as: %s", rec)
 
 
 def get_recents(**args):
