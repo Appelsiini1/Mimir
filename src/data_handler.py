@@ -392,6 +392,21 @@ def get_empty_example_run():
     return empty
 
 
+def get_empty_week() -> dict:
+    """
+    Return a dictionary that contains the correct keys for a week object with no values.
+    """
+    empty = {}
+    empty["title"] = ""
+    empty["lecture_no"] = 0
+    empty["topics"] = []
+    empty["instructions"] = ""
+    empty["assignment_count"] = 0
+    empty["tags"] = []
+
+    return empty
+
+
 def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
@@ -540,3 +555,8 @@ def close_index() -> None:
         ix.close()
 
     logging.info("Indexes closed.")
+
+def save_week(s, a, u:tuple[dict, bool, dict]) -> None:
+    """
+    Save week data to file.
+    """

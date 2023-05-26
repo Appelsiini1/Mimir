@@ -15,6 +15,7 @@ from src.constants import (
     UI_ITEM_TAGS,
     VARIATION_KEY_LIST,
     EXAMPLE_RUN_KEY_LIST,
+    WEEK_WINDOW_KEY_LIST,
     RECENTS,
     OPEN_COURSE_PATH,
     COURSE_INFO,
@@ -25,10 +26,12 @@ from src.data_handler import (
     path_leaf,
     get_empty_assignment,
     get_empty_example_run,
+    get_empty_week,
     open_course,
     get_all_indexed_assignments,
     get_number_of_docs,
-    close_index
+    close_index,
+    save_week,
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -643,3 +646,80 @@ def open_new_assignment_window():
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
+
+def _add_week_window(s, a, u):
+    """
+    UI components for "Add week" window.
+    """
+
+    label = "Mímir - {} - {}".format(
+        DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()],
+        DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()]
+    )
+    if u:
+        parent_data = u[0]
+        week = u[0]["lectures"][u[1]]
+        new = False
+    else:
+        parent_data = {
+            "course_id" : COURSE_INFO["course_id"],
+            "course_title" : COURSE_INFO["course_title"],
+            "lectures" : []
+        }
+        week = get_empty_week()
+        new = True
+    multiline_width = 430
+
+    UUIDs = {"{}".format(i): dpg.generate_uuid() for i in WEEK_WINDOW_KEY_LIST}
+    with dpg.window(label=label, width=750, height=700, tag=UUIDs["WINDOW_ID"], no_close=True):
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                # Week title
+                dpg.add_text(DISPLAY_TEXTS["ui_week_title"][LANGUAGE.get()] + ":")
+                help_(DISPLAY_TEXTS["help_week_title"][LANGUAGE.get()])
+                dpg.add_input_text(width=multiline_width, tag=UUIDs["TITLE"], default_value=week["title"])
+                dpg.add_spacer(height=5)
+
+                # Week number
+                dpg.add_text(DISPLAY_TEXTS["ui_week_no"][LANGUAGE.get()])
+                dpg.add_input_int(width=150, min_value=0, min_clamped=True, tag=UUIDs["LECTURE_NO"], default_value=week["lecture_no"])
+                dpg.add_spacer(height=5)
+
+                # Assignment count
+                dpg.add_text(DISPLAY_TEXTS["ui_no_assignments"][LANGUAGE.get()])
+                dpg.add_input_int(width=150, min_value=1, min_clamped=True, tag=UUIDs["A_COUNT"], default_value=week["assignment_count"])
+                dpg.add_spacer(height=5)
+
+                # Week topics
+                dpg.add_text(DISPLAY_TEXTS["ui_week_topics"][LANGUAGE.get()])
+                help_(DISPLAY_TEXTS["help_week_topics"])
+                dpg.add_input_text(width=multiline_width, tag=UUIDs["TOPICS"], default_value="\n".join(week["topics"]), multiline=True)
+                dpg.add_spacer(height=5)
+
+                # Week instructions
+                dpg.add_text(DISPLAY_TEXTS["ui_inst"][LANGUAGE.get()])
+                help_(DISPLAY_TEXTS["help_week_inst"][LANGUAGE.get()])
+                dpg.add_input_text(width=multiline_width, tag=UUIDs["INSTRUCTIONS"], default_value=week["instructions"], multiline=True)
+                dpg.add_spacer(height=5)
+
+                # Week tags
+                dpg.add_text(DISPLAY_TEXTS["ui_week_tags"][LANGUAGE.get()])
+                help_(DISPLAY_TEXTS["help_week_tags"])
+                dpg.add_input_text(width=multiline_width, tag=UUIDs["TAGS"], default_value=week["tags"]) 
+
+                # Window buttons
+                dpg.add_spacer(height=5)
+                dpg.add_separator()
+                dpg.add_spacer(height=5)
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
+                        callback=save_week,
+                        user_data=(week, new, parent_data),
+                    )
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                        callback=lambda s, a, u: close_window(u),
+                        user_data=UUIDs["WINDOW_ID"],
+                    )

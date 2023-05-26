@@ -373,5 +373,45 @@
     "popup_courseinfo_missing" : {
         "FI" : "Kurssitietoja puuttuu, lisää tiedot pääsivulle ja paina 'Tallenna'.",
         "ENG" : "Some course information seems to be missing, please add them on the main window and press 'Save'."
+    },
+    "ui_add_week" : {
+        "FI" : "Lisää viikkotiedot",
+        "ENG" : "Add week info"
+    },
+    "ui_week_management" : {
+        "FI" : "Viikkojen hallinta",
+        "ENG" : "Week management"
+    },
+    "ui_week_title" : {
+        "FI" : "Viikon otsikko",
+        "ENG" : "Week title"
+    },
+    "ui_week_no" : {
+        "FI" : "Viikon numero",
+        "ENG" : "Week number"
+    },
+    "ui_week_topics" : {
+        "FI" : "Aiheet",
+        "ENG" : "Topics"
+    },
+    "ui_week_tags" : {
+        "FI" : "Viikon tunnisteet",
+        "ENG" : "Week tags"
+    },
+    "help_week_title" : {
+        "FI" : "Syötä viikon otsikko. Jos kenttä jätetään tyhjäksi, käytetään oletusta.",
+        "ENG" : "Input the week a title. If left empty, the default will be used."
+    },
+    "help_week_topics" : {
+        "FI" : "Lisää tähän viikolla/luennolla käsiteltävät aiheet. Erottele aiheet rivinvaihdolla. Tukee LaTeX komentoja, mutta huomaa että listaus tehdään automaattisesti.",
+        "ENG" : "Add the topics that are covered on this week/lecture. Separate topics with a new line. Supports LaTeX commands, but note that the listing will be done automatically."
+    },
+    "help_week_tags" : {
+        "FI" : "Syötä viikon aihetunnisteet. Erote aihetunnisteet pilkulla.",
+        "ENG" : "Input the tags for the week here. Separate each of them with a comma."
+    },
+    "help_week_inst" : {
+        "FI" : "Syötä viikon erikoisohjeet. Nämä tulostuvat aihelistan perään. Tukee LaTeX komentoja.",
+        "ENG" : "Input any special instructions for the week. These will be printed after the topic list. Supports LaTeX commands."
     }
 }
