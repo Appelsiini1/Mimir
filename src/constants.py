@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.4.0"
+VERSION = "0.4.2"
 
 #################################
 # Environment spesific constants
@@ -84,6 +84,7 @@ _GENERAL_KEY_LIST = [
     "COURSE_ID",
     "COURSE_TITLE",
     "COURSE_WEEKS",
+    "ADD_WEEK"
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
@@ -104,7 +105,6 @@ EXAMPLE_RUN_KEY_LIST = [
 ]
 
 WEEK_WINDOW_KEY_LIST = [
-    "WINDOW_ID",
     "LECTURE_NO",
     "TOPICS",
     "INSTRUCTIONS",

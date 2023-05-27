@@ -556,7 +556,50 @@ def close_index() -> None:
 
     logging.info("Indexes closed.")
 
-def save_week(s, a, u:tuple[dict, bool, dict]) -> None:
+
+def save_week_data(week, new) -> None:
     """
     Save week data to file.
     """
+    parent = get_week_data()
+
+    if new:
+        parent["lectures"].append(week)
+    else:
+        for i, item in enumerate(parent["lectures"]):
+            if item["lecture_no"] == week["lecture_no"]:
+                parent["lectures"][i] = week
+                break
+
+    f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+    try:
+        with open(f_path, "w", encoding="utf-8") as f:
+            _json = json.dumps(parent, indent=4, ensure_ascii=False)
+            f.write(_json)
+    except OSError:
+        logging.exception("Error in saving week JSON.")
+    logging.debug("Week data saved: %s", _json)
+
+
+def get_week_data() -> dict | None:
+    """
+    Get week data from json, or return a dict with only course infor filled in.
+    """
+
+    weeks = None
+    f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+    try:
+        with open(f_path, "r", encoding="utf-8") as f:
+            data = f.read()
+            weeks = json.loads(data)
+    except FileNotFoundError:
+        weeks = {
+            "course_id": COURSE_INFO["course_id"],
+            "course_title": COURSE_INFO["course_title"],
+            "lectures": [],
+        }
+    except OSError:
+        logging.exception("Error when reading week data.")
+
+    logging.debug("Week data is: %s", weeks)
+    return weeks

@@ -31,7 +31,6 @@ from src.data_handler import (
     get_all_indexed_assignments,
     get_number_of_docs,
     close_index,
-    save_week,
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -44,6 +43,7 @@ from src.ui_helper import (
     extract_variation_data,
     toggle_enabled,
     save_assignment,
+    save_week
 )
 from src.popups import popup_ok, popup_create_course
 
@@ -148,7 +148,10 @@ def main_window():
                                 DISPLAY_TEXTS["ui_no_assignments_index"][LANGUAGE.get()]
                                 + ":"
                             )
-                            dpg.add_text(str(get_number_of_docs()), tag=UI_ITEM_TAGS["total_index"])
+                            dpg.add_text(
+                                str(get_number_of_docs()),
+                                tag=UI_ITEM_TAGS["total_index"],
+                            )
                         with dpg.table_row():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
@@ -174,14 +177,18 @@ def main_window():
                 with dpg.group(horizontal=True):
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
-                        callback=open_new_assignment_window,
+                        callback=lambda s, a, u: open_new_assignment_window(),
                         tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
-                        user_data=False,
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label="Current index (TEMP)",
                         callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
+                        callback=lambda s, a, u: open_new_week_window(),
                     )
 
 
@@ -453,7 +460,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                 )
 
 
-def _assignment_window(sender, app_data, user_data):
+def _assignment_window(var_data=None):
     """
     UI components for "Add assingment" window
     """
@@ -461,11 +468,11 @@ def _assignment_window(sender, app_data, user_data):
         DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE.get()],
         DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
     )
-    if not user_data:
+    if not var_data:
         var = get_empty_assignment()
         new = True
     else:
-        var = user_data
+        var = var_data
         new = False
     with dpg.window(
         label=label,
@@ -632,81 +639,115 @@ def _assignment_window(sender, app_data, user_data):
                 )
 
 
-def open_new_assignment_window():
+def open_new_assignment_window(parent=None):
     """
     A function to check whether the 'Add assingment' window is already open.
     If it is not, open it.
+
+    Params:
+    parent: Assignment data to edit
     """
 
     if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                _assignment_window(None, None, None)
+                _assignment_window(var_data=parent)
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
 
-def _add_week_window(s, a, u):
+
+def _add_week_window(parent=None, index=None):
     """
     UI components for "Add week" window.
     """
 
     label = "Mímir - {} - {}".format(
         DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()],
-        DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()]
+        DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
     )
-    if u:
-        parent_data = u[0]
-        week = u[0]["lectures"][u[1]]
+    if parent:
+        print(parent)
+        week = parent["lectures"][index]
         new = False
     else:
-        parent_data = {
-            "course_id" : COURSE_INFO["course_id"],
-            "course_title" : COURSE_INFO["course_title"],
-            "lectures" : []
-        }
         week = get_empty_week()
         new = True
     multiline_width = 430
 
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in WEEK_WINDOW_KEY_LIST}
-    with dpg.window(label=label, width=750, height=700, tag=UUIDs["WINDOW_ID"], no_close=True):
+    with dpg.window(
+        label=label, width=750, height=700, tag=UI_ITEM_TAGS["ADD_WEEK"], no_close=True
+    ):
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
                 # Week title
                 dpg.add_text(DISPLAY_TEXTS["ui_week_title"][LANGUAGE.get()] + ":")
                 help_(DISPLAY_TEXTS["help_week_title"][LANGUAGE.get()])
-                dpg.add_input_text(width=multiline_width, tag=UUIDs["TITLE"], default_value=week["title"])
+                dpg.add_input_text(
+                    width=multiline_width,
+                    tag=UUIDs["TITLE"],
+                    default_value=week["title"],
+                )
                 dpg.add_spacer(height=5)
 
-                # Week number
-                dpg.add_text(DISPLAY_TEXTS["ui_week_no"][LANGUAGE.get()])
-                dpg.add_input_int(width=150, min_value=0, min_clamped=True, tag=UUIDs["LECTURE_NO"], default_value=week["lecture_no"])
-                dpg.add_spacer(height=5)
+                with dpg.table(header_row=False):
+                    dpg.add_table_column(width_fixed=True, init_width_or_weight=200)
+                    dpg.add_table_column(width_fixed=True, init_width_or_weight=250)
+                    # Week number
+                    with dpg.table_row():
+                        dpg.add_text(DISPLAY_TEXTS["ui_week_no"][LANGUAGE.get()])
+                        dpg.add_input_int(
+                            width=150,
+                            min_value=0,
+                            min_clamped=True,
+                            tag=UUIDs["LECTURE_NO"],
+                            default_value=week["lecture_no"],
+                        )
+                    #dpg.add_spacer(height=5)
 
-                # Assignment count
-                dpg.add_text(DISPLAY_TEXTS["ui_no_assignments"][LANGUAGE.get()])
-                dpg.add_input_int(width=150, min_value=1, min_clamped=True, tag=UUIDs["A_COUNT"], default_value=week["assignment_count"])
-                dpg.add_spacer(height=5)
+                    # Assignment count
+                    with dpg.table_row():
+                        dpg.add_text(DISPLAY_TEXTS["ui_no_assignments"][LANGUAGE.get()])
+                        dpg.add_input_int(
+                            width=150,
+                            min_value=1,
+                            min_clamped=True,
+                            tag=UUIDs["A_COUNT"],
+                            default_value=week["assignment_count"],
+                        )
+                    #dpg.add_spacer(height=5)
 
                 # Week topics
                 dpg.add_text(DISPLAY_TEXTS["ui_week_topics"][LANGUAGE.get()])
-                help_(DISPLAY_TEXTS["help_week_topics"])
-                dpg.add_input_text(width=multiline_width, tag=UUIDs["TOPICS"], default_value="\n".join(week["topics"]), multiline=True)
+                help_(DISPLAY_TEXTS["help_week_topics"][LANGUAGE.get()])
+                dpg.add_input_text(
+                    width=multiline_width,
+                    tag=UUIDs["TOPICS"],
+                    default_value="\n".join(week["topics"]),
+                    multiline=True,
+                )
                 dpg.add_spacer(height=5)
 
                 # Week instructions
                 dpg.add_text(DISPLAY_TEXTS["ui_inst"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_week_inst"][LANGUAGE.get()])
-                dpg.add_input_text(width=multiline_width, tag=UUIDs["INSTRUCTIONS"], default_value=week["instructions"], multiline=True)
+                dpg.add_input_text(
+                    width=multiline_width,
+                    tag=UUIDs["INSTRUCTIONS"],
+                    default_value=week["instructions"],
+                    multiline=True,
+                )
                 dpg.add_spacer(height=5)
 
                 # Week tags
                 dpg.add_text(DISPLAY_TEXTS["ui_week_tags"][LANGUAGE.get()])
-                help_(DISPLAY_TEXTS["help_week_tags"])
-                dpg.add_input_text(width=multiline_width, tag=UUIDs["TAGS"], default_value=week["tags"]) 
+                help_(DISPLAY_TEXTS["help_week_tags"][LANGUAGE.get()])
+                dpg.add_input_text(
+                    width=multiline_width, tag=UUIDs["TAGS"], default_value=",".join(week["tags"])
+                )
 
                 # Window buttons
                 dpg.add_spacer(height=5)
@@ -716,10 +757,26 @@ def _add_week_window(s, a, u):
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                         callback=save_week,
-                        user_data=(week, new, parent_data),
+                        user_data=(week, new, UUIDs),
                     )
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
-                        user_data=UUIDs["WINDOW_ID"],
+                        user_data=UI_ITEM_TAGS["ADD_WEEK"],
                     )
+
+
+def open_new_week_window(parent=None, index=None):
+    """
+    A function to check if 'Add week' window is already open.
+    If it is not, open it.
+    """
+
+    if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_WEEK"]):
+        if OPEN_COURSE_PATH.get():
+            if COURSE_INFO["course_id"]:
+                _add_week_window(parent=parent, index=index)
+            else:
+                popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
+        else:
+            popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
