@@ -2,6 +2,7 @@
 Custom errors used by Mímir
 """
 
+
 class CannotMoveFileError(Exception):
     """
     Raised if 'move' or 'mv' commands fail.
@@ -9,6 +10,7 @@ class CannotMoveFileError(Exception):
     Params:
     err_class: the type of error returned by run_command
     """
+
     def __init__(self, err_class, message="Unable to move output file to destination"):
         self.err_type = type(err_class)
         if self.err_type == FileNotFoundError:
@@ -19,6 +21,7 @@ class CannotMoveFileError(Exception):
 
         super().__init__(self.message)
 
+
 class ConflictingAssignmentID(Exception):
     """
     Raised if assignment ID does not match between JSON and the code file it points to.
@@ -26,6 +29,7 @@ class ConflictingAssignmentID(Exception):
     Params:
     msg: Message to display with exception
     """
+
     def __init__(self, msg="Assignment ID in code file does not match ID in JSON"):
         self.message = msg
         super().__init__(self.message)
@@ -42,6 +46,7 @@ class IndexExistsError(Exception):
     def __init__(self, msg="Index already exists"):
         self.message = msg
         super().__init__(self.message)
+
 
 class IndexNotOpenError(Exception):
     """

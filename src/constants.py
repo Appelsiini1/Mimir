@@ -4,13 +4,17 @@
 from os import name as OSname
 from os import getenv
 from os.path import join
-from logging import DEBUG#, INFO
+from logging import DEBUG  # , INFO
 from sys import exit as sysexit
 import json
 
 from dearpygui.dearpygui import generate_uuid
+from whoosh.analysis import StemmingAnalyzer
+from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
+
 from src.common import resource_path
 from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG
+
 
 def _get_texts():
     try:
@@ -21,19 +25,25 @@ def _get_texts():
         sysexit(1)
     return _display_texts
 
+
 def _get_filetypes():
     try:
-        with open(resource_path("resource/filetypes.json"), "r", encoding="utf-8") as _file:
+        with open(
+            resource_path("resource/filetypes.json"), "r", encoding="utf-8"
+        ) as _file:
             _data = json.loads(_file.read())
-            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][LANGUAGE.get()] # not a great solution
+            _data["any"][0][0] = DISPLAY_TEXTS["file_any"][
+                LANGUAGE.get()
+            ]  # not a great solution
     except OSError:
         sysexit(1)
     return _data
 
+
 #################################
 # Version
 
-VERSION = "0.3.5"
+VERSION = "0.4.2"
 
 #################################
 # Environment spesific constants
@@ -74,14 +84,15 @@ _GENERAL_KEY_LIST = [
     "COURSE_ID",
     "COURSE_TITLE",
     "COURSE_WEEKS",
-
+    "ADD_WEEK"
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
     "USED_IN",
     "EXAMPLE_LISTBOX",
     "CODEFILE_LISTBOX",
-    "DATAFILE_LISTBOX"
+    "DATAFILE_LISTBOX",
+    "WINDOW_ID",
 ]
 
 EXAMPLE_RUN_KEY_LIST = [
@@ -89,20 +100,34 @@ EXAMPLE_RUN_KEY_LIST = [
     "CMD_INPUTS",
     "OUTPUT",
     "OUTPUT_FILES",
-    "GEN_EX"
+    "GEN_EX",
+    "WINDOW_ID",
 ]
 
-UI_ITEM_TAGS = {'{}'.format(i):generate_uuid() for i in _GENERAL_KEY_LIST}
+WEEK_WINDOW_KEY_LIST = [
+    "LECTURE_NO",
+    "TOPICS",
+    "INSTRUCTIONS",
+    "A_COUNT",
+    "TAGS",
+    "TITLE"
+]
+
+UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
 
 #################################
 # Misc constants
 OPEN_IX = IX()
 OPEN_COURSE_PATH = COURSE_PATH()
-COURSE_INFO = {
-    "course_title": None,
-    "course_id": None,
-    "course_weeks": None
-}
+COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": None}
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
 RECENTS = RECENTS_LIST()
+INDEX_SCHEMA = Schema(
+    a_id=ID(stored=True, unique=True),
+    position=KEYWORD(stored=True, commas=True),
+    tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
+    title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+    json_path=STORED,
+    is_expanding=BOOLEAN(stored=True),
+)

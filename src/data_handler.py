@@ -13,57 +13,26 @@ from tkinter.filedialog import askdirectory
 from hashlib import sha256
 
 from whoosh import index
-from whoosh.analysis import StemmingAnalyzer
-from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 from dearpygui.dearpygui import get_value, configure_item
 
-from src.constants import ENV, DISPLAY_TEXTS, LANGUAGE, OPEN_IX, COURSE_INFO, OPEN_COURSE_PATH, UI_ITEM_TAGS, RECENTS
+from src.constants import (
+    ENV,
+    DISPLAY_TEXTS,
+    LANGUAGE,
+    OPEN_IX,
+    COURSE_INFO,
+    OPEN_COURSE_PATH,
+    UI_ITEM_TAGS,
+    RECENTS,
+    INDEX_SCHEMA,
+)
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
 
 
-class Assignment:
-    """
-    Class to hold basic assignment data.
-
-    Params:
-    a_id:   Assignment ID. Should include variation ID too.
-    title:  Assignment title
-    tags:   List of tags the assignment has
-    lecture: A tuple containing the lecture number and a list of positions
-                where the assignment can be assinged to
-    paths:  List containing the json and code path
-    used_in: A list of dates when the assignment has been previously used in
-    exp:    A boolean whether the assignment is expanding or not. Defaults to False.
-    """
-
-    def __init__(self, a_id, title, tags, lecture, jsonpath, used_in, exp=False):
-        self.a_id = a_id
-        self.title = title
-        self.tags = tags
-        self.lecture = lecture[0]
-        self.a_pos = lecture[1]
-        self.json_path = jsonpath
-        self.used_in = used_in
-        self.is_expanding = exp
-
-
-def data_path_handler(directory_path: str):
-    """
-    Takes a general path to the cache directory and returns a dictionary of paths
-    to the files in that directory, separated into 'general', 'metadata' and 'assignment'.
-    Individual files can be accessed via assignment ID keys.
-    For example:
-    files['assignment']['L01T1']
-
-    Params:
-    directory_path: A path to the root DATA directory in cache
-    """
-
-
-def get_assignment_json(json_path: str):
+def get_assignment_json(json_path: str) -> dict | None:
     """
     Read JSON and use the data to get example code from its file.
     Returns a dictionary with all the assignment data or None if an exception
@@ -120,7 +89,7 @@ def read_datafile(filename: str):
 
 def create_index(force=False, **args):
     """
-    Creates an assignment index and its schema that are used to store paths to all available
+    Creates an assignment index from schema that is used to store paths to all available
     assingments.
     Sets the created index as a global constant.
 
@@ -130,26 +99,17 @@ def create_index(force=False, **args):
 
     ix_path = OPEN_COURSE_PATH.get()
     name = COURSE_INFO["course_id"]
-    schema = Schema(
-        a_id=ID(stored=True, unique=True),
-        position=KEYWORD(stored=True, commas=True),
-        tags=KEYWORD(stored=True, commas=True, lowercase=True, field_boost=2.0),
-        title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-        json_path=STORED,
-        is_expanding=BOOLEAN,
-        used_in=KEYWORD(stored=True, commas=True),
-        mtimes=ID,
-    )
 
     if index.exists_in(ix_path, name) and not force:
         raise IndexExistsError("Index '%s' already exists in '%s'" % (name, ix_path))
 
     try:
-        ix = index.create_in(ix_path, schema, name)
+        ix = index.create_in(ix_path, INDEX_SCHEMA, name)
     except OSError:
         logging.exception("Unable to save index file.")
     else:
         OPEN_IX.set(ix)
+        logging.debug("Index created and set.")
 
 
 def open_index(**args):
@@ -165,6 +125,7 @@ def open_index(**args):
         logging.exception("Could not open index file.")
     else:
         OPEN_IX.set(ix)
+        logging.debug("Index set.")
 
 
 def add_assignment_to_index(data: dict):
@@ -179,32 +140,28 @@ def add_assignment_to_index(data: dict):
         raise IndexNotOpenError
     ix = OPEN_IX.get()
 
-    positions = ",".join(f"L{data.lecture:02d}T{i:02d}" for i in data.a_pos)
-    tags = ",".join(data.tags)
-    used_in = ",".join(data.used_in)
-
+    positions = f"{data['exp_lecture']};"
+    positions += ",".join(data["exp_assignment_no"])
+    tags = ",".join(data["tags"])
+    json_path = path.join(
+        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
+    )
     try:
-        mtime = path.getmtime(data.json_path)
-    except OSError:
-        logging.exception(
-            "Could not get modification time(s) for assignment data file(s)"
-        )
-        return False
+        expanding = bool(data["next, last"][0] or data["next, last"][1])
+    except IndexError:
+        expanding = False
 
     writer = ix.writer()
-
     writer.add_document(
-        a_id=data.a_id,
+        a_id=data["assignment_id"],
         position=positions,
         tags=tags,
-        title=data.title,
-        json_path=data.json_path,
-        is_expanding=data.is_expanding,
-        used_in=used_in,
-        mtimes=mtime,
+        title=data["title"],
+        json_path=json_path,
+        is_expanding=expanding,
     )
     writer.commit()
-    return True
+
 
 def _save_course_file():
     """
@@ -236,8 +193,7 @@ def save_course_info(**args):
         create_index()
 
 
-
-def get_expanding_assignments(a_ix: index.FileIndex):
+def get_expanding_assignments():
     """
     Returns a list of assignment objects that have 'is_expanding' argument set to TRUE.
 
@@ -246,34 +202,34 @@ def get_expanding_assignments(a_ix: index.FileIndex):
     """
 
 
-def update_index(a_ix: index.FileIndex):
+def update_index(data: dict):
     """
-    Updates the index if the files have changed. Uses modification time of the files.
-    If the files are deleted, returns a list of them. If no files were found to be deleted,
-    return an empty list.
+    Updates the index with the data from the updated assignment.
 
     Params:
-    a_ix: FileIndex object that has the index to update.
+    data: assignment to update
     """
 
-    deleted = []
-    to_index = []
+    ix = OPEN_IX.get()
 
-    with a_ix.searcher() as searcher:
+    positions = f"{data['exp_lecture']:02d};"
+    positions += ",".join(data["exp_assignment_no"])
+    tags = ",".join(data["tags"])
+    json_path = path.join(
+        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
+    )
+    expanding = bool(data["next, last"][0] or data["next, last"][1])
 
-        for fields in searcher.all_stored_fields():
-            ind_json_path = fields["json_path"]
-
-            if not path.exists(ind_json_path):
-                deleted.append(fields["a_id"])
-            else:
-                ind_times = fields["mtimes"]
-                ind_json_time = ind_times.split(",")[0]
-                json_time = path.getmtime(ind_json_path)
-
-                if json_time > ind_json_time:
-                    to_index.append(fields["a_id"])
-    # TODO Add document updating logic
+    writer = ix.writer()
+    writer.update_document(
+        a_id=data["assignment_id"],
+        position=positions,
+        tags=tags,
+        title=data["title"],
+        json_path=json_path,
+        is_expanding=expanding,
+    )
+    writer.commit()
 
 
 def get_texdoc_settings():
@@ -292,8 +248,8 @@ def format_general_json(data: dict, lecture_no: int):
     general["course_id"] = data["course_id"]
     general["course_name"] = data["course_name"]
     general["lecture"] = lecture_no
-    general["topics"] = data["lectures"][lecture_no-1]["topics"]
-    general["instructions"] = data["lectures"][lecture_no-1]["instructions"]
+    general["topics"] = data["lectures"][lecture_no - 1]["topics"]
+    general["instructions"] = data["lectures"][lecture_no - 1]["instructions"]
     return general
 
 
@@ -308,9 +264,7 @@ def format_metadata_json(data: dict):
     example_runs = []
     for i, ex_run in enumerate(variation["example_runs"]):
         n = {
-            "inputs": variation["example_runs"][i][
-                "inputs"
-            ],
+            "inputs": variation["example_runs"][i]["inputs"],
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
@@ -331,29 +285,29 @@ def format_metadata_json(data: dict):
         new["datafiles"] = []
         for df in variation["datafiles"]:
             new["datafiles"].append(
-            {
-                "filename": df,
-                "data": read_datafile(df),
-            }
+                {
+                    "filename": df,
+                    "data": read_datafile(df),
+                }
             )
     new["example_codes"] = []
     for cf in variation["codefiles"]:
         new["example_codes"].append(
             {
-            "filename": cf,
-            "code": get_assignment_code(
-                cf, data["assignment_id"] + variation["variation_id"]
-            ),
-        }
+                "filename": cf,
+                "code": get_assignment_code(
+                    cf, data["assignment_id"] + variation["variation_id"]
+                ),
+            }
         )
     return new
 
-def save_assignment(s, a, u:tuple[dict, bool]):
+
+def save_assignment_data(assignment, new):
     """
     Saves assignment to database
     """
-    assignment = u[0]
-    new = u[1]
+
     if new:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
@@ -363,22 +317,28 @@ def save_assignment(s, a, u:tuple[dict, bool]):
         _hex = _hash.hexdigest()
         assignment["assignment_id"] = _hex
 
-        _json = json.dumps(assignment)
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
+        add_assignment_to_index(assignment)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
 
         _filename = assignment["assignment_id"] + ".json"
-        _json = json.dumps(assignment)
-
-    #TODO Add/Update index
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
+        update_index(assignment)
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
+    if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
+        mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
+        logging.info(
+            "Successfully saved assignment %s to file and index.",
+            assignment["assignment_id"],
+        )
     except OSError:
         # TODO Popup for user
         logging.exception("Error while saving assignment data!")
@@ -400,6 +360,7 @@ def get_empty_assignment():
 
     return empty
 
+
 def get_empty_variation():
     """
     Returns an empty instance of an assignment variation dictionary
@@ -415,6 +376,7 @@ def get_empty_variation():
 
     return empty
 
+
 def get_empty_example_run():
     """
     Returns an empty instace of an example run dictionary
@@ -429,16 +391,37 @@ def get_empty_example_run():
 
     return empty
 
+
+def get_empty_week() -> dict:
+    """
+    Return a dictionary that contains the correct keys for a week object with no values.
+    """
+    empty = {}
+    empty["title"] = ""
+    empty["lecture_no"] = 0
+    empty["topics"] = []
+    empty["instructions"] = ""
+    empty["assignment_count"] = 0
+    empty["tags"] = []
+
+    return empty
+
+
 def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
     return tail or basename(head)
 
+
 def ask_course_dir(**args):
     """
     Ask course directory from user
     """
-    _dir = askdirectory(initialdir=getcwd(), mustexist=False, title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()])
+    _dir = askdirectory(
+        initialdir=getcwd(),
+        mustexist=False,
+        title=DISPLAY_TEXTS["ui_coursedir"][LANGUAGE.get()],
+    )
 
     if _dir != "":
         if not path.exists(_dir):
@@ -449,13 +432,16 @@ def ask_course_dir(**args):
         save_recent()
         logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
 
+
 def save_recent(**args):
     """
     Save current course to recents
     """
     rec = RECENTS.get()
-    if not OPEN_COURSE_PATH in rec:
+    if not OPEN_COURSE_PATH.get() in rec:
         if len(rec) < 5:
+            ind = rec.index(OPEN_COURSE_PATH.get())
+            rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
@@ -465,6 +451,12 @@ def save_recent(**args):
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
+    else:
+        ind = rec.index(OPEN_COURSE_PATH.get())
+        rec.pop(ind)
+        rec.reverse()
+        rec.append(OPEN_COURSE_PATH.get())
+        rec.reverse()
     f_path = path.join(ENV["PROGRAM_DATA"], "recents.txt")
     try:
         with open(f_path, "w", encoding="utf-8") as f:
@@ -473,7 +465,8 @@ def save_recent(**args):
     except OSError:
         logging.exception("Error occured while saving recents to file!")
     RECENTS.set(rec)
-    logging.info("Recent courses set as: %s", rec)
+    logging.debug("Recent courses set as: %s", rec)
+
 
 def get_recents(**args):
     """
@@ -491,6 +484,7 @@ def get_recents(**args):
         except OSError:
             logging.exception("Error occured while getting recent courses.")
     logging.info("Set recent course list as: %s", RECENTS.get())
+
 
 def open_course(**args):
     """
@@ -516,6 +510,96 @@ def open_course(**args):
         for key in _json.keys():
             COURSE_INFO[key] = _json[key]
         open_index()
-        configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"])
-        configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"])
-        configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"])
+        configure_item(
+            UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"]
+        )
+        configure_item(
+            UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"]
+        )
+        configure_item(
+            UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
+        )
+        configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
+
+
+def get_all_indexed_assignments() -> list:
+    """Returns a list of all the documents in the index."""
+
+    ix = OPEN_IX.get()
+
+    docs = []
+    with ix.searcher() as srcr:
+        _all = srcr.documents()
+        docs = list(_all)
+
+    return docs
+
+
+def get_number_of_docs() -> int:
+    """Returns the number of documents in the course index."""
+
+    ix = OPEN_IX.get()
+
+    if ix:
+        with ix.searcher() as sr:
+            no = sr.doc_count()
+        return no
+    return 0
+
+
+def close_index() -> None:
+    """Closes the open indexes."""
+
+    ix = OPEN_IX.get()
+    if ix:
+        ix.close()
+
+    logging.info("Indexes closed.")
+
+
+def save_week_data(week, new) -> None:
+    """
+    Save week data to file.
+    """
+    parent = get_week_data()
+
+    if new:
+        parent["lectures"].append(week)
+    else:
+        for i, item in enumerate(parent["lectures"]):
+            if item["lecture_no"] == week["lecture_no"]:
+                parent["lectures"][i] = week
+                break
+
+    f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+    try:
+        with open(f_path, "w", encoding="utf-8") as f:
+            _json = json.dumps(parent, indent=4, ensure_ascii=False)
+            f.write(_json)
+    except OSError:
+        logging.exception("Error in saving week JSON.")
+    logging.debug("Week data saved: %s", _json)
+
+
+def get_week_data() -> dict | None:
+    """
+    Get week data from json, or return a dict with only course infor filled in.
+    """
+
+    weeks = None
+    f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+    try:
+        with open(f_path, "r", encoding="utf-8") as f:
+            data = f.read()
+            weeks = json.loads(data)
+    except FileNotFoundError:
+        weeks = {
+            "course_id": COURSE_INFO["course_id"],
+            "course_title": COURSE_INFO["course_title"],
+            "lectures": [],
+        }
+    except OSError:
+        logging.exception("Error when reading week data.")
+
+    logging.debug("Week data is: %s", weeks)
+    return weeks

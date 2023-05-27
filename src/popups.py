@@ -3,7 +3,7 @@
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import dearpygui.dearpygui as dpg
 
-from src.constants import DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.constants import DISPLAY_TEXTS, LANGUAGE
 from src.ui_helper import close_window, move_info
 
 
@@ -18,7 +18,11 @@ def popup_ok(msg: str, **args):
 
     popup_id = dpg.generate_uuid()
     with dpg.window(
-        modal=True, tag=popup_id,
+        modal=True,
+        tag=popup_id,
+        no_close=True,
+        no_title_bar=True,
+        autosize=True,
     ):
         dpg.add_spacer(height=5)
         dpg.add_text(msg)
@@ -26,8 +30,8 @@ def popup_ok(msg: str, **args):
         dpg.add_separator()
         dpg.add_spacer(height=5)
         dpg.add_button(
-            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE],
-            callback=close_window,
+            label=DISPLAY_TEXTS["ui_ok"][LANGUAGE.get()],
+            callback=lambda s, a, u: close_window(u),
             user_data=popup_id,
             width=75,
         )
@@ -94,8 +98,11 @@ def popup_create_course(**args):
                     label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                     callback=move_info,
                     user_data=field_ids,
-                    width=75
+                    width=75,
                 )
                 dpg.add_spacer(width=5)
-                dpg.add_button(label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()], callback=close_window, user_data=field_ids["popup"])
-
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                    callback=lambda s, a, u: close_window(u),
+                    user_data=field_ids["popup"],
+                )

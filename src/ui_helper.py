@@ -9,10 +9,17 @@ from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
 from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
-from src.data_handler import path_leaf, save_course_info, ask_course_dir
+from src.data_handler import (
+    path_leaf,
+    save_course_info,
+    ask_course_dir,
+    save_assignment_data,
+    save_week_data,
+)
 from src.common import resource_path
 
 ################################
+
 
 def _load_fonts():
     """
@@ -48,7 +55,7 @@ def set_style():
     """
     fonts = _load_fonts()
     dpg.bind_font(fonts["default"])
-    logging.info("Fonts loaded.")
+    logging.debug("Fonts loaded.")
 
     with dpg.theme() as global_theme:
         with dpg.theme_component(dpg.mvAll):
@@ -89,7 +96,16 @@ def setup_textures():
         parent="__main_texture_container",
     )
     i = 1  # number of textures added so far
-    logging.info("Texture registry added, with %d textures inside." % i)
+    logging.debug("Texture registry added, with %d textures inside." % i)
+
+
+def setup_ui():
+    """
+    Shorthand for calling all UI setup functions
+    """
+    set_style()
+    setup_textures()
+
 
 def help_(message):
     """
@@ -104,6 +120,7 @@ def help_(message):
     with dpg.tooltip(t):
         dpg.add_text(message)
 
+
 def get_variation_letter(var):
     base = len(ascii_uppercase)
     result = ""
@@ -113,7 +130,7 @@ def get_variation_letter(var):
     return result
 
 
-def close_window(sender: None, app_data: None, window_id: int | str):
+def close_window(window_id: int | str):
     """
     Closes a UI window.
 
@@ -124,7 +141,8 @@ def close_window(sender: None, app_data: None, window_id: int | str):
     """
     dpg.delete_item(window_id)
 
-def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
+
+def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     """
     Gets values from variation input fields and saves the data to parent dict
     """
@@ -140,10 +158,24 @@ def extract_variation_data(s, a, u:tuple[dict, str, dict, dict, int]):
     if ix == -1:
         data["variation_id"] = var_letter
         parent_data["variations"].append(data)
+        _vars = (
+            []
+            if not parent_data["variations"]
+            else [
+                "{} {}".format(
+                    DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()], item["variation_id"]
+                )
+                for item in parent_data["variations"]
+            ]
+        )
+        dpg.configure_item(UI_ITEM_TAGS["VARIATION_GROUP"], items=_vars)
     else:
         parent_data["variations"][ix] = data
 
-def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
+    close_window(UUIDS["WINDOW_ID"])
+
+
+def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int, int | str]):
     """
     Gets values from exrun input fields and saves the data to the parent dict.
     """
@@ -152,19 +184,34 @@ def extract_exrun_data(s, a, u: tuple[dict, dict, dict, bool, int]):
     var = u[2]
     new = u[3]
     ix = u[4]
+    ex_listbox = u[5]
 
     ex_run["generate"] = dpg.get_value(UUIDS["GEN_EX"])
-    ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"])
-    ex_run["cmd_inputs"] = dpg.get_value(UUIDS["CMD_INPUTS"])
+    ex_run["inputs"] = dpg.get_value(UUIDS["INPUTS"]).split("\n")
+    ex_run["cmd_inputs"] = [
+        i.strip() for i in dpg.get_value(UUIDS["CMD_INPUTS"]).split(",")
+    ]
     if not ex_run["generate"]:
         ex_run["output"] = dpg.get_value(UUIDS["OUTPUT"])
 
     if new:
         var["example_runs"].append(ex_run)
+        runs = (
+            []
+            if not var["example_runs"]
+            else [
+                "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+                for i, _ in enumerate(var["example_runs"], start=1)
+            ]
+        )
+        dpg.configure_item(ex_listbox, items=runs)
     else:
         var["example_runs"][ix] = ex_run
 
-def get_files(s, a, u:tuple[dict, int|str, str]):
+    close_window(UUIDS["WINDOW_ID"])
+
+
+def get_files(s, a, u: tuple[dict, int | str, str]):
     """
     Gets file paths from the user and adds them to the spesified list box
 
@@ -177,18 +224,22 @@ def get_files(s, a, u:tuple[dict, int|str, str]):
 
     if f_type == "codefile":
         files = openfilebrowser(f_type)
-        save_to["codefiles"] = files
+        save_to["codefiles"] += files
+        files = save_to["codefiles"]
     elif f_type == "datafiles":
         files = openfilebrowser("textfile")
-        save_to["datafiles"] = files
+        save_to["datafiles"] += files
+        files = save_to["datafiles"]
     elif f_type == "outputfiles":
         files = openfilebrowser("textfile")
-        save_to["outputfiles"] = files
+        save_to["outputfiles"] += files
+        files = save_to["outputfiles"]
 
     leafs = [path_leaf(i) for i in files]
     dpg.configure_item(listbox, items=leafs)
 
-def openfilebrowser(f_type:str) -> list:
+
+def openfilebrowser(f_type: str) -> list:
     """
     Opens the filebrowser with f_type file extensions available.
     Allows the selection of multiple files. Returns a list of paths of the selected files.
@@ -201,6 +252,7 @@ def openfilebrowser(f_type:str) -> list:
         extensions = FILETYPES[f_type]
     file_paths = askopenfilenames(initialdir=getcwd(), filetypes=extensions)
     return list(file_paths)
+
 
 def remove_selected(s, a, u):
     """
@@ -245,14 +297,17 @@ def remove_selected(s, a, u):
                 final = [path_leaf(i) for i in data["outputfiles"]]
                 break
     elif i_type == "ex_run":
-        index = selected.split(" ")[1]-1
+        index = selected.split(" ")[1] - 1
         data["example_runs"].pop(index)
-        final = ["{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i) for i, _ in enumerate(data["example_runs"])]
-
+        final = [
+            "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+            for i, _ in enumerate(data["example_runs"], start=1)
+        ]
 
     dpg.configure_item(u[0], items=final)
 
-def toggle_enabled(sender, app_data, item:int|str):
+
+def toggle_enabled(sender, app_data, item: int | str):
     """
     Toggles item on or off depending on its previous state
     """
@@ -261,14 +316,66 @@ def toggle_enabled(sender, app_data, item:int|str):
     else:
         dpg.enable_item(item)
 
-def move_info(s, a, u:list):
+
+def move_info(s, a, u: list):
     """
     Move course information to main window from popup and close it
     """
     if dpg.get_value(u["id"]):
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"]))
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_TITLE"], default_value=dpg.get_value(u["title"]))
-        dpg.configure_item(UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"]))
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"])
+        )
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_TITLE"], default_value=dpg.get_value(u["title"])
+        )
+        dpg.configure_item(
+            UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"])
+        )
         ask_course_dir()
         save_course_info()
-    close_window(None, None, u["popup"])
+    close_window(u["popup"])
+
+
+def save_assignment(s, a, u: tuple[dict, bool]):
+    """Save assignment data and close window"""
+
+    assig = u[0]
+
+    assig["title"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TITLE"])
+    assig["tags"] = [
+        i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
+    ]
+    assig["exp_assignment_no"] = [
+        i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
+    ]
+    assig["nex, last"] = [
+        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
+        "",
+    ]  # TODO handling for next if exists
+    assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
+    assig["instruction_language"] = dpg.get_value(
+        UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
+    )
+    assig["exp_lecture"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"])
+
+    save_assignment_data(assig, u[1])
+    close_window(UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"])
+
+
+def save_week(s, a, u: tuple[dict, bool, dict]) -> None:
+    """
+    Extract week data, save it and close the window.
+    """
+    week = u[0]
+    new = u[1]
+    UUIDs = u[2]
+
+    week["lecture_no"] = dpg.get_value(UUIDs["LECTURE_NO"])
+    week["title"] = dpg.get_value(UUIDs["TITLE"])
+    week["assignment_count"] = dpg.get_value(UUIDs["A_COUNT"])
+    week["topics"] = [i.strip() for i in dpg.get_value(UUIDs["TOPICS"]).split("\n")]
+    week["instructions"] = dpg.get_value(UUIDs["INSTRUCTIONS"])
+    week["tags"] = [i.strip() for i in dpg.get_value(UUIDs["TAGS"]).split(",")]
+
+    save_week_data(week, new)
+    close_window(UI_ITEM_TAGS["ADD_WEEK"])
