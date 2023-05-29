@@ -31,6 +31,7 @@ from src.data_handler import (
     get_all_indexed_assignments,
     get_number_of_docs,
     close_index,
+    year_conversion
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (
@@ -383,7 +384,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                 dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    tag=UUIDs["USED_IN"], default_value=", ".join(data["used_in"])
+                    tag=UUIDs["USED_IN"], default_value=", ".join(year_conversion(data["used_in"]))
                 )
                 dpg.add_spacer(width=5)
 

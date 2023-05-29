@@ -15,6 +15,7 @@ from src.data_handler import (
     ask_course_dir,
     save_assignment_data,
     save_week_data,
+    year_conversion
 )
 from src.common import resource_path
 
@@ -153,7 +154,7 @@ def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     ix = u[4]
 
     data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
-    data["used_in"] = dpg.get_value(UUIDS["USED_IN"])
+    data["used_in"] = year_conversion([item.strip() for item in dpg.get_value(UUIDS["USED_IN"]).split(",")])
 
     if ix == -1:
         data["variation_id"] = var_letter

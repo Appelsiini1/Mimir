@@ -27,6 +27,7 @@ from src.constants import (
     INDEX_SCHEMA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
+from src.common import resource_path
 
 # pylint: disable=consider-using-f-string
 # pylint: disable=invalid-name
@@ -243,7 +244,7 @@ def get_texdoc_settings():
     return _json
 
 
-def format_general_json(data: dict, lecture_no: int):
+def format_week_json(data: dict, lecture_no: int):
     general = {}
     general["course_id"] = data["course_id"]
     general["course_name"] = data["course_name"]
@@ -603,3 +604,45 @@ def get_week_data() -> dict | None:
 
     logging.debug("Week data is: %s", weeks)
     return weeks
+
+
+def _get_pos_convert_default() -> dict | None:
+
+    _file = resource_path("resource/pos_convert_default.json")
+    try:
+        with open(_file, "r", encoding="utf-8") as f:
+            data = json.loads(f.read())
+    except OSError:
+        logging.exception("Error in reading position conversion defaults!")
+        return None
+    return data
+
+
+def year_conversion(data: list) -> list:
+    """
+    Converts the 'used in' value to number from text or vice versa.
+    """
+    if not data:
+        raise ValueError("Data cannot be empty")
+
+    num = False
+    if data[0].isnumeric():
+        num = True
+
+    pos_conv = _get_pos_convert_default()[LANGUAGE.get()]
+    converted = []
+    if num:
+        for item in data:
+            try:
+                converted.append(pos_conv[item[:-4]] + item[-4:])
+            except KeyError:
+                logging.exception(
+                    "Unable to convert position value from numeric to text!"
+                )
+    else:
+        for item in data:
+            for key in pos_conv.keys():
+                if pos_conv[key].lower() == item[:-4].lower():
+                    converted.append(key + item[-4:])
+
+    return converted
