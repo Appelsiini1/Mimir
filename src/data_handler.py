@@ -633,7 +633,7 @@ def year_conversion(data: list, encode:bool) -> list:
     if not encode:
         for item in data:
             try:
-                converted.append(pos_conv[item[:-4]] + item[-4:])
+                converted.append(str(pos_conv[item[:-4]] + item[-4:]))
             except KeyError:
                 logging.exception(
                     "Unable to convert position value from numeric to text!"
@@ -642,6 +642,6 @@ def year_conversion(data: list, encode:bool) -> list:
         for item in data:
             for key in pos_conv.keys():
                 if pos_conv[key].lower() == item[:-4].lower():
-                    converted.append(key + item[-4:])
+                    converted.append(str(key + item[-4:]))
 
     return converted
