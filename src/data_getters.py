@@ -11,7 +11,7 @@ import json
 
 from os import path
 
-from src.constants import ENV, RECENTS, OPEN_IX, OPEN_COURSE_PATH, COURSE_INFO
+from src.constants import ENV, RECENTS, OPEN_IX, OPEN_COURSE_PATH, COURSE_INFO, DISPLAY_TEXTS, LANGUAGE
 from src.common import resource_path
 
 def get_assignment_json(json_path: str) -> dict | None:
@@ -175,6 +175,18 @@ def get_all_indexed_assignments() -> list:
         docs = list(_all)
 
     return docs
+
+
+def get_number_of_docs() -> int:
+    """Returns the number of documents in the course index."""
+
+    ix = OPEN_IX.get()
+
+    if ix:
+        with ix.searcher() as sr:
+            no = sr.doc_count()
+        return no
+    return 0
 
 
 def get_week_data() -> dict | None:

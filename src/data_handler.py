@@ -27,7 +27,7 @@ from src.constants import (
     INDEX_SCHEMA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
-from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data
+from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs
 
 ########################################
 
@@ -363,18 +363,6 @@ def open_course(**args):
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
         configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
-
-
-def get_number_of_docs() -> int:
-    """Returns the number of documents in the course index."""
-
-    ix = OPEN_IX.get()
-
-    if ix:
-        with ix.searcher() as sr:
-            no = sr.doc_count()
-        return no
-    return 0
 
 
 def close_index() -> None:
