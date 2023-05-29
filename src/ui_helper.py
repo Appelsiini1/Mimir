@@ -154,7 +154,7 @@ def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     ix = u[4]
 
     data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
-    data["used_in"] = year_conversion([item.strip() for item in dpg.get_value(UUIDS["USED_IN"]).split(",")])
+    data["used_in"] = year_conversion([item.strip() for item in dpg.get_value(UUIDS["USED_IN"]).split(",")], True)
 
     if ix == -1:
         data["variation_id"] = var_letter
@@ -347,11 +347,11 @@ def save_assignment(s, a, u: tuple[dict, bool]):
         i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
     ]
     assig["exp_assignment_no"] = [
-        i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
+        int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
     ]
-    assig["nex, last"] = [
-        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
+    assig["next, last"] = [
         "",
+        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
     ]  # TODO handling for next if exists
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
     assig["instruction_language"] = dpg.get_value(

@@ -606,7 +606,10 @@ def get_week_data() -> dict | None:
     return weeks
 
 
-def _get_pos_convert_default() -> dict | None:
+def get_pos_convert() -> dict | None:
+    """
+    Get the 'used in' position conversion table
+    """
 
     _file = resource_path("resource/pos_convert_default.json")
     try:
@@ -618,20 +621,16 @@ def _get_pos_convert_default() -> dict | None:
     return data
 
 
-def year_conversion(data: list) -> list:
+def year_conversion(data: list, encode:bool) -> list:
     """
     Converts the 'used in' value to number from text or vice versa.
     """
     if not data:
         raise ValueError("Data cannot be empty")
 
-    num = False
-    if data[0].isnumeric():
-        num = True
-
-    pos_conv = _get_pos_convert_default()[LANGUAGE.get()]
+    pos_conv = get_pos_convert()[LANGUAGE.get()]
     converted = []
-    if num:
+    if not encode:
         for item in data:
             try:
                 converted.append(pos_conv[item[:-4]] + item[-4:])
