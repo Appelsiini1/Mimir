@@ -22,16 +22,18 @@ from src.constants import (
 )
 from src.data_handler import (
     save_course_info,
-    get_empty_variation,
     path_leaf,
-    get_empty_assignment,
-    get_empty_example_run,
-    get_empty_week,
     open_course,
-    get_all_indexed_assignments,
     get_number_of_docs,
     close_index,
     year_conversion
+)
+from src.data_getters import (
+    get_empty_variation,
+    get_empty_assignment,
+    get_empty_example_run,
+    get_empty_week,
+    get_all_indexed_assignments
 )
 from src.set_generator import temp_creator
 from src.ui_helper import (

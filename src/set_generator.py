@@ -11,10 +11,9 @@ from random import choices
 from src.tex_generator import gen_one_week
 from src.constants import LANGUAGE
 from src.data_handler import (
-    get_all_indexed_assignments,
-    get_assignment_json,
     get_pos_convert,
 )
+from src.data_getters import get_all_indexed_assignments, get_assignment_json
 
 
 def generate_one_set(week: int, positions: int, exclude_expanding=False):
