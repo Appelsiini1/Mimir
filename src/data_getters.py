@@ -226,3 +226,33 @@ def get_pos_convert() -> dict | None:
         logging.exception("Error in reading position conversion defaults!")
         return None
     return data
+
+
+def get_header_page(pagenum:int, data:list, perpage=20) -> list:
+    """
+    Get a page of assignment headers
+
+    Params:
+    pagenum: the number of the page to return
+    data: where to extract pages from
+    perpage: how many to show per page, default is 20
+    """
+
+    if pagenum == 1:
+        start = 0
+        stop = perpage-1
+    else:
+        start = (pagenum-1)*perpage
+        stop = (perpage*pagenum)-1
+    _slice = data[start:stop]
+
+    headers = []
+    for item in _slice:
+        header = ""
+        header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]+ item["position"].split(";")[0]
+        header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
+        header += item["position"].split(";")[1] + ")"
+        header += " - " + item["title"]
+        headers.append(header)
+
+    return headers
