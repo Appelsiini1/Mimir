@@ -228,7 +228,7 @@ def get_pos_convert() -> dict | None:
     return data
 
 
-def get_header_page(pagenum:int, data:list, perpage=20) -> list:
+def get_header_page(pagenum:int, data:list, perpage=15, week=False) -> list:
     """
     Get a page of assignment headers
 
@@ -244,15 +244,28 @@ def get_header_page(pagenum:int, data:list, perpage=20) -> list:
     else:
         start = (pagenum-1)*perpage
         stop = (perpage*pagenum)-1
-    _slice = data[start:stop]
+    
 
     headers = []
-    for item in _slice:
-        header = ""
-        header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]+ item["position"].split(";")[0]
-        header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
-        header += item["position"].split(";")[1] + ")"
-        header += " - " + item["title"]
-        headers.append(header)
+    if not week:
+        _slice = data[start:stop]
+        for item in _slice:
+            header = ""
+            header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]+ item["position"].split(";")[0]
+            header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
+            header += item["position"].split(";")[1] + ")"
+            header += " - " + item["title"]
+            headers.append(header)
+    else:
+        _slice = data["lectures"][start:stop].sort(key=lambda a: a["lecture_no"])
+        for item in _slice:
+            header = ""
+            header += item["lecture_no"]
+            header += " - "
+            if not item["title"]:
+                header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(item["lecture_no"])
+                header += " " + DISPLAY_TEXTS["assignments"]
+            else:
+                header += item["title"]
 
     return headers
