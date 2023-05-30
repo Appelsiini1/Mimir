@@ -11,8 +11,17 @@ import json
 
 from os import path
 
-from src.constants import ENV, RECENTS, OPEN_IX, OPEN_COURSE_PATH, COURSE_INFO, DISPLAY_TEXTS, LANGUAGE
+from src.constants import (
+    ENV,
+    RECENTS,
+    OPEN_IX,
+    OPEN_COURSE_PATH,
+    COURSE_INFO,
+    DISPLAY_TEXTS,
+    LANGUAGE,
+)
 from src.common import resource_path
+
 
 def get_assignment_json(json_path: str) -> dict | None:
     """
@@ -35,7 +44,7 @@ def get_assignment_json(json_path: str) -> dict | None:
         return json_data
 
 
-def get_assignment_code(data_path: str, a_id: str) -> str|None:
+def get_assignment_code(data_path: str, a_id: str) -> str | None:
     """
     Read code file and return its contents, excluding the ID line. Note that function
     checks whether the assignment ID matches the ID given. Raises an exception if
@@ -59,7 +68,7 @@ def get_assignment_code(data_path: str, a_id: str) -> str|None:
         return None
 
 
-def read_datafile(filename: str) -> str|None:
+def read_datafile(filename: str) -> str | None:
     """
     Read a data file of given path and return its data. Returns None on error.
     """
@@ -228,7 +237,7 @@ def get_pos_convert() -> dict | None:
     return data
 
 
-def get_header_page(pagenum:int, data:list, perpage=15, week=False) -> list:
+def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
     """
     Get a page of assignment headers
 
@@ -240,18 +249,20 @@ def get_header_page(pagenum:int, data:list, perpage=15, week=False) -> list:
 
     if pagenum == 1:
         start = 0
-        stop = perpage-1
+        stop = perpage - 1
     else:
-        start = (pagenum-1)*perpage
-        stop = (perpage*pagenum)-1
-    
+        start = (pagenum - 1) * perpage
+        stop = (perpage * pagenum) - 1
 
     headers = []
     if not week:
         _slice = data[start:stop]
         for item in _slice:
             header = ""
-            header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]+ item["position"].split(";")[0]
+            header += (
+                DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+                + item["position"].split(";")[0]
+            )
             header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
             header += item["position"].split(";")[1] + ")"
             header += " - " + item["title"]
@@ -263,7 +274,9 @@ def get_header_page(pagenum:int, data:list, perpage=15, week=False) -> list:
             header += item["lecture_no"]
             header += " - "
             if not item["title"]:
-                header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(item["lecture_no"])
+                header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(
+                    item["lecture_no"]
+                )
                 header += " " + DISPLAY_TEXTS["assignments"]
             else:
                 header += item["title"]
