@@ -453,5 +453,13 @@
     "ui_assignments_in_index" : {
         "FI" : "Tallennettuna olevat tehtävät",
         "ENG" : "Saved assignments"
+    },
+    "ui_open_week_browse" : {
+        "FI" : "Avaa viikkoselain",
+        "ENG" : "Open week browser"
+    },
+    "ui_weeks_saved" : {
+        "FI" : "Tallennettuna olevat viikot",
+        "ENG" : "Saved weeks"
     }
 }

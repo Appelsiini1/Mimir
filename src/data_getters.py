@@ -200,7 +200,7 @@ def get_number_of_docs() -> int:
 
 def get_week_data() -> dict | None:
     """
-    Get week data from json, or return a dict with only course infor filled in.
+    Get week data from json, or return a dict with only course info filled in.
     """
 
     weeks = None
@@ -268,10 +268,11 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
             header += " - " + item["title"]
             headers.append(header)
     else:
-        _slice = data["lectures"][start:stop].sort(key=lambda a: a["lecture_no"])
+        data.sort(key=lambda a: a["lecture_no"])
+        _slice = data[start:stop]
         for item in _slice:
             header = ""
-            header += item["lecture_no"]
+            header += str(item["lecture_no"])
             header += " - "
             if not item["title"]:
                 header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(
@@ -280,5 +281,6 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
                 header += " " + DISPLAY_TEXTS["assignments"]
             else:
                 header += item["title"]
+            headers.append(header)
 
     return headers

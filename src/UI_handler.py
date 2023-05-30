@@ -35,6 +35,7 @@ from src.data_getters import (
     get_all_indexed_assignments,
     get_header_page,
     get_number_of_docs,
+    get_week_data,
 )
 
 from src.ui_helper import (
@@ -206,7 +207,13 @@ def main_window():
                             callback=open_assignment_browse,
                             user_data=(True, False),
                         )
-                        dpg.bind_item_theme(dpg.last_item(), "main_button_theme")
+                        dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_open_week_browse"][LANGUAGE.get()],
+                            callback=open_week_browse,
+                        )
+                        dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
 
 def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | str]):
@@ -824,7 +831,7 @@ def assignment_browse_window(search=True, select=False):
         tag=UI_ITEM_TAGS["LIST_WINDOW"],
         no_close=True,
         no_collapse=True,
-        no_resize=True
+        no_resize=True,
     ):
         pagenum = [1]
         dpg.add_spacer(height=25)
@@ -855,7 +862,9 @@ def assignment_browse_window(search=True, select=False):
 
                 # Listbox header
                 dpg.add_spacer(height=10)
-                dpg.add_text(DISPLAY_TEXTS["ui_assignments_in_index"][LANGUAGE.get()]+":")
+                dpg.add_text(
+                    DISPLAY_TEXTS["ui_assignments_in_index"][LANGUAGE.get()] + ":"
+                )
 
                 # Assignment listbox
                 dpg.add_spacer(height=5)
@@ -878,17 +887,26 @@ def assignment_browse_window(search=True, select=False):
                         width=120,
                         enabled=True,
                         callback=swap_page,
-                        user_data=(pagenum, get_all_indexed_assignments(), "-")
+                        user_data=(pagenum, get_all_indexed_assignments(), "-", True),
                     )
                     dpg.add_spacer(width=5)
-                    dpg.add_text(str(pagenum[0])+"/"+str(1 if get_number_of_docs() == 0 else round_up(get_number_of_docs()/15)), tag=UI_ITEM_TAGS["PAGENUM"])
+                    dpg.add_text(
+                        str(pagenum[0])
+                        + "/"
+                        + str(
+                            1
+                            if get_number_of_docs() == 0
+                            else round_up(get_number_of_docs() / 15)
+                        ),
+                        tag=UI_ITEM_TAGS["PAGENUM"],
+                    )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()] + " ->",
                         width=120,
                         enabled=True,
                         callback=swap_page,
-                        user_data=(pagenum, get_all_indexed_assignments(), "+")
+                        user_data=(pagenum, get_all_indexed_assignments(), "+", True),
                     )
 
                 dpg.add_spacer(height=10)
@@ -927,6 +945,103 @@ def open_assignment_browse(s, a, u: tuple[bool, bool]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
                 assignment_browse_window(search=u[0], select=u[1])
+            else:
+                popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
+        else:
+            popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
+
+
+def week_browse_window():
+    """
+    Window to browse saved week data
+    """
+
+    label = "Mímir - {}".format(DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()])
+
+    with dpg.window(
+        label=label,
+        width=1400,
+        height=695,
+        tag=UI_ITEM_TAGS["LIST_WINDOW"],
+        no_close=True,
+        no_collapse=True,
+        no_resize=True,
+    ):
+        pagenum = [1]
+        dpg.add_spacer(height=10)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+
+                # Listbox header
+                dpg.add_spacer(height=10)
+                dpg.add_text(DISPLAY_TEXTS["ui_weeks_saved"][LANGUAGE.get()] + ":")
+
+                # Week listbox
+                dpg.add_spacer(height=5)
+                headers = get_header_page(pagenum[0], get_week_data()["lectures"], week=True)
+                dpg.add_listbox(
+                    headers, tag=UI_ITEM_TAGS["LISTBOX"], width=1300, num_items=15
+                )
+                dpg.add_spacer(height=5)
+
+                # Page browse buttons + Week show button
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()],
+                        width=150,
+                        callback=None,
+                    )
+                    dpg.add_spacer(width=340)
+                    dpg.add_button(
+                        label="<- " + DISPLAY_TEXTS["ui_previous"][LANGUAGE.get()],
+                        width=120,
+                        enabled=True,
+                        callback=swap_page,
+                        user_data=(pagenum, get_week_data()["lectures"], "-", True),
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_text(
+                        str(pagenum[0])
+                        + "/"
+                        + str(
+                            1
+                            if len(get_week_data()["lectures"]) == 0
+                            else round_up(len(get_week_data()["lectures"]) / 15)
+                        ),
+                        tag=UI_ITEM_TAGS["PAGENUM"],
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()] + " ->",
+                        width=120,
+                        enabled=True,
+                        callback=swap_page,
+                        user_data=(pagenum, get_week_data()["lectures"], "+", True),
+                    )
+
+                dpg.add_spacer(height=10)
+                dpg.add_separator()
+                dpg.add_spacer(height=5)
+
+                # Window buttons
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                    width=90,
+                    callback=lambda s, a, u: close_window(u),
+                    user_data=UI_ITEM_TAGS["LIST_WINDOW"],
+                )
+
+
+def open_week_browse(s, a, u):
+    """
+    Shorthand to check and open the week browse window.
+    """
+
+    if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
+        if OPEN_COURSE_PATH.get():
+            if COURSE_INFO["course_id"]:
+                week_browse_window()
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:

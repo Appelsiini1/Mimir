@@ -76,7 +76,7 @@ def set_style():
                 dpg.mvStyleVar_FrameRounding, 6, category=dpg.mvThemeCat_Core
             )
 
-    with dpg.theme(tag="main_button_theme"):
+    with dpg.theme(tag="alternate_button_theme"):
         with dpg.theme_component(dpg.mvButton):
             dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 10, 10)
 
@@ -389,7 +389,7 @@ def save_week(s, a, u: tuple[dict, bool, dict]) -> None:
     close_window(UI_ITEM_TAGS["ADD_WEEK"])
 
 
-def swap_page(s, a, u: tuple[list, list, str]):
+def swap_page(s, a, u: tuple[list, list, str, bool]):
     """
     Change the visible page in listbox
 
@@ -403,6 +403,7 @@ def swap_page(s, a, u: tuple[list, list, str]):
     listbox_id = UI_ITEM_TAGS["LISTBOX"]
     text_id = UI_ITEM_TAGS["PAGENUM"]
     operation = u[2]
+    week = u[3]
 
     if operation == "+":
         page[0] += 1
@@ -411,7 +412,7 @@ def swap_page(s, a, u: tuple[list, list, str]):
             return
         page[0] -= 1
 
-    headers = get_header_page(page[0], data)
+    headers = get_header_page(page[0], data, week=week)
     if not headers:
         page = orig_page
         return
