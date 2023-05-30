@@ -17,3 +17,8 @@ def resource_path(relative_path):
         base_path = path.abspath(".")
 
     return path.join(base_path, relative_path)
+
+
+def round_up(number:float) -> int: 
+    """Round up any float"""
+    return int(number) + (number % 1 > 0)
