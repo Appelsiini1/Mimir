@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.4.6"
+VERSION = "0.4.7"
 
 #################################
 # Environment spesific constants
@@ -87,7 +87,8 @@ _GENERAL_KEY_LIST = [
     "ADD_WEEK",
     "SEARCH_BAR",
     "LIST_WINDOW",
-    "ASSIGNMENT_LIST",
+    "LISTBOX",
+    "PAGENUM"
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
