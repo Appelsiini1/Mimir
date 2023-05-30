@@ -25,7 +25,7 @@ from src.data_handler import (
     path_leaf,
     open_course,
     close_index,
-    year_conversion
+    year_conversion,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -34,9 +34,9 @@ from src.data_getters import (
     get_empty_week,
     get_all_indexed_assignments,
     get_header_page,
-    get_number_of_docs
+    get_number_of_docs,
 )
-from src.set_generator import temp_creator
+
 from src.ui_helper import (
     help_,
     get_variation_letter,
@@ -47,9 +47,11 @@ from src.ui_helper import (
     extract_variation_data,
     toggle_enabled,
     save_assignment,
-    save_week
+    save_week,
+    swap_page,
 )
 from src.popups import popup_ok, popup_create_course
+from src.common import round_up
 
 #############################################################
 
@@ -170,30 +172,41 @@ def main_window():
             dpg.add_text("Under construction", indent=25)
 
             # dpg.add_button(label="Avaa...", callback=_openfilebrowser, user_data=files)
-            dpg.add_button(
-                label="Luo tehtäväpaperi", callback=temp_creator, user_data=None
-            )
+            dpg.add_button(label="Luo tehtäväpaperi", callback=None, user_data=None)
         header3_label = DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE.get()]
         with dpg.collapsing_header(label=header3_label):
             dpg.add_text("Under construction", indent=25)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
-                        callback=lambda s, a, u: open_new_assignment_window(),
-                        tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label="Current index (TEMP)",
-                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
-                        callback=lambda s, a, u: open_new_week_window(),
-                    )
+                with dpg.group():
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
+                            callback=lambda s, a, u: open_new_assignment_window(),
+                            tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label="Current index (TEMP)",
+                            callback=lambda s, a, u: pprint(
+                                get_all_indexed_assignments()
+                            ),
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
+                            callback=lambda s, a, u: open_new_week_window(),
+                        )
+                    dpg.add_spacer(height=10)
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_open_assignment_browse"][
+                                LANGUAGE.get()
+                            ],
+                            callback=open_assignment_browse,
+                            user_data=(True, False),
+                        )
+                        dpg.bind_item_theme(dpg.last_item(), "main_button_theme")
 
 
 def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | str]):
@@ -387,7 +400,8 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int]):
                 dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    tag=UUIDs["USED_IN"], default_value=", ".join(year_conversion(data["used_in"], False))
+                    tag=UUIDs["USED_IN"],
+                    default_value=", ".join(year_conversion(data["used_in"], False)),
                 )
                 dpg.add_spacer(width=5)
 
@@ -710,7 +724,7 @@ def _add_week_window(parent=None, index=None):
                             tag=UUIDs["LECTURE_NO"],
                             default_value=week["lecture_no"],
                         )
-                    #dpg.add_spacer(height=5)
+                    # dpg.add_spacer(height=5)
 
                     # Assignment count
                     with dpg.table_row():
@@ -722,7 +736,7 @@ def _add_week_window(parent=None, index=None):
                             tag=UUIDs["A_COUNT"],
                             default_value=week["assignment_count"],
                         )
-                    #dpg.add_spacer(height=5)
+                    # dpg.add_spacer(height=5)
 
                 # Week topics
                 dpg.add_text(DISPLAY_TEXTS["ui_week_topics"][LANGUAGE.get()])
@@ -750,7 +764,9 @@ def _add_week_window(parent=None, index=None):
                 dpg.add_text(DISPLAY_TEXTS["ui_week_tags"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_week_tags"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    width=multiline_width, tag=UUIDs["TAGS"], default_value=",".join(week["tags"])
+                    width=multiline_width,
+                    tag=UUIDs["TAGS"],
+                    default_value=",".join(week["tags"]),
                 )
 
                 # Window buttons
@@ -796,8 +812,22 @@ def assignment_browse_window(search=True, select=False):
     """
 
     label = "Mímir - {}".format(DISPLAY_TEXTS["ui_assignment_browse"][LANGUAGE.get()])
+    if not search:
+        height = 695
+    else:
+        height = 710
 
-    with dpg.window(label=label, width=1200, height=700, tag=UI_ITEM_TAGS["LIST_WINDOW"], no_close=True):
+    with dpg.window(
+        label=label,
+        width=1400,
+        height=height,
+        tag=UI_ITEM_TAGS["LIST_WINDOW"],
+        no_close=True,
+        no_collapse=True,
+        no_resize=True
+    ):
+        pagenum = [1]
+        dpg.add_spacer(height=25)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
@@ -805,28 +835,62 @@ def assignment_browse_window(search=True, select=False):
                 # Search bar
                 if search:
                     with dpg.group(horizontal=True):
-                        dpg.add_input_text(width=988, hint=DISPLAY_TEXTS["ui_search_hint"][LANGUAGE.get()], tag=UI_ITEM_TAGS["SEARCH_BAR"])
+                        dpg.add_input_text(
+                            width=1040,
+                            hint=DISPLAY_TEXTS["ui_search_hint"][LANGUAGE.get()],
+                            tag=UI_ITEM_TAGS["SEARCH_BAR"],
+                        )
                         dpg.add_spacer(width=6)
-                        dpg.add_button(label=DISPLAY_TEXTS["ui_search_button"][LANGUAGE.get()], callback=None, width=75)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_search_button"][LANGUAGE.get()],
+                            callback=None,
+                            width=75,
+                        )
                         dpg.add_spacer(width=6)
-                        dpg.add_button(label=DISPLAY_TEXTS["ui_clear_search"][LANGUAGE.get()], callback=None, width=75)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_clear_search"][LANGUAGE.get()],
+                            callback=None,
+                            width=140,
+                        )
+
+                # Listbox header
+                dpg.add_spacer(height=10)
+                dpg.add_text(DISPLAY_TEXTS["ui_assignments_in_index"][LANGUAGE.get()]+":")
 
                 # Assignment listbox
                 dpg.add_spacer(height=5)
-                headers = get_header_page(0, get_all_indexed_assignments())
-                dpg.add_listbox(headers, tag=UI_ITEM_TAGS["ASSIGNMENT_LIST"], width=1150)
+                headers = get_header_page(pagenum[0], get_all_indexed_assignments())
+                dpg.add_listbox(
+                    headers, tag=UI_ITEM_TAGS["LISTBOX"], width=1300, num_items=15
+                )
                 dpg.add_spacer(height=5)
-                
+
                 # Page browse buttons + Assignment show button
                 with dpg.group(horizontal=True):
-                    dpg.add_spacer(width=492)
-                    dpg.add_button(label="<- "+DISPLAY_TEXTS["ui_previous"][LANGUAGE.get()], width=80, enabled=False, callback=None)
-                    dpg.add_spacer(width=6)
-                    dpg.add_button(label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()]+" ->", width=80, enabled=True, callback=None)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()],
+                        width=150,
+                        callback=None,
+                    )
+                    dpg.add_spacer(width=340)
+                    dpg.add_button(
+                        label="<- " + DISPLAY_TEXTS["ui_previous"][LANGUAGE.get()],
+                        width=120,
+                        enabled=True,
+                        callback=swap_page,
+                        user_data=(pagenum, get_all_indexed_assignments(), "-")
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_text(str(pagenum[0])+"/"+str(1 if get_number_of_docs() == 0 else round_up(get_number_of_docs()/15)), tag=UI_ITEM_TAGS["PAGENUM"])
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()] + " ->",
+                        width=120,
+                        enabled=True,
+                        callback=swap_page,
+                        user_data=(pagenum, get_all_indexed_assignments(), "+")
+                    )
 
-                    dpg.add_spacer(width=412)
-                    dpg.add_button(label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()], width=80, callback=None)
-                
                 dpg.add_spacer(height=10)
                 dpg.add_separator()
                 dpg.add_spacer(height=5)
@@ -834,8 +898,36 @@ def assignment_browse_window(search=True, select=False):
                 # Window buttons
                 if select:
                     with dpg.group(horizontal=True):
-                        dpg.add_button(label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()], width=80, callback=None)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
+                            width=80,
+                            callback=None,
+                        )
                         dpg.add_spacer(width=6)
-                        dpg.add_button(label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()], width=80, callback=None)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                            width=80,
+                            callback=None,
+                        )
                 else:
-                    dpg.add_button(label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()], width=80, callback=None)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                        width=90,
+                        callback=lambda s, a, u: close_window(u),
+                        user_data=UI_ITEM_TAGS["LIST_WINDOW"],
+                    )
+
+
+def open_assignment_browse(s, a, u: tuple[bool, bool]):
+    """
+    Shorthand to check and open the assingment browse window.
+    """
+
+    if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
+        if OPEN_COURSE_PATH.get():
+            if COURSE_INFO["course_id"]:
+                assignment_browse_window(search=u[0], select=u[1])
+            else:
+                popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
+        else:
+            popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])

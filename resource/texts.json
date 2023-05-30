@@ -445,5 +445,13 @@
     "ui_close" : {
         "FI" : "Sulje",
         "ENG" : "Close"
+    },
+    "ui_open_assignment_browse" : {
+        "FI" : "Avaa tehtäväselain",
+        "ENG" : "Open assignment browser"
+    },
+    "ui_assignments_in_index" : {
+        "FI" : "Tallennettuna olevat tehtävät",
+        "ENG" : "Saved assignments"
     }
 }
