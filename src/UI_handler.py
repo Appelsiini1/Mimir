@@ -52,6 +52,7 @@ from src.ui_helper import (
     swap_page,
     assignment_search_wrapper,
     clear_search_bar,
+    save_select,
 )
 from src.popups import popup_ok, popup_create_course
 from src.common import round_up
@@ -948,7 +949,8 @@ def assignment_browse_window(search=True, select=False, select_save=None):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
                             width=80,
-                            callback=None,
+                            callback=save_select,
+                            user_data=select_save,
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(
@@ -1066,7 +1068,8 @@ def week_browse_window(select=False, select_save=None):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
                             width=90,
-                            callback=None,
+                            callback=save_select,
+                            user_data=select_save,
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(

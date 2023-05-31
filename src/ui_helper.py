@@ -456,6 +456,25 @@ def save_select(s, a, u:list):
         title = value.split(" - ")[1]
         results = search_index(title)
 
+        for result in results:
+            header = ""
+            header += (
+                DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+                + result["position"].split(";")[0]
+            )
+            header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
+            header += result["position"].split(";")[1] + ")"
+            header += " - " + result["title"]
+            if header == value:
+                u.append(result)
+                break
+    else:
+        for week in get_week_data()["lectures"]:
+            if week["lecture_no"] == lecture:
+                u.append(week)
+                break
+    close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+
 
 def assignment_search_wrapper(s,a,u:list):
     """
