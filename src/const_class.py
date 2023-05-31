@@ -56,3 +56,12 @@ class LANG:
 
     def set_all(self, new):
         self._langs = new
+
+
+class WEEK:
+    _week_data = {}
+
+    def get(self):
+        return self._week_data
+    def set(self, new):
+        self._week_data = new

@@ -19,6 +19,7 @@ from src.constants import (
     COURSE_INFO,
     DISPLAY_TEXTS,
     LANGUAGE,
+    WEEK_DATA,
 )
 from src.common import resource_path
 
@@ -203,18 +204,23 @@ def get_week_data() -> dict | None:
     Get week data from json, or return a dict with only course info filled in.
     """
 
+    if WEEK_DATA.get():
+        return WEEK_DATA.get()
     weeks = None
     f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+
     try:
         with open(f_path, "r", encoding="utf-8") as f:
             data = f.read()
             weeks = json.loads(data)
+            WEEK_DATA.set(weeks)
     except FileNotFoundError:
         weeks = {
             "course_id": COURSE_INFO["course_id"],
             "course_title": COURSE_INFO["course_title"],
             "lectures": [],
         }
+        WEEK_DATA.set(weeks)
     except OSError:
         logging.exception("Error when reading week data.")
 
