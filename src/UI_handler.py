@@ -191,13 +191,6 @@ def main_window():
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
-                            label="Current index (TEMP)",
-                            callback=lambda s, a, u: pprint(
-                                get_all_indexed_assignments()
-                            ),
-                        )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_week_window(),
                         )
@@ -218,6 +211,37 @@ def main_window():
                             user_data=(False, None),
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+
+                    ###### temp buttons
+                    dpg.add_spacer(height=10)
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label="Current index (TEMP)",
+                            callback=lambda s, a, u: pprint(
+                                get_all_indexed_assignments()
+                            ),
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label="Tehtävävalitsin",
+                            callback=temp_selector_wrapper,
+                            user_data=True
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label="Viikkovalitsin",
+                            callback=temp_selector_wrapper,
+                            user_data=False
+                        )
+
+
+def temp_selector_wrapper(s, a, u:bool):
+    if u:
+        selected = []
+        open_assignment_browse(None, None, (True, True, selected))
+    else:
+        selected = []
+        open_week_browse(None, None, (True, selected))
 
 
 def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | str]):

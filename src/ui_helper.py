@@ -474,7 +474,7 @@ def save_select(s, a, u:list):
                 u.append(week)
                 break
     close_window(UI_ITEM_TAGS["LIST_WINDOW"])
-
+    print(u)
 
 def assignment_search_wrapper(s,a,u:list):
     """
