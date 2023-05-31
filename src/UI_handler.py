@@ -50,6 +50,8 @@ from src.ui_helper import (
     save_assignment,
     save_week,
     swap_page,
+    assignment_search_wrapper,
+    clear_search_bar,
 )
 from src.popups import popup_ok, popup_create_course
 from src.common import round_up
@@ -205,13 +207,14 @@ def main_window():
                                 LANGUAGE.get()
                             ],
                             callback=open_assignment_browse,
-                            user_data=(True, False),
+                            user_data=(True, False, None),
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_open_week_browse"][LANGUAGE.get()],
                             callback=open_week_browse,
+                            user_data=(False, None),
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -683,23 +686,31 @@ def open_new_assignment_window(parent=None):
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
 
 
-def _add_week_window(parent=None, index=None):
+def _add_week_window(parent=None, index=None, select=False):
     """
     UI components for "Add week" window.
     """
 
-    label = "Mímir - {} - {}".format(
-        DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()],
-        DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
-    )
+    if not select:
+        label = "Mímir - {} - {}".format(
+            DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()],
+            DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
+        )
+    else:
+        label = "Mímir - {} - {}".format(
+            DISPLAY_TEXTS["ui_week_management"][LANGUAGE.get()],
+            DISPLAY_TEXTS["ui_show_week"][LANGUAGE.get()],
+        )
     if parent:
-        print(parent)
         week = parent["lectures"][index]
         new = False
     else:
         week = get_empty_week()
         new = True
     multiline_width = 430
+    enable = True
+    if select:
+        enable = False
 
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in WEEK_WINDOW_KEY_LIST}
     with dpg.window(
@@ -715,6 +726,7 @@ def _add_week_window(parent=None, index=None):
                     width=multiline_width,
                     tag=UUIDs["TITLE"],
                     default_value=week["title"],
+                    enabled=enable,
                 )
                 dpg.add_spacer(height=5)
 
@@ -730,6 +742,7 @@ def _add_week_window(parent=None, index=None):
                             min_clamped=True,
                             tag=UUIDs["LECTURE_NO"],
                             default_value=week["lecture_no"],
+                            enabled=enable,
                         )
                     # dpg.add_spacer(height=5)
 
@@ -742,6 +755,7 @@ def _add_week_window(parent=None, index=None):
                             min_clamped=True,
                             tag=UUIDs["A_COUNT"],
                             default_value=week["assignment_count"],
+                            enabled=enable,
                         )
                     # dpg.add_spacer(height=5)
 
@@ -753,6 +767,7 @@ def _add_week_window(parent=None, index=None):
                     tag=UUIDs["TOPICS"],
                     default_value="\n".join(week["topics"]),
                     multiline=True,
+                    enabled=enable,
                 )
                 dpg.add_spacer(height=5)
 
@@ -764,6 +779,7 @@ def _add_week_window(parent=None, index=None):
                     tag=UUIDs["INSTRUCTIONS"],
                     default_value=week["instructions"],
                     multiline=True,
+                    enabled=enable,
                 )
                 dpg.add_spacer(height=5)
 
@@ -773,27 +789,38 @@ def _add_week_window(parent=None, index=None):
                 dpg.add_input_text(
                     width=multiline_width,
                     tag=UUIDs["TAGS"],
-                    default_value=",".join(week["tags"]),
+                    default_value=", ".join(week["tags"]),
+                    enabled=enable,
                 )
 
                 # Window buttons
                 dpg.add_spacer(height=5)
                 dpg.add_separator()
                 dpg.add_spacer(height=5)
-                with dpg.group(horizontal=True):
+                if select:
                     dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
-                        callback=save_week,
-                        user_data=(week, new, UUIDs),
-                    )
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                        label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["ADD_WEEK"],
+                        width=90,
                     )
+                else:
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
+                            callback=save_week,
+                            user_data=(week, new, UUIDs),
+                            width=90,
+                        )
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                            callback=lambda s, a, u: close_window(u),
+                            user_data=UI_ITEM_TAGS["ADD_WEEK"],
+                            width=90,
+                        )
 
 
-def open_new_week_window(parent=None, index=None):
+def open_new_week_window(parent=None, index=None, select=False):
     """
     A function to check if 'Add week' window is already open.
     If it is not, open it.
@@ -802,14 +829,14 @@ def open_new_week_window(parent=None, index=None):
     if not dpg.does_item_exist(UI_ITEM_TAGS["ADD_WEEK"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                _add_week_window(parent=parent, index=index)
+                _add_week_window(parent=parent, index=index, select=select)
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
 
 
-def assignment_browse_window(search=True, select=False):
+def assignment_browse_window(search=True, select=False, select_save=None):
     """
     Create a window for listing assignments.
 
@@ -850,14 +877,16 @@ def assignment_browse_window(search=True, select=False):
                         dpg.add_spacer(width=6)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_search_button"][LANGUAGE.get()],
-                            callback=None,
+                            callback=assignment_search_wrapper,
                             width=75,
+                            user_data=pagenum,
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_clear_search"][LANGUAGE.get()],
-                            callback=None,
+                            callback=clear_search_bar,
                             width=140,
+                            user_data=pagenum,
                         )
 
                 # Listbox header
@@ -925,7 +954,8 @@ def assignment_browse_window(search=True, select=False):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                             width=80,
-                            callback=None,
+                            callback=lambda s, a, u: close_window(u),
+                            user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                         )
                 else:
                     dpg.add_button(
@@ -936,7 +966,7 @@ def assignment_browse_window(search=True, select=False):
                     )
 
 
-def open_assignment_browse(s, a, u: tuple[bool, bool]):
+def open_assignment_browse(s, a, u: tuple[bool, bool, list]):
     """
     Shorthand to check and open the assingment browse window.
     """
@@ -944,14 +974,14 @@ def open_assignment_browse(s, a, u: tuple[bool, bool]):
     if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                assignment_browse_window(search=u[0], select=u[1])
+                assignment_browse_window(search=u[0], select=u[1], select_save=u[2])
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
 
 
-def week_browse_window():
+def week_browse_window(select=False, select_save=None):
     """
     Window to browse saved week data
     """
@@ -979,7 +1009,9 @@ def week_browse_window():
 
                 # Week listbox
                 dpg.add_spacer(height=5)
-                headers = get_header_page(pagenum[0], get_week_data()["lectures"], week=True)
+                headers = get_header_page(
+                    pagenum[0], get_week_data()["lectures"], week=True
+                )
                 dpg.add_listbox(
                     headers, tag=UI_ITEM_TAGS["LISTBOX"], width=1300, num_items=15
                 )
@@ -988,9 +1020,12 @@ def week_browse_window():
                 # Page browse buttons + Week show button
                 with dpg.group(horizontal=True):
                     dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()],
+                        label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()]
+                        if not select
+                        else DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
                         width=150,
-                        callback=None,
+                        callback=week_show_callback,
+                        user_data=select,
                     )
                     dpg.add_spacer(width=340)
                     dpg.add_button(
@@ -1025,15 +1060,31 @@ def week_browse_window():
                 dpg.add_spacer(height=5)
 
                 # Window buttons
-                dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                    width=90,
-                    callback=lambda s, a, u: close_window(u),
-                    user_data=UI_ITEM_TAGS["LIST_WINDOW"],
-                )
+
+                if select:
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
+                            width=90,
+                            callback=None,
+                        )
+                        dpg.add_spacer(width=6)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                            width=90,
+                            callback=lambda s, a, u: close_window(u),
+                            user_data=UI_ITEM_TAGS["LIST_WINDOW"],
+                        )
+                else:
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                        width=90,
+                        callback=lambda s, a, u: close_window(u),
+                        user_data=UI_ITEM_TAGS["LIST_WINDOW"],
+                    )
 
 
-def open_week_browse(s, a, u):
+def open_week_browse(s, a, u: tuple[bool, list]):
     """
     Shorthand to check and open the week browse window.
     """
@@ -1041,8 +1092,27 @@ def open_week_browse(s, a, u):
     if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                week_browse_window()
+                week_browse_window(select=u[0], select_save=u[1])
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
+
+
+def week_show_callback(s, a, u: bool):
+    """
+    Callback to get the right week and pass it to week edit window.
+    """
+
+    value = dpg.get_value(UI_ITEM_TAGS["LISTBOX"])
+    if not value:
+        return
+    lecture = int(value.split(" - ")[0])
+
+    weeks = get_week_data()["lectures"]
+    for i, week in enumerate(weeks):
+        if week["lecture_no"] == lecture:
+            ind = i
+            break
+
+    open_new_week_window(parent=get_week_data(), index=ind, select=u)

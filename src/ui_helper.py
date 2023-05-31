@@ -16,6 +16,7 @@ from src.data_handler import (
     save_assignment_data,
     save_week_data,
     year_conversion,
+    search_index,
 )
 from src.data_getters import get_header_page, get_all_indexed_assignments, get_week_data
 from src.common import resource_path, round_up
@@ -426,19 +427,47 @@ def swap_page(s, a, u: tuple[list, list, str, bool]):
     )
 
 
-def clear_search_bar(s, a, u:tuple[list, bool]):
+def clear_search_bar(s, a, u:list):
     """
     Clears the search bar in week or assignment list windows 
     and returns the listbox to default view
 
     Params:
-    u: tuple of page number as list, and bool if the window is weeks
+    u: page number as list
     """
 
     dpg.configure_item(UI_ITEM_TAGS["SEARCH_BAR"], default_value="")
     u[0] = 1
-    if not u[1]:
-        headers = get_header_page(1, get_all_indexed_assignments())
-    else:
-        headers = get_header_page(1, get_week_data(), week=True)
+    headers = get_header_page(1, get_all_indexed_assignments())
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
+
+
+def save_select(s, a, u:list):
+    """
+    Save the selected to the list.
+    """
+
+    value = dpg.get_value(UI_ITEM_TAGS["LISTBOX"])
+    if not value:
+        return
+    try:
+        lecture = int(value.split(" - ")[0])
+    except ValueError:
+        title = value.split(" - ")[1]
+        results = search_index(title)
+
+
+def assignment_search_wrapper(s,a,u:list):
+    """
+    Wrapper for calling search_index with the search query value
+    """
+
+    value = dpg.get_value(UI_ITEM_TAGS["SEARCH_BAR"]).strip()
+
+    results = search_index(value)
+
+    u[0] = 1
+    headers = get_header_page(u[0], results)
+
+    dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
+    

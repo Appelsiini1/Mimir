@@ -13,6 +13,7 @@ from tkinter.filedialog import askdirectory
 from hashlib import sha256
 
 from whoosh import index
+from whoosh.qparser import QueryParser
 from dearpygui.dearpygui import get_value, configure_item
 
 from src.constants import (
@@ -25,6 +26,7 @@ from src.constants import (
     UI_ITEM_TAGS,
     RECENTS,
     INDEX_SCHEMA,
+    WEEK_DATA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs
@@ -394,6 +396,7 @@ def save_week_data(week, new) -> None:
         with open(f_path, "w", encoding="utf-8") as f:
             _json = json.dumps(parent, indent=4, ensure_ascii=False)
             f.write(_json)
+            WEEK_DATA.set(parent)
     except OSError:
         logging.exception("Error in saving week JSON.")
     logging.debug("Week data saved: %s", _json)
@@ -423,3 +426,29 @@ def year_conversion(data: list, encode:bool) -> list:
                     converted.append(str(key + item[-4:]))
 
     return converted
+
+
+def search_index(query):
+    """
+    Search the assignment index. Defaults to searching from the "title" field
+
+    Params:
+    query: String to search the index with
+    """
+
+    ix = OPEN_IX.get()
+
+    qp = QueryParser("title", ix.schema)
+    q = qp.parse(query)
+
+    sr = ix.searcher()
+    results = sr.search(q)
+    logging.debug("Search results: %s", results)
+
+    typed = []
+    for result in results:
+        typed.append(dict(result))
+
+    logging.debug("Full result data:\n%s", typed)
+
+    return typed
