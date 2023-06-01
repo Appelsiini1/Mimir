@@ -87,7 +87,7 @@ def add_assignment_to_index(data: dict):
     ix = OPEN_IX.get()
 
     positions = f"{data['exp_lecture']};"
-    positions += ",".join(data["exp_assignment_no"])
+    positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
@@ -150,7 +150,7 @@ def update_index(data: dict):
     ix = OPEN_IX.get()
 
     positions = f"{data['exp_lecture']:02d};"
-    positions += ",".join(data["exp_assignment_no"])
+    positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
@@ -303,8 +303,12 @@ def save_recent(**args):
     rec = RECENTS.get()
     if not OPEN_COURSE_PATH.get() in rec:
         if len(rec) < 5:
-            ind = rec.index(OPEN_COURSE_PATH.get())
-            rec.pop(ind)
+            try:
+                ind = rec.index(OPEN_COURSE_PATH.get())
+            except ValueError:
+                pass
+            else:
+                rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
@@ -407,7 +411,7 @@ def year_conversion(data: list, encode:bool) -> list:
     Converts the 'used in' value to number from text or vice versa.
     """
     if not data:
-        raise ValueError("Data cannot be empty")
+        return []
 
     pos_conv = get_pos_convert()[LANGUAGE.get()]
     converted = []
@@ -452,3 +456,34 @@ def search_index(query):
     logging.debug("Full result data:\n%s", typed)
 
     return typed
+
+
+def get_value_from_browse():
+    """
+    Extract the correct assignment or week from the browse view
+    """
+
+    value = get_value(UI_ITEM_TAGS["LISTBOX"])
+    if not value:
+        return
+    try:
+        lecture = int(value.split(" - ")[0])
+    except ValueError:
+        title = value.split(" - ")[1]
+        results = search_index(title)
+
+        for result in results:
+            header = ""
+            header += (
+                DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+                + result["position"].split(";")[0]
+            )
+            header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
+            header += result["position"].split(";")[1] + ")"
+            header += " - " + result["title"]
+            if header == value:
+                return result
+    else:
+        for week in get_week_data()["lectures"]:
+            if week["lecture_no"] == lecture:
+                return week

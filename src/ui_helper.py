@@ -17,8 +17,9 @@ from src.data_handler import (
     save_week_data,
     year_conversion,
     search_index,
+    get_value_from_browse,
 )
-from src.data_getters import get_header_page, get_all_indexed_assignments, get_week_data
+from src.data_getters import get_header_page, get_all_indexed_assignments
 from src.common import resource_path, round_up
 
 ################################
@@ -444,35 +445,11 @@ def clear_search_bar(s, a, u:list):
 
 def save_select(s, a, u:list):
     """
-    Save the selected to the list.
+    Save the selected to the list and close browse window.
     """
 
-    value = dpg.get_value(UI_ITEM_TAGS["LISTBOX"])
-    if not value:
-        return
-    try:
-        lecture = int(value.split(" - ")[0])
-    except ValueError:
-        title = value.split(" - ")[1]
-        results = search_index(title)
-
-        for result in results:
-            header = ""
-            header += (
-                DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-                + result["position"].split(";")[0]
-            )
-            header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
-            header += result["position"].split(";")[1] + ")"
-            header += " - " + result["title"]
-            if header == value:
-                u.append(result)
-                break
-    else:
-        for week in get_week_data()["lectures"]:
-            if week["lecture_no"] == lecture:
-                u.append(week)
-                break
+    result = get_value_from_browse()
+    u.append(result)
     close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     print(u)
 

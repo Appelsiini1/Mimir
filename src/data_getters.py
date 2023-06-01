@@ -290,3 +290,18 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
             headers.append(header)
 
     return headers
+
+
+def get_variation_index(vars:list, letter:str) -> int|None:
+    """
+    Return the position of the variation that has the letter as its ID.
+
+    Params:
+    vars: list of variations
+    letter: the letter to search
+    """
+
+    for i, var in enumerate(vars):
+        if var["variation_id"] == letter:
+            return i
+    return None
