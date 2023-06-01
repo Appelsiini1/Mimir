@@ -252,15 +252,12 @@ def _add_example_run_window(sender, app_data, user_data: tuple[dict, int, int | 
     ix = user_data[1]
     var_listbox = user_data[2]
     new = False
-    print(var)
     try:
         ex_run = var["example_runs"][ix]
-        print("here")
     except IndexError:
         ex_run = get_empty_example_run()
         new = True
 
-    print(ex_run)
     select = True
     if user_data[3]:
         select = False
@@ -555,7 +552,6 @@ def _assignment_window(var_data=None, select=False):
         DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE.get()],
         DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
     )
-    print(var_data)
     if not var_data:
         var = get_empty_assignment()
         new = True
