@@ -149,7 +149,7 @@ def main_window():
                             dpg.add_input_int(
                                 callback=None,
                                 width=150,
-                                min_value=0,
+                                min_value=1,
                                 min_clamped=True,
                                 tag=UI_ITEM_TAGS["COURSE_WEEKS"],
                             )
