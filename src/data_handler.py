@@ -117,7 +117,7 @@ def _save_course_file():
     """
     f_path = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
     with open(f_path, "w", encoding="utf-8") as f:
-        to_write = json.dumps(COURSE_INFO)
+        to_write = json.dumps(COURSE_INFO, indent=4)
         f.write(to_write)
 
 
