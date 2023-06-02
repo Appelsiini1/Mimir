@@ -15,8 +15,12 @@ from src.data_handler import (
     ask_course_dir,
     save_assignment_data,
     save_week_data,
+    year_conversion,
+    search_index,
+    get_value_from_browse,
 )
-from src.common import resource_path
+from src.data_getters import get_header_page, get_all_indexed_assignments
+from src.common import resource_path, round_up
 
 ################################
 
@@ -73,6 +77,10 @@ def set_style():
             dpg.add_theme_style(
                 dpg.mvStyleVar_FrameRounding, 6, category=dpg.mvThemeCat_Core
             )
+
+    with dpg.theme(tag="alternate_button_theme"):
+        with dpg.theme_component(dpg.mvButton):
+            dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 10, 10)
 
     dpg.bind_theme(global_theme)
     logging.info("Theme setup finished.")
@@ -153,7 +161,9 @@ def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     ix = u[4]
 
     data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
-    data["used_in"] = dpg.get_value(UUIDS["USED_IN"])
+    data["used_in"] = year_conversion(
+        [item.strip() for item in dpg.get_value(UUIDS["USED_IN"]).split(",")], True
+    )
 
     if ix == -1:
         data["variation_id"] = var_letter
@@ -346,16 +356,18 @@ def save_assignment(s, a, u: tuple[dict, bool]):
         i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
     ]
     assig["exp_assignment_no"] = [
-        i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
+        int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
     ]
-    assig["nex, last"] = [
-        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
+    assig["next, last"] = [
         "",
+        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
     ]  # TODO handling for next if exists
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
+    logging.debug("Assignment code language: %s", assig["code_language"])
     assig["instruction_language"] = dpg.get_value(
         UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
     )
+    logging.debug("Assignment instruction language: %s", assig["instruction_language"])
     assig["exp_lecture"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"])
 
     save_assignment_data(assig, u[1])
@@ -379,3 +391,81 @@ def save_week(s, a, u: tuple[dict, bool, dict]) -> None:
 
     save_week_data(week, new)
     close_window(UI_ITEM_TAGS["ADD_WEEK"])
+
+
+def swap_page(s, a, u: tuple[list, list, str, bool]):
+    """
+    Change the visible page in listbox
+
+    Params:
+    u: a tuple of the page number (as a list), the data to show and the operation
+    """
+
+    orig_page = u[0]
+    page = orig_page
+    data = u[1]
+    listbox_id = UI_ITEM_TAGS["LISTBOX"]
+    text_id = UI_ITEM_TAGS["PAGENUM"]
+    operation = u[2]
+    week = u[3]
+
+    if operation == "+":
+        page[0] += 1
+    else:
+        if page[0] == 1:
+            return
+        page[0] -= 1
+
+    headers = get_header_page(page[0], data, week=week)
+    if not headers:
+        page = orig_page
+        return
+
+    dpg.configure_item(listbox_id, items=headers)
+    dpg.configure_item(
+        text_id,
+        default_value=str(page[0])
+        + "/"
+        + str(1 if len(data) == 0 else round_up(len(data) / 15)),
+    )
+
+
+def clear_search_bar(s, a, u:list):
+    """
+    Clears the search bar in week or assignment list windows 
+    and returns the listbox to default view
+
+    Params:
+    u: page number as list
+    """
+
+    dpg.configure_item(UI_ITEM_TAGS["SEARCH_BAR"], default_value="")
+    u[0] = 1
+    headers = get_header_page(1, get_all_indexed_assignments())
+    dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
+
+
+def save_select(s, a, u:list):
+    """
+    Save the selected to the list and close browse window.
+    """
+
+    result = get_value_from_browse()
+    u.append(result)
+    close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+    print(u)
+
+def assignment_search_wrapper(s,a,u:list):
+    """
+    Wrapper for calling search_index with the search query value
+    """
+
+    value = dpg.get_value(UI_ITEM_TAGS["SEARCH_BAR"]).strip()
+
+    results = search_index(value)
+
+    u[0] = 1
+    headers = get_header_page(u[0], results)
+
+    dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
+    

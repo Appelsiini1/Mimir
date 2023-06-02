@@ -1,10 +1,10 @@
 """
 Mímir Data Handlers
 
-Functions for loading and saving exercise data
+Functions for processing data
 """
 
-# pylint: disable=import-error, unused-argument
+# pylint: disable=import-error, unused-argument, consider-using-f-string, invalid-name
 import json
 import logging
 from os import path, mkdir, getcwd
@@ -13,6 +13,7 @@ from tkinter.filedialog import askdirectory
 from hashlib import sha256
 
 from whoosh import index
+from whoosh.qparser import QueryParser
 from dearpygui.dearpygui import get_value, configure_item
 
 from src.constants import (
@@ -25,67 +26,12 @@ from src.constants import (
     UI_ITEM_TAGS,
     RECENTS,
     INDEX_SCHEMA,
+    WEEK_DATA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
+from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs
 
-# pylint: disable=consider-using-f-string
-# pylint: disable=invalid-name
-
-
-def get_assignment_json(json_path: str) -> dict | None:
-    """
-    Read JSON and use the data to get example code from its file.
-    Returns a dictionary with all the assignment data or None if an exception
-    is raised.
-
-    Params:
-    json_path: path to the json file to be read
-    """
-
-    try:
-        with open(json_path, "r", encoding="UTF-8") as json_file:
-            raw_data = json_file.read()
-            json_data = json.loads(raw_data)
-    except OSError:
-        logging.exception("Unable to read JSON file!")
-        return None
-    else:
-        return json_data
-
-
-def get_assignment_code(data_path: str, a_id: str):
-    """
-    Read code file and return its contents, excluding the ID line. Note that function
-    checks whether the assignment ID matches the ID given. Raises an exception if
-    they do not match.
-
-    Params:
-    data_path: Path to the code file
-    a_id: ID of the assignment
-    """
-
-    try:
-        with open(data_path, "r", encoding="UTF-8") as code_file:
-            code = code_file.read()
-            # TODO uncomment
-            # if not code.startswith(a_id):
-            #    raise ConflictingAssignmentID
-            code = code.strip(a_id)
-            return code
-    except OSError:
-        logging.exception("Unable to read code file!")
-        return None
-
-
-def read_datafile(filename: str):
-    try:
-        with open(filename, "r", encoding="UTF-8") as _file:
-            data = _file.read()
-            return data
-    except OSError:
-        logging.exception("Unable to read code file!")
-        return None
-
+########################################
 
 def create_index(force=False, **args):
     """
@@ -97,7 +43,9 @@ def create_index(force=False, **args):
     force: Force the creation of the index if it already exists.
     """
 
-    ix_path = OPEN_COURSE_PATH.get()
+    ix_path = OPEN_COURSE_PATH.get_subdir(index=True)
+    if not path.exists(ix_path):
+        mkdir(ix_path)
     name = COURSE_INFO["course_id"]
 
     if index.exists_in(ix_path, name) and not force:
@@ -117,7 +65,7 @@ def open_index(**args):
     Opens a previously created assignment index. Sets the opened index as a global constant.
     """
 
-    ix_path = OPEN_COURSE_PATH.get()
+    ix_path = OPEN_COURSE_PATH.get_subdir(index=True)
     name = COURSE_INFO["course_id"]
     try:
         ix = index.open_dir(ix_path, name)
@@ -141,7 +89,7 @@ def add_assignment_to_index(data: dict):
     ix = OPEN_IX.get()
 
     positions = f"{data['exp_lecture']};"
-    positions += ",".join(data["exp_assignment_no"])
+    positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
@@ -193,15 +141,6 @@ def save_course_info(**args):
         create_index()
 
 
-def get_expanding_assignments():
-    """
-    Returns a list of assignment objects that have 'is_expanding' argument set to TRUE.
-
-    Params:
-    a_index: The assignment index from where to search
-    """
-
-
 def update_index(data: dict):
     """
     Updates the index with the data from the updated assignment.
@@ -213,7 +152,7 @@ def update_index(data: dict):
     ix = OPEN_IX.get()
 
     positions = f"{data['exp_lecture']:02d};"
-    positions += ",".join(data["exp_assignment_no"])
+    positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
@@ -232,18 +171,7 @@ def update_index(data: dict):
     writer.commit()
 
 
-def get_texdoc_settings():
-    """
-    Gets TeX document settings from file. Returns a dict.
-    """
-    _path = path.join(ENV["PROGRAM_DATA"], "document_settings.json")
-    with open(_path, "r", encoding="UTF-8") as _file:
-        _json = json.loads(_file.read())
-
-    return _json
-
-
-def format_general_json(data: dict, lecture_no: int):
+def format_week_json(data: dict, lecture_no: int):
     general = {}
     general["course_id"] = data["course_id"]
     general["course_name"] = data["course_name"]
@@ -262,7 +190,7 @@ def format_metadata_json(data: dict):
     variation = data["variations"][0]
     new["instructions"] = variation["instructions"]
     example_runs = []
-    for i, ex_run in enumerate(variation["example_runs"]):
+    for i, _ in enumerate(variation["example_runs"]):
         n = {
             "inputs": variation["example_runs"][i]["inputs"],
             "output": variation["example_runs"][i]["output"],
@@ -344,69 +272,6 @@ def save_assignment_data(assignment, new):
         logging.exception("Error while saving assignment data!")
 
 
-def get_empty_assignment():
-    """
-    Returns an empty instance of an assignment dictionary
-    """
-    empty = {}
-    empty["title"] = ""
-    empty["tags"] = ""
-    empty["exp_lecture"] = 0
-    empty["exp_assignment_no"] = ""
-    empty["next, last"] = ""
-    empty["code_language"] = ""
-    empty["instruction_language"] = ""
-    empty["variations"] = []
-
-    return empty
-
-
-def get_empty_variation():
-    """
-    Returns an empty instance of an assignment variation dictionary
-    """
-
-    empty = {}
-    empty["variation_id"] = ""
-    empty["instructions"] = ""
-    empty["example_runs"] = []
-    empty["codefiles"] = []
-    empty["datafiles"] = []
-    empty["used_in"] = []
-
-    return empty
-
-
-def get_empty_example_run():
-    """
-    Returns an empty instace of an example run dictionary
-    """
-
-    empty = {}
-    empty["generate"] = None
-    empty["inputs"] = []
-    empty["cmd_inputs"] = []
-    empty["output"] = []
-    empty["outputfiles"] = []
-
-    return empty
-
-
-def get_empty_week() -> dict:
-    """
-    Return a dictionary that contains the correct keys for a week object with no values.
-    """
-    empty = {}
-    empty["title"] = ""
-    empty["lecture_no"] = 0
-    empty["topics"] = []
-    empty["instructions"] = ""
-    empty["assignment_count"] = 0
-    empty["tags"] = []
-
-    return empty
-
-
 def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
@@ -440,8 +305,12 @@ def save_recent(**args):
     rec = RECENTS.get()
     if not OPEN_COURSE_PATH.get() in rec:
         if len(rec) < 5:
-            ind = rec.index(OPEN_COURSE_PATH.get())
-            rec.pop(ind)
+            try:
+                ind = rec.index(OPEN_COURSE_PATH.get())
+            except ValueError:
+                pass
+            else:
+                rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
@@ -466,24 +335,6 @@ def save_recent(**args):
         logging.exception("Error occured while saving recents to file!")
     RECENTS.set(rec)
     logging.debug("Recent courses set as: %s", rec)
-
-
-def get_recents(**args):
-    """
-    Get a list of recent courses
-    """
-    f_path = path.join(ENV["PROGRAM_DATA"], "recents.txt")
-    if path.exists(f_path):
-        try:
-            with open(f_path, "r", encoding="utf-8") as f:
-                paths = f.read().split("\n")
-                for i, p in enumerate(paths):
-                    if p == "":
-                        paths.pop(i)
-                RECENTS.set(paths)
-        except OSError:
-            logging.exception("Error occured while getting recent courses.")
-    logging.info("Set recent course list as: %s", RECENTS.get())
 
 
 def open_course(**args):
@@ -522,31 +373,6 @@ def open_course(**args):
         configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
 
 
-def get_all_indexed_assignments() -> list:
-    """Returns a list of all the documents in the index."""
-
-    ix = OPEN_IX.get()
-
-    docs = []
-    with ix.searcher() as srcr:
-        _all = srcr.documents()
-        docs = list(_all)
-
-    return docs
-
-
-def get_number_of_docs() -> int:
-    """Returns the number of documents in the course index."""
-
-    ix = OPEN_IX.get()
-
-    if ix:
-        with ix.searcher() as sr:
-            no = sr.doc_count()
-        return no
-    return 0
-
-
 def close_index() -> None:
     """Closes the open indexes."""
 
@@ -576,30 +402,90 @@ def save_week_data(week, new) -> None:
         with open(f_path, "w", encoding="utf-8") as f:
             _json = json.dumps(parent, indent=4, ensure_ascii=False)
             f.write(_json)
+            WEEK_DATA.set(parent)
     except OSError:
         logging.exception("Error in saving week JSON.")
     logging.debug("Week data saved: %s", _json)
 
 
-def get_week_data() -> dict | None:
+def year_conversion(data: list, encode:bool) -> list:
     """
-    Get week data from json, or return a dict with only course infor filled in.
+    Converts the 'used in' value to number from text or vice versa.
+    """
+    if not data:
+        return []
+
+    pos_conv = get_pos_convert()[LANGUAGE.get()]
+    converted = []
+    if not encode:
+        for item in data:
+            try:
+                converted.append(str(pos_conv[item[:-4]] + item[-4:]))
+            except KeyError:
+                logging.exception(
+                    "Unable to convert position value from numeric to text!"
+                )
+    else:
+        for item in data:
+            for key in pos_conv.keys():
+                if pos_conv[key].lower() == item[:-4].lower():
+                    converted.append(str(key + item[-4:]))
+
+    return converted
+
+
+def search_index(query):
+    """
+    Search the assignment index. Defaults to searching from the "title" field
+
+    Params:
+    query: String to search the index with
     """
 
-    weeks = None
-    f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
+    ix = OPEN_IX.get()
+
+    qp = QueryParser("title", ix.schema)
+    q = qp.parse(query)
+
+    sr = ix.searcher()
+    results = sr.search(q)
+    logging.debug("Search results: %s", results)
+
+    typed = []
+    for result in results:
+        typed.append(dict(result))
+
+    logging.debug("Full result data:\n%s", typed)
+
+    return typed
+
+
+def get_value_from_browse():
+    """
+    Extract the correct assignment or week from the browse view
+    """
+
+    value = get_value(UI_ITEM_TAGS["LISTBOX"])
+    if not value:
+        return
     try:
-        with open(f_path, "r", encoding="utf-8") as f:
-            data = f.read()
-            weeks = json.loads(data)
-    except FileNotFoundError:
-        weeks = {
-            "course_id": COURSE_INFO["course_id"],
-            "course_title": COURSE_INFO["course_title"],
-            "lectures": [],
-        }
-    except OSError:
-        logging.exception("Error when reading week data.")
+        lecture = int(value.split(" - ")[0])
+    except ValueError:
+        title = value.split(" - ")[1]
+        results = search_index(title)
 
-    logging.debug("Week data is: %s", weeks)
-    return weeks
+        for result in results:
+            header = ""
+            header += (
+                DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+                + result["position"].split(";")[0]
+            )
+            header += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + "("
+            header += result["position"].split(";")[1] + ")"
+            header += " - " + result["title"]
+            if header == value:
+                return result
+    else:
+        for week in get_week_data()["lectures"]:
+            if week["lecture_no"] == lecture:
+                return week

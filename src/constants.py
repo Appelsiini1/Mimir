@@ -13,7 +13,7 @@ from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, BOOLEAN, STORED
 
 from src.common import resource_path
-from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG
+from src.const_class import COURSE_PATH, RECENTS_LIST, IX, LANG, WEEK
 
 
 def _get_texts():
@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.4.2"
+VERSION = "0.6.4"
 
 #################################
 # Environment spesific constants
@@ -84,7 +84,11 @@ _GENERAL_KEY_LIST = [
     "COURSE_ID",
     "COURSE_TITLE",
     "COURSE_WEEKS",
-    "ADD_WEEK"
+    "ADD_WEEK",
+    "SEARCH_BAR",
+    "LIST_WINDOW",
+    "LISTBOX",
+    "PAGENUM"
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
@@ -131,3 +135,4 @@ INDEX_SCHEMA = Schema(
     json_path=STORED,
     is_expanding=BOOLEAN(stored=True),
 )
+WEEK_DATA = WEEK()

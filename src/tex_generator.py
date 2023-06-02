@@ -9,7 +9,7 @@ import logging
 from os.path import join, split
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
-from src.data_handler import get_texdoc_settings
+from src.data_getters import get_texdoc_settings
 
 # pylint: disable=anomalous-backslash-in-string
 

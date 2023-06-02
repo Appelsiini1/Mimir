@@ -413,5 +413,65 @@
     "help_week_inst" : {
         "FI" : "Syötä viikon erikoisohjeet. Nämä tulostuvat aihelistan perään. Tukee LaTeX komentoja.",
         "ENG" : "Input any special instructions for the week. These will be printed after the topic list. Supports LaTeX commands."
+    },
+    "ui_assignment_browse" : {
+        "FI" : "Tehtävien selaus",
+        "ENG" : "Assignment Browse"
+    },
+    "ui_search_hint" : {
+        "FI" : "Hae...",
+        "ENG" : "Search..."
+    },
+    "ui_search_button" : {
+        "FI" : "Hae",
+        "ENG" : "Search"
+    },
+    "ui_clear_search" : {
+        "FI" : "Tyhjennä haku",
+        "ENG" : "Clear search"
+    },
+    "ui_next" : {
+        "FI" : "Seuraava",
+        "ENG" : "Next"
+    },
+    "ui_previous" : {
+        "FI" : "Edellinen",
+        "ENG" : "Previous"
+    },
+    "ui_select" : {
+        "FI" : "Valitse",
+        "ENG" : "Select"
+    },
+    "ui_close" : {
+        "FI" : "Sulje",
+        "ENG" : "Close"
+    },
+    "ui_open_assignment_browse" : {
+        "FI" : "Avaa tehtäväselain",
+        "ENG" : "Open assignment browser"
+    },
+    "ui_assignments_in_index" : {
+        "FI" : "Tallennettuna olevat tehtävät",
+        "ENG" : "Saved assignments"
+    },
+    "ui_open_week_browse" : {
+        "FI" : "Avaa viikkoselain",
+        "ENG" : "Open week browser"
+    },
+    "ui_weeks_saved" : {
+        "FI" : "Tallennettuna olevat viikot",
+        "ENG" : "Saved weeks"
+    },
+    "ui_show" : {
+        "FI" : "Näytä",
+        "ENG" : "Show"
+    },
+    "ui_show_week" : {
+        "FI" : "Näytä viikko",
+        "ENG" : "Show week"
+    },
+    "ui_show_assignment" : {
+        "FI" : "Näytä tehtävä",
+        "ENG" : "Show assignment"
     }
 }

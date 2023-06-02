@@ -12,9 +12,11 @@ class COURSE_PATH:
     def get(self):
         return self._path
 
-    def get_subdir(self, metadata=False):
+    def get_subdir(self, metadata=False, index=False):
         if metadata:
             return join(self._path, "metadata")
+        elif index:
+            return join(self._path, "index")
         return None
 
     def set(self, path):
@@ -56,3 +58,12 @@ class LANG:
 
     def set_all(self, new):
         self._langs = new
+
+
+class WEEK:
+    _week_data = {}
+
+    def get(self):
+        return self._week_data
+    def set(self, new):
+        self._week_data = new
