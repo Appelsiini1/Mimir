@@ -43,7 +43,9 @@ def create_index(force=False, **args):
     force: Force the creation of the index if it already exists.
     """
 
-    ix_path = OPEN_COURSE_PATH.get()
+    ix_path = OPEN_COURSE_PATH.get_subdir(index=True)
+    if not path.exists(ix_path):
+        mkdir(ix_path)
     name = COURSE_INFO["course_id"]
 
     if index.exists_in(ix_path, name) and not force:
@@ -63,7 +65,7 @@ def open_index(**args):
     Opens a previously created assignment index. Sets the opened index as a global constant.
     """
 
-    ix_path = OPEN_COURSE_PATH.get()
+    ix_path = OPEN_COURSE_PATH.get_subdir(index=True)
     name = COURSE_INFO["course_id"]
     try:
         ix = index.open_dir(ix_path, name)
