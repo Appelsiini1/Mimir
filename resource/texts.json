@@ -473,5 +473,9 @@
     "ui_show_assignment" : {
         "FI" : "Näytä tehtävä",
         "ENG" : "Show assignment"
+    },
+    "ui_add" : {
+        "FI" : "Lisää",
+        "ENG" : "Add"
     }
 }

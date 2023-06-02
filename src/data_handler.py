@@ -29,7 +29,7 @@ from src.constants import (
     WEEK_DATA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
-from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs
+from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs, get_assignment_json
 
 ########################################
 
@@ -231,7 +231,7 @@ def format_metadata_json(data: dict):
     return new
 
 
-def save_assignment_data(assignment, new):
+def save_assignment_data(assignment:dict, new:bool):
     """
     Saves assignment to database
     """
@@ -489,3 +489,21 @@ def get_value_from_browse():
         for week in get_week_data()["lectures"]:
             if week["lecture_no"] == lecture:
                 return week
+
+
+def del_prev(s, a, u:tuple[dict, str]):
+    """
+    Delete previous assignment from list
+    """
+
+    var = u[0]
+    to_del = u[1]
+
+    ind = var["previous"].index(to_del)
+    var["previous"].pop(ind)
+
+    prev = get_assignment_json(path.join(OPEN_COURSE_PATH, to_del+".json"))
+
+    ind = prev["next"].index(to_del)
+    prev["next"].pop(ind)
+    save_assignment_data(prev, False)

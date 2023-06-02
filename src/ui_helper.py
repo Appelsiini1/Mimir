@@ -358,10 +358,6 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     assig["exp_assignment_no"] = [
         int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
     ]
-    assig["next, last"] = [
-        "",
-        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
-    ]  # TODO handling for next if exists
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
     logging.debug("Assignment code language: %s", assig["code_language"])
     assig["instruction_language"] = dpg.get_value(
@@ -430,9 +426,9 @@ def swap_page(s, a, u: tuple[list, list, str, bool]):
     )
 
 
-def clear_search_bar(s, a, u:list):
+def clear_search_bar(s, a, u: list):
     """
-    Clears the search bar in week or assignment list windows 
+    Clears the search bar in week or assignment list windows
     and returns the listbox to default view
 
     Params:
@@ -445,7 +441,7 @@ def clear_search_bar(s, a, u:list):
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
 
 
-def save_select(s, a, u:list):
+def save_select(s, a, u: list):
     """
     Save the selected to the list and close browse window.
     """
@@ -455,7 +451,8 @@ def save_select(s, a, u:list):
     close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     print(u)
 
-def assignment_search_wrapper(s,a,u:list):
+
+def assignment_search_wrapper(s, a, u: list):
     """
     Wrapper for calling search_index with the search query value
     """
@@ -468,4 +465,3 @@ def assignment_search_wrapper(s,a,u:list):
     headers = get_header_page(u[0], results)
 
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
-    
