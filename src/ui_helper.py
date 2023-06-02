@@ -363,9 +363,11 @@ def save_assignment(s, a, u: tuple[dict, bool]):
         dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
     ]  # TODO handling for next if exists
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
+    logging.debug("Assignment code language: %s", assig["code_language"])
     assig["instruction_language"] = dpg.get_value(
         UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
     )
+    logging.debug("Assignment instruction language: %s", assig["instruction_language"])
     assig["exp_lecture"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"])
 
     save_assignment_data(assig, u[1])
