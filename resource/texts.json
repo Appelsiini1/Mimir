@@ -142,12 +142,8 @@
         "FI" : "Variaatiot",
         "ENG" : "Variations"
     },
-    "ui_serach" : {
-        "FI" : "Hae",
-        "ENG" : "Search"
-    },
     "ui_selected" : {
-        "FI" : "Valittuja",
+        "FI" : "Valitut",
         "ENG" : "Selected"
     },
     "ui_full_course_setup" : {
@@ -477,5 +473,29 @@
     "ui_add" : {
         "FI" : "Lisää",
         "ENG" : "Add"
+    },
+    "ui_excl_exp" : {
+        "FI" : "Ohita jatkuvat tehtävät",
+        "ENG" : "Exclude expanding assignments"
+    },
+    "ui_assig_set_creation" : {
+        "FI" : "Tehtäväsarjojen luonti",
+        "ENG" : "Assignment set creation"
+    },
+    "ui_move_up" : {
+        "FI" : "Siirrä ylös",
+        "ENG" : "Move up"
+    },
+    "ui_move_down" : {
+        "FI" : "Siirrä alas",
+        "ENG" : "Move down"
+    },
+    "ui_accept" : {
+        "FI" : "Hyväksy",
+        "ENG" : "Accept"
+    },
+    "ui_change" : {
+        "FI" : "Muuta",
+        "ENG"  : "Change"
     }
 }

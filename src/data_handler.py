@@ -245,6 +245,16 @@ def save_assignment_data(assignment:dict, new:bool):
         _hex = _hash.hexdigest()
         assignment["assignment_id"] = _hex
 
+        for last in assignment["previous"]:
+            prev = get_assignment_json(
+                path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), last + ".json")
+            )
+            if not prev["next"]:
+                prev["next"] = [assignment["assignment_id"]]
+            else:
+                if assignment["assignment_id"] not in prev["next"]:
+                    prev["next"].append(assignment["assignment_id"])
+
         _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
         add_assignment_to_index(assignment)
@@ -507,3 +517,38 @@ def del_prev(s, a, u:tuple[dict, str]):
     ind = prev["next"].index(to_del)
     prev["next"].pop(ind)
     save_assignment_data(prev, False)
+
+
+def gen_result_headers(_set:list, week:int) -> list:
+    """
+    Generate result window assignment headers
+    """
+
+    headers = []
+
+    for i, item in enumerate(_set, start=1):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
+        t += " - " + item["title"]
+        t += " - " + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + item["variations"][0]["variation_id"]
+        headers.append(t)
+    
+    return headers
+
+def del_result(s, a, u:tuple[int|str, int, list]):
+    """
+    Delete result from the result set.
+    """
+
+
+def move_up(s, a, u:tuple[int|str, int, list]):
+    """
+    Move result up in the result set.
+    """
+
+
+def move_down(s, a, u:tuple[int|str, int, list]):
+    """
+    Move result down in the result set.
+    """

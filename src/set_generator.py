@@ -200,6 +200,8 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
                     else:
                         _set[int(key) - 1] = set_pos[key]
 
+            sets.append(_set)
+
     return sets
 
 
@@ -235,3 +237,25 @@ def choose_next(filtered: list, next_a: str, exp_positions: dict) -> None:
     else:
         return
     return
+
+
+def format_set(_set:list) -> list[dict]:
+    """
+    Format the set to include only the correct variations
+
+    Params:
+    _set: the list of tuples that makes a set
+    """
+
+    formatted = []
+    for assig in _set:
+        var_letter = assig[1]
+        data = assig[0]
+
+        for i, item in enumerate(data["variations"]):
+            if item["variation_id"] == var_letter:
+                data["variations"] = [item]
+                break
+        formatted.append(data)
+
+    return formatted
