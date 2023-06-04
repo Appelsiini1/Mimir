@@ -7,9 +7,13 @@ Functions to generate instruction TeX file from available data
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
 from os.path import join, split
+from tkinter.filedialog import askdirectory
 
-from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE
-from src.data_getters import get_texdoc_settings
+from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
+from src.data_getters import get_texdoc_settings, get_week_data
+from src.ext_service import generate_pdf
+from src.popups import popup_ok
+
 
 # pylint: disable=anomalous-backslash-in-string
 
@@ -302,7 +306,7 @@ def _write_tex_file(texdata: str, filename: str):
     """
     # XXX should this be changed to return the exception?
 
-    filepath = join(ENV["PROGRAM_DATA"], filename)
+    filepath = join(ENV["PROGRAM_DATA"], filename+".tex")
     try:
         with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
@@ -315,9 +319,7 @@ def _write_tex_file(texdata: str, filename: str):
         return True
 
 
-def gen_one_week(
-    gen_info: dict, assignment_list: list, incl_solution: bool, filename: str
-):
+def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool, filename: str):
     """
     Generates a briefing for a spesified week.
 
@@ -333,3 +335,52 @@ def gen_one_week(
     result = _write_tex_file(tex_data, filename)
 
     return result
+
+
+def tex_gen(sets: list):
+    """
+    Generates all instruction papers based on given set. Calls PDF generation afterwards.
+
+    Params:
+    _set: a list of lists containing the assingment data
+    """
+
+    directory = askdirectory(
+        mustexist=True, title=DISPLAY_TEXTS["ui_choose_output_folder"][LANGUAGE.get()]
+    )
+
+    if not directory:
+        return
+
+    week_data = get_week_data()
+    week_data["lectures"].sort(key=lambda a: a["lecture_no"])
+
+    # TODO use format function for assignments
+
+    for i, _set in enumerate(sets):
+        gen_info = {
+            "course_name": COURSE_INFO["course_title"],
+            "course_id": COURSE_INFO["course_id"],
+            "lecture": week_data["lectures"][i]["lecture_no"],
+            "topics": week_data["lectures"][i]["topics"],
+        }
+        filename = (
+            DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+            + gen_info["lecture"]
+            + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
+        )
+        res = _gen_one(gen_info, _set, False, filename=filename)
+        if res:
+            generate_pdf(directory, filename)
+
+        filename = (
+            DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
+            + gen_info["lecture"]
+            + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
+            + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
+        )
+        res = _gen_one(gen_info, _set, True, filename=filename)
+        if res:
+            generate_pdf(directory, filename)
+    if res:
+        popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()]+"\n"+directory)
