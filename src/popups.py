@@ -12,7 +12,6 @@ def popup_ok(msg: str, **args):
     Creates a popup with "OK" button.
 
     Params:
-    sender: the parent object
     msg: Message to display
     """
 
@@ -40,9 +39,6 @@ def popup_ok(msg: str, **args):
 def popup_create_course(**args):
     """
     Creates a popup with course info inputs
-
-    Params:
-    sender: the parent object
     """
 
     field_ids = {
