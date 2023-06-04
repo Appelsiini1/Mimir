@@ -11,6 +11,7 @@ from os import path, mkdir, getcwd
 from ntpath import split, basename
 from tkinter.filedialog import askdirectory
 from hashlib import sha256
+from shutil import copy2
 
 from whoosh import index
 from whoosh.qparser import QueryParser
@@ -29,9 +30,17 @@ from src.constants import (
     WEEK_DATA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
-from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs, get_assignment_json
+from src.data_getters import (
+    get_pos_convert,
+    read_datafile,
+    get_assignment_code,
+    get_week_data,
+    get_number_of_docs,
+    get_assignment_json,
+)
 
 ########################################
+
 
 def create_index(force=False, **args):
     """
@@ -200,7 +209,8 @@ def format_metadata_json(data: dict):
                 {
                     "filename": variation["example_runs"][i]["outputfiles"][0],
                     "data": read_datafile(
-                        variation["example_runs"][i]["outputfiles"][0]
+                        variation["example_runs"][i]["outputfiles"][0],
+                        data["assignment_id"]
                     ),
                 }
             ]
@@ -215,7 +225,7 @@ def format_metadata_json(data: dict):
             new["datafiles"].append(
                 {
                     "filename": df,
-                    "data": read_datafile(df),
+                    "data": read_datafile(df, data["assignment_id"]),
                 }
             )
     new["example_codes"] = []
@@ -231,7 +241,7 @@ def format_metadata_json(data: dict):
     return new
 
 
-def save_assignment_data(assignment:dict, new:bool):
+def save_assignment_data(assignment: dict, new: bool):
     """
     Saves assignment to database
     """
@@ -257,6 +267,27 @@ def save_assignment_data(assignment:dict, new:bool):
 
         _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
+
+        basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
+        datapath = path.join(basepath, _hex)
+        if not path.exists(basepath):
+            mkdir(basepath)
+        mkdir()
+        for item in assignment["variations"]:
+            for file in item["codefiles"]:
+                copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["codefiles"]]
+            item["codefiles"] = leafs
+            for file in item["datafiles"]:
+                copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["datafiles"]]
+            item["datafiles"] = leafs
+            for exrun in item["example_runs"]:
+                for file in exrun["outputfiles"]:
+                    copy2(file, datapath)
+                leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
+                exrun["outputfiles"] = leafs
+
         add_assignment_to_index(assignment)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
@@ -264,6 +295,23 @@ def save_assignment_data(assignment:dict, new:bool):
 
         _filename = assignment["assignment_id"] + ".json"
         _json = json.dumps(assignment, indent=4, ensure_ascii=False)
+        for item in assignment["variations"]:
+            for file in item["codefiles"]:
+                if split(file)[0]:
+                    copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["codefiles"]]
+            item["codefiles"] = leafs
+            for file in item["datafiles"]:
+                if split(file)[0]:
+                    copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["datafiles"]]
+            item["datafiles"] = leafs
+            for exrun in item["example_runs"]:
+                for file in exrun["outputfiles"]:
+                    if split(file)[0]:
+                        copy2(file, datapath)
+                leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
+                exrun["outputfiles"] = leafs
         update_index(assignment)
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
@@ -418,7 +466,7 @@ def save_week_data(week, new) -> None:
     logging.debug("Week data saved: %s", _json)
 
 
-def year_conversion(data: list, encode:bool) -> list:
+def year_conversion(data: list, encode: bool) -> list:
     """
     Converts the 'used in' value to number from text or vice versa.
     """
@@ -501,7 +549,7 @@ def get_value_from_browse():
                 return week
 
 
-def del_prev(s, a, u:tuple[dict, str]):
+def del_prev(s, a, u: tuple[dict, str]):
     """
     Delete previous assignment from list
     """
@@ -512,14 +560,14 @@ def del_prev(s, a, u:tuple[dict, str]):
     ind = var["previous"].index(to_del)
     var["previous"].pop(ind)
 
-    prev = get_assignment_json(path.join(OPEN_COURSE_PATH, to_del+".json"))
+    prev = get_assignment_json(path.join(OPEN_COURSE_PATH, to_del + ".json"))
 
     ind = prev["next"].index(to_del)
     prev["next"].pop(ind)
     save_assignment_data(prev, False)
 
 
-def gen_result_headers(_set:list, week:int) -> list:
+def gen_result_headers(_set: list, week: int) -> list:
     """
     Generate result window assignment headers
     """
@@ -531,24 +579,50 @@ def gen_result_headers(_set:list, week:int) -> list:
         t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
         t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
         t += " - " + item["title"]
-        t += " - " + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + item["variations"][0]["variation_id"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + item["variations"][0]["variation_id"]
+        )
         headers.append(t)
-    
+
     return headers
 
-def del_result(s, a, u:tuple[int|str, int, list]):
+
+def del_result(s, a, u: tuple[int | str, int, list]):
     """
     Delete result from the result set.
     """
+    listbox_id = u[0]
+    value = get_value(listbox_id)
+    index_n = u[1]
+    _set = u[2]
+    week = u[3]["lectures"][index_n]["lecture_no"]
+    assig_index = None
+    for i, item in enumerate(_set[index_n]):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(index_n)
+        t += " - " + item["title"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + item["variations"][0]["variation_id"]
+        )
+        if t == value:
+            assig_index = i
+    _set[index_n].pop(assig_index)
+    headers = gen_result_headers(_set[index_n], week)
+    configure_item(listbox_id, items=headers)
 
 
-def move_up(s, a, u:tuple[int|str, int, list]):
+def move_up(s, a, u: tuple[int | str, int, list]):
     """
     Move result up in the result set.
     """
 
 
-def move_down(s, a, u:tuple[int|str, int, list]):
+def move_down(s, a, u: tuple[int | str, int, list]):
     """
     Move result down in the result set.
     """

@@ -12,11 +12,13 @@ class COURSE_PATH:
     def get(self):
         return self._path
 
-    def get_subdir(self, metadata=False, index=False):
+    def get_subdir(self, metadata=False, index=False, assignment_data=False):
         if metadata:
             return join(self._path, "metadata")
-        elif index:
+        if index:
             return join(self._path, "index")
+        if assignment_data:
+            return join(self._path, "assignment_data")
         return None
 
     def set(self, path):

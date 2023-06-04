@@ -45,7 +45,7 @@ def get_assignment_json(json_path: str) -> dict | None:
         return json_data
 
 
-def get_assignment_code(data_path: str, a_id: str) -> str | None:
+def get_assignment_code(data_path: str, a_id:str) -> str | None:
     """
     Read code file and return its contents, excluding the ID line. Note that function
     checks whether the assignment ID matches the ID given. Raises an exception if
@@ -57,24 +57,22 @@ def get_assignment_code(data_path: str, a_id: str) -> str | None:
     """
 
     try:
-        with open(data_path, "r", encoding="UTF-8") as code_file:
+        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, data_path)
+        with open(full_path, "r", encoding="UTF-8") as code_file:
             code = code_file.read()
-            # TODO uncomment
-            # if not code.startswith(a_id):
-            #    raise ConflictingAssignmentID
-            code = code.strip(a_id)
             return code
     except OSError:
         logging.exception("Unable to read code file!")
         return None
 
 
-def read_datafile(filename: str) -> str | None:
+def read_datafile(filename: str, a_id:str) -> str | None:
     """
     Read a data file of given path and return its data. Returns None on error.
     """
     try:
-        with open(filename, "r", encoding="UTF-8") as _file:
+        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, filename)
+        with open(full_path, "r", encoding="UTF-8") as _file:
             data = _file.read()
             return data
     except OSError:
