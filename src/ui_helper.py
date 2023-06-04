@@ -18,8 +18,13 @@ from src.data_handler import (
     year_conversion,
     search_index,
     get_value_from_browse,
+    gen_result_headers,
 )
-from src.data_getters import get_header_page, get_all_indexed_assignments
+from src.data_getters import (
+    get_header_page,
+    get_all_indexed_assignments,
+    get_assignment_json,
+)
 from src.common import resource_path, round_up
 
 ################################
@@ -441,15 +446,29 @@ def clear_search_bar(s, a, u: list):
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
 
 
-def save_select(s, a, u: list):
+def save_select(s, a, u: tuple[list, int | str | dict]):
     """
     Save the selected to the list and close browse window.
     """
 
     result = get_value_from_browse()
-    u.append(result)
-    close_window(UI_ITEM_TAGS["LIST_WINDOW"])
-    print(u)
+
+    if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:
+        data = u[0][0]
+
+        if not data["previous"]:
+            data["previous"] = [result["a_id"]]
+        else:
+            data["previous"].append(result["a_id"])
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+    else:
+        field_ids = u[1]
+        data = get_assignment_json(result["a_id"])
+        u[0].append(data)
+        dpg.configure_item(field_ids["title"], default_value=data["title"])
+        dpg.configure_item(
+            field_ids["var"], items=[a["variation_id"] for a in data["variations"]]
+        )
 
 
 def assignment_search_wrapper(s, a, u: list):
@@ -465,3 +484,36 @@ def assignment_search_wrapper(s, a, u: list):
     headers = get_header_page(u[0], results)
 
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
+
+
+def save_result_popup(s, a, u: tuple[dict, tuple, list, dict]):
+    """
+    Save changed assignment from result popup
+    """
+
+    meta = u[1]
+    select = u[2]
+    _set = meta[0]
+    index = meta[1]
+    assig_index = meta[2]
+    listbox_id = meta[3]
+    week = meta[4]
+    field_ids = u[3]
+
+    var_value = dpg.get_value(field_ids["var"])
+    if not select or not var_value:
+        return
+
+    for item in select[0]["variations"]:
+        if item["variation_id"] == var_value:
+            select[0]["variations"] = [item]
+            break
+
+    if len(_set[index]) - 1 <= assig_index:
+        _set[index].append(select[0])
+    else:
+        _set[index][assig_index] = select[0]
+    headers = gen_result_headers(_set[index], week)
+
+    dpg.configure_item(listbox_id, items=headers)
+    close_window(field_ids["popup"])

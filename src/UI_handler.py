@@ -59,6 +59,7 @@ from src.ui_helper import (
     assignment_search_wrapper,
     clear_search_bar,
     save_select,
+    save_result_popup,
 )
 from src.popups import popup_ok, popup_create_course
 from src.common import round_up
@@ -445,7 +446,11 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     if user_data[2]:
         select = False
 
-    var_letter = get_variation_letter(len(parent_data["variations"]) + 1)
+    var_letter = (
+        get_variation_letter(len(parent_data["variations"]) + 1)
+        if user_data[1] == -1
+        else data["variation_id"]
+    )
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
@@ -1056,7 +1061,9 @@ def open_new_week_window(parent=None, index=None, select=False):
             popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
 
 
-def assignment_browse_window(search=True, select=False, select_save=None):
+def assignment_browse_window(
+    search=True, select=False, select_save=None, listbox_id=None
+):
     """
     Create a window for listing assignments.
 
@@ -1171,7 +1178,7 @@ def assignment_browse_window(search=True, select=False, select_save=None):
                             label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
                             width=80,
                             callback=save_select,
-                            user_data=select_save,
+                            user_data=(select_save, listbox_id),
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(
@@ -1189,7 +1196,7 @@ def assignment_browse_window(search=True, select=False, select_save=None):
                     )
 
 
-def open_assignment_browse(s, a, u: tuple[bool, bool, list]):
+def open_assignment_browse(s, a, u: tuple[bool, bool, list, int | str]):
     """
     Shorthand to check and open the assingment browse window.
     """
@@ -1548,7 +1555,11 @@ def show_var(s, a, user_data):
 
     select = False
 
-    var_letter = get_variation_letter(len(parent_data["variations"]) + 1)
+    var_letter = (
+        get_variation_letter(len(parent_data["variations"]) + 1)
+        if user_data[1] == -1
+        else data["variation_id"]
+    )
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     window_id = dpg.generate_uuid()
 
@@ -1736,18 +1747,9 @@ def add_prev(s, a, u: dict):
     """
     Add a previous assignment to the current
     """
-
-    save = []
-    open_assignment_browse(None, None, (True, True, save))
-    last = save[0]
-
-    if not u["previous"]:
-        u["previous"] = [last["a_id"]]
-    else:
-        u["previous"].append(last["a_id"])
-
-    # TODO Headers could be assignment titles instead of IDs
-    dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=u["previous"])
+    open_assignment_browse(
+        None, None, (True, True, [u], UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
+    )
 
 
 def create_one_set_callback(s, a, u):
@@ -1773,7 +1775,7 @@ def create_one_set_callback(s, a, u):
         result_window(formatted, all_weeks)
 
 
-def result_window(_set: list, weeks: dict):
+def result_window(orig_set: list, weeks: dict):
     """
     The result preview window for generated sets
     """
@@ -1785,10 +1787,12 @@ def result_window(_set: list, weeks: dict):
 
     window_id = dpg.generate_uuid()
 
-    if isinstance(_set[0], dict):
+    if not isinstance(_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(_set))]
         multi = True
+        _set = orig_set
     else:
+        _set = [orig_set]
         UUIDs = [dpg.generate_uuid()]
         multi = False
 
@@ -1816,7 +1820,9 @@ def result_window(_set: list, weeks: dict):
                         + " "
                         + str(weeks["lectures"][i]["lecture_no"])
                     )
-                    items = gen_result_headers(_set[i], i + 1)
+                    items = gen_result_headers(
+                        _set[i], weeks["lectures"][i]["lecture_no"]
+                    )
                     dpg.add_listbox(
                         items,
                         tag=_id,
@@ -1838,13 +1844,13 @@ def result_window(_set: list, weeks: dict):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
                             callback=None,
-                            user_data=(_id, i, _set),
+                            user_data=(_id, i, _set, weeks),
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set),
+                            callback=change_result,
+                            user_data=(_id, i, _set, weeks),
                         )
                     with dpg.group(horizontal=True):
                         dpg.add_button(
@@ -1880,9 +1886,120 @@ def add_result(s, a, u: tuple[int | str, int, list]):
     """
     Add result to result set
     """
+    listbox_id = u[0]
+    index = u[1]
+    _set = u[2]
+    week = u[3]["lectures"][index]["lecture_no"]
+
+    result_popup(None, "", (_set, index, len(_set[index]), listbox_id, week))
+
+
+def change_result(s, a, u: tuple[int | str, int, list]):
+    """
+    Change result in set
+    """
+    listbox_id = u[0]
+    value = dpg.get_value(listbox_id)
+    index = u[1]
+    _set = u[2]
+    week = u[3]["lectures"][index]["lecture_no"]
+    correct = None
+    assig_index = None
+    for i, item in enumerate(_set[index]):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(index)
+        t += " - " + item["title"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + item["variations"][0]["variation_id"]
+        )
+        if t == value:
+            correct_item = item
+            assig_index = i
+
+    correct = get_assignment_json(correct_item["assignment_id"])
+    meta = (_set, index, assig_index, listbox_id, week)
+    result_popup(correct, correct_item["variations"][0]["variation_id"], meta)
 
 
 def accept_result_set(s, a, u: list):
     """
     Create instruction papers from accepted set
     """
+
+
+def result_popup(
+    data: dict | None, var_id: str, meta: tuple[list, int, int, int | str, int]
+):
+    """
+    Open result change/add popup
+    """
+
+    field_ids = {
+        "popup": dpg.generate_uuid(),
+        "title": dpg.generate_uuid(),
+        "var": dpg.generate_uuid(),
+    }
+    select = []
+    with dpg.window(
+        modal=True,
+        tag=field_ids["popup"],
+        no_close=True,
+        no_title_bar=True,
+        autosize=True,
+    ):
+        with dpg.group():
+            dpg.add_text(label=DISPLAY_TEXTS["ui_current_assig"][LANGUAGE.get()] + ":")
+            dpg.add_input_text(
+                enabled=False,
+                default_value="" if not data else data["title"],
+                tag=field_ids["title"],
+            )
+            dpg.add_spacer(height=3)
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
+                callback=open_assignment_browse,
+                user_data=(True, True, select, (meta, field_ids)),
+            )
+            dpg.add_spacer(height=5)
+            dpg.add_text(DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + ":")
+            dpg.add_combo(
+                [] if not data else [a["variation_id"] for a in data["variations"]],
+                tag=field_ids["var"],
+                default_value=var_id,
+            )
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                callback=show_var_result,
+                user_data=(select, field_ids),
+            )
+            dpg.add_spacer(height=5)
+            dpg.add_separator()
+            dpg.add_spacer(height=5)
+            with dpg.group(horizontal=True):
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
+                    callback=save_result_popup,
+                    user_data=(data, meta, select, field_ids),
+                )
+                dpg.add_spacer(width=5)
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                    callback=lambda s, a, u: close_window(u),
+                    user_data=field_ids["popup"],
+                )
+
+
+def show_var_result(s, a, u: tuple[list, dict]):
+    """
+    Show variation from result change popup
+    """
+
+    value = dpg.get_value(u[1]["var"])
+    if value:
+        for i, a in enumerate(u[0]["variations"]):
+            if a["variation_id"] == value:
+                break
+        show_var(s, a, (u[0], i))

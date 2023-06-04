@@ -497,5 +497,21 @@
     "ui_change" : {
         "FI" : "Muuta",
         "ENG"  : "Change"
+    },
+    "ui_current_assig" : {
+        "FI" : "Nykyinen tehtävä",
+        "ENG" : "Current assignment"
+    },
+    "ui_choose_output_folder" : {
+        "FI" : "Valitse tulosten tallennuskansio",
+        "ENG" : "Choose result output folder"
+    },
+    "tex_answers" : {
+        "FI" : "Vastaukset",
+        "ENG" : "Answers"
+    },
+    "ui_pdf_success" : {
+        "FI" : "Tehtäväpaperit luotu onnistuneesti kansioon:",
+        "ENG" : "Assignment instruction papers succesfully created to folder:"
     }
 }
