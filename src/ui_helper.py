@@ -460,6 +460,8 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
     """
 
     result = get_value_from_browse()
+    print(u)
+    print(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
 
     if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:
         data = u[0][0]
@@ -468,6 +470,7 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
             data["previous"] = [result["a_id"]]
         else:
             data["previous"].append(result["a_id"])
+        dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"])
         close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     else:
         field_ids = u[1]

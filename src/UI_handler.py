@@ -258,7 +258,7 @@ def main_window():
                                 LANGUAGE.get()
                             ],
                             callback=open_assignment_browse,
-                            user_data=(True, False, None),
+                            user_data=(True, False, None, None),
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
@@ -808,9 +808,6 @@ def _assignment_window(var_data=None, select=False):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
                             callback=show_prev_part,
-                            user_data=dpg.get_value(
-                                UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]
-                            ),
                             tag=UI_ITEM_TAGS["PREV_PART_SHOW"],
                             enabled=False,
                         )
@@ -829,12 +826,7 @@ def _assignment_window(var_data=None, select=False):
                                     LANGUAGE.get()
                                 ],
                                 callback=del_prev,
-                                user_data=(
-                                    dpg.get_value(
-                                        UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]
-                                    ),
-                                    var,
-                                ),
+                                user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_DEL"],
                                 enabled=False,
                             )
@@ -1230,7 +1222,7 @@ def open_assignment_browse(s, a, u: tuple[bool, bool, list, int | str]):
     if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                assignment_browse_window(search=u[0], select=u[1], select_save=u[2])
+                assignment_browse_window(search=u[0], select=u[1], select_save=u[2], listbox_id=u[3])
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
@@ -1377,20 +1369,24 @@ def week_show_callback(s, a, u: bool):
 def _assignment_edit_callback(s, a, u: bool):
     value = get_value_from_browse()
     _json = get_assignment_json(value["json_path"])
-    open_new_assignment_window(parent=_json, select=u)
+    show_prev_part(None, None, _json)
 
 
-def show_prev_part(s, a, u: int | str):
+def show_prev_part(s, a, u:dict|None):
     """
     Open an assignment for view. Used only with previous part listbox in assignment edit.
     """
 
+    print("!")
     if not u:
-        return
-
-    var = get_assignment_json(
-        join(OPEN_COURSE_PATH.get_subdir(metadata=True), u + ".json")
-    )
+        val = dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
+        if not val:
+            return
+        var = get_assignment_json(
+            join(OPEN_COURSE_PATH.get_subdir(metadata=True), val + ".json")
+        )
+    else:
+        var = u
 
     label = "Mímir - {} - {}".format(
         DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE.get()],
@@ -1480,7 +1476,7 @@ def show_prev_part(s, a, u: int | str):
                             callback=toggle_enabled,
                             user_data=UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"],
                             default_value=False
-                            if not var["next"] or not var["last"]
+                            if not var["next"] or not var["previous"]
                             else True,
                             enabled=enable,
                         )
@@ -1506,6 +1502,9 @@ def show_prev_part(s, a, u: int | str):
                             default_value=var["instruction_language"],
                             enabled=enable,
                         )
+            with dpg.group(horizontal=True):
+                dpg.add_spacer(width=25)
+                with dpg.group():
                     dpg.add_spacer(height=5)
 
                     # Previous part input
@@ -1525,6 +1524,9 @@ def show_prev_part(s, a, u: int | str):
                                 user_data=dpg.get_value(listbox_tag),
                             )
 
+                    dpg.add_spacer(height=5)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=5)
                     # Variation listbox
                     with dpg.group():
                         _vars = (
@@ -1540,9 +1542,6 @@ def show_prev_part(s, a, u: int | str):
                         )
                         var_tag = dpg.generate_uuid()
                         dpg.add_listbox(_vars, tag=var_tag)
-                    dpg.add_spacer(height=5)
-                    dpg.add_separator()
-                    dpg.add_spacer(height=5)
 
                     # Listbox buttons
                     dpg.add_button(
@@ -1612,75 +1611,75 @@ def show_var(s, a, user_data):
                 )
                 dpg.add_spacer(width=5)
 
-            # Example run list box and its buttons
-            with dpg.group():
-                dpg.add_text(DISPLAY_TEXTS["ui_ex_runs"][LANGUAGE.get()])
+                # Example run list box and its buttons
                 with dpg.group():
-                    runs = (
-                        []
-                        if not data["example_runs"]
-                        else [
-                            "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
-                            for i, _ in enumerate(data["example_runs"], start=1)
-                        ]
-                    )
-                    exrun_id = dpg.generate_uuid()
-                    dpg.add_listbox(runs, tag=exrun_id)
-                dpg.add_spacer(height=5)
-
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                        callback=show_exrun,
-                        user_data=(
-                            data,
-                            1
+                    dpg.add_text(DISPLAY_TEXTS["ui_ex_runs"][LANGUAGE.get()])
+                    with dpg.group():
+                        runs = (
+                            []
                             if not data["example_runs"]
-                            else int(dpg.get_value(exrun_id).split(" ")[1]) - 1,
-                        ),
+                            else [
+                                "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+                                for i, _ in enumerate(data["example_runs"], start=1)
+                            ]
+                        )
+                        exrun_id = dpg.generate_uuid()
+                        dpg.add_listbox(runs, tag=exrun_id)
+                    dpg.add_spacer(height=5)
+
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                            callback=show_exrun,
+                            user_data=(
+                                data,
+                                1
+                                if not data["example_runs"]
+                                else int(dpg.get_value(exrun_id).split(" ")[1]) - 1,
+                            ),
+                        )
+
+                # Used in text box
+                with dpg.group():
+                    dpg.add_spacer(height=5)
+                    dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
+                    help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
+                    dpg.add_input_text(
+                        default_value=", ".join(year_conversion(data["used_in"], False)),
+                        enabled=select,
                     )
+                    dpg.add_spacer(width=5)
 
-            # Used in text box
-            with dpg.group():
+                # Code files listbox and its buttons
+                with dpg.group():
+                    dpg.add_text(DISPLAY_TEXTS["ui_codefiles"][LANGUAGE.get()])
+                    files = (
+                        []
+                        if not data["codefiles"]
+                        else [path_leaf(f_p) for f_p in data["codefiles"]]
+                    )
+                    dpg.add_listbox(files)
+                    dpg.add_spacer(height=5)
+
+                # Datafiles listbox and its buttons
+                with dpg.group():
+                    dpg.add_text(DISPLAY_TEXTS["ui_datafiles"][LANGUAGE.get()])
+                    files = (
+                        []
+                        if not data["datafiles"]
+                        else [path_leaf(f_p) for f_p in data["datafiles"]]
+                    )
+                    dpg.add_listbox(files)
+                    dpg.add_spacer(height=5)
+
+                # Window buttons
+                dpg.add_separator()
                 dpg.add_spacer(height=5)
-                dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
-                help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
-                dpg.add_input_text(
-                    default_value=", ".join(year_conversion(data["used_in"], False)),
-                    enabled=select,
+                dpg.add_button(
+                    label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                    callback=lambda s, a, u: close_window(u),
+                    user_data=window_id,
                 )
-                dpg.add_spacer(width=5)
-
-            # Code files listbox and its buttons
-            with dpg.group():
-                dpg.add_text(DISPLAY_TEXTS["ui_codefiles"][LANGUAGE.get()])
-                files = (
-                    []
-                    if not data["codefiles"]
-                    else [path_leaf(f_p) for f_p in data["codefiles"]]
-                )
-                dpg.add_listbox(files)
-                dpg.add_spacer(height=5)
-
-            # Datafiles listbox and its buttons
-            with dpg.group():
-                dpg.add_text(DISPLAY_TEXTS["ui_datafiles"][LANGUAGE.get()])
-                files = (
-                    []
-                    if not data["datafiles"]
-                    else [path_leaf(f_p) for f_p in data["datafiles"]]
-                )
-                dpg.add_listbox(files)
-                dpg.add_spacer(height=5)
-
-            # Window buttons
-            dpg.add_separator()
-            dpg.add_spacer(height=5)
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                callback=lambda s, a, u: close_window(u),
-                user_data=window_id,
-            )
 
 
 def show_exrun(s, a, user_data):

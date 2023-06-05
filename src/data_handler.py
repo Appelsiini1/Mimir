@@ -519,7 +519,7 @@ def get_value_from_browse():
 
     value = get_value(UI_ITEM_TAGS["LISTBOX"])
     if not value:
-        return
+        return None
     try:
         lecture = int(value.split(" - ")[0])
     except ValueError:
@@ -543,14 +543,15 @@ def get_value_from_browse():
                 return week
 
 
-def del_prev(s, a, u: tuple[dict, str]):
+def del_prev(s, a, u: dict):
     """
     Delete previous assignment from list
     """
-
+    print("!")
+    
+    to_del = get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
     var = u[0]
-    to_del = u[1]
-    if not isinstance(to_del, int):
+    if not isinstance(to_del, int) and not isinstance(to_del, str):
         return
 
     ind = var["previous"].index(to_del)
