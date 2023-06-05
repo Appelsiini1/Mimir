@@ -76,7 +76,7 @@ def select_for_position(pos: list) -> tuple[dict, str]:
         for var in item["variations"]:
             weights.append(count_weight(var["used_in"]))
             var_int += 1
-    all_vars = range(0, var_int)
+    all_vars = list(range(0, var_int))
     selection = choices(all_vars, weights=weights)
     if selection[0] == 0:
         selected = (pos[0], pos[0]["variations"][0]["variation_id"])

@@ -284,7 +284,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
                 header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(
                     item["lecture_no"]
                 )
-                header += " " + DISPLAY_TEXTS["assignments"]
+                header += " " + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             else:
                 header += item["title"]
             headers.append(header)

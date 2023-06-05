@@ -399,8 +399,8 @@
         "ENG" : "Input the week a title. If left empty, the default will be used."
     },
     "help_week_topics" : {
-        "FI" : "Lisää tähän viikolla/luennolla käsiteltävät aiheet. Erottele aiheet rivinvaihdolla. Tukee LaTeX komentoja, mutta huomaa että listaus tehdään automaattisesti.",
-        "ENG" : "Add the topics that are covered on this week/lecture. Separate topics with a new line. Supports LaTeX commands, but note that the listing will be done automatically."
+        "FI" : "Lisää tähän viikolla/luennolla käsiteltävät aiheet. Erottele aiheet rivinvaihdolla. \nTukee LaTeX komentoja, mutta huomaa että listaus tehdään automaattisesti.",
+        "ENG" : "Add the topics that are covered on this week/lecture. Separate topics with a new line. \nSupports LaTeX commands, but note that the listing will be done automatically."
     },
     "help_week_tags" : {
         "FI" : "Syötä viikon aihetunnisteet. Erote aihetunnisteet pilkulla.",
