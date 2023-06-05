@@ -100,7 +100,8 @@ def get_empty_assignment() -> dict:
     empty["tags"] = ""
     empty["exp_lecture"] = 0
     empty["exp_assignment_no"] = ""
-    empty["next, last"] = ""
+    empty["next"] = []
+    empty["previous"] = []
     empty["code_language"] = ""
     empty["instruction_language"] = ""
     empty["variations"] = []
@@ -130,10 +131,10 @@ def get_empty_example_run() -> dict:
     """
 
     empty = {}
-    empty["generate"] = None
+    empty["generate"] = False
     empty["inputs"] = []
     empty["cmd_inputs"] = []
-    empty["output"] = []
+    empty["output"] = ""
     empty["outputfiles"] = []
 
     return empty
