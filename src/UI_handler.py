@@ -305,9 +305,7 @@ def _add_example_run_window(
         ex_run = get_empty_example_run()
         new = True
 
-    select = True
-    if user_data[3]:
-        select = False
+    select = user_data[3]
 
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1])
@@ -442,9 +440,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     else:
         data = parent_data["variations"][user_data[1]]
 
-    select = True
-    if user_data[2]:
-        select = False
+    select = user_data[2]
 
     var_letter = (
         get_variation_letter(len(parent_data["variations"]) + 1)
@@ -501,6 +497,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                                 data,
                                 len(data["example_runs"]) + 1,
                                 UUIDs["EXAMPLE_LISTBOX"],
+                                select
                             ),
                         )
                         dpg.add_spacer(width=5)
@@ -524,7 +521,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             )
                             - 1,
                             UUIDs["EXAMPLE_LISTBOX"],
-                            user_data[2],
+                            select,
                         ),
                     )
 
@@ -652,7 +649,7 @@ def _assignment_window(var_data=None, select=False):
     with dpg.window(
         label=label,
         width=750,
-        height=700,
+        height=725,
         tag=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
         no_close=True,
     ):
@@ -739,7 +736,12 @@ def _assignment_window(var_data=None, select=False):
                         dpg.add_checkbox(
                             callback=toggle_enabled,
                             tag=UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"],
-                            user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
+                            user_data=(
+                                UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"],
+                                UI_ITEM_TAGS["PREV_PART_ADD"],
+                                UI_ITEM_TAGS["PREV_PART_SHOW"],
+                                UI_ITEM_TAGS["PREV_PART_DEL"],
+                            ),
                             default_value=False if not var["previous"] else True,
                             enabled=enable,
                         )
@@ -783,6 +785,7 @@ def _assignment_window(var_data=None, select=False):
                     )
 
                     # Previous part listbox buttons
+                    dpg.add_spacer(height=5)
                     with dpg.group(horizontal=True):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
@@ -790,6 +793,8 @@ def _assignment_window(var_data=None, select=False):
                             user_data=dpg.get_value(
                                 UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]
                             ),
+                            tag=UI_ITEM_TAGS["PREV_PART_SHOW"],
+                            enabled=False
                         )
                         if enable:
                             dpg.add_spacer(width=5)
@@ -797,6 +802,8 @@ def _assignment_window(var_data=None, select=False):
                                 label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
                                 callback=add_prev,
                                 user_data=var,
+                                tag=UI_ITEM_TAGS["PREV_PART_ADD"],
+                                enabled=False
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -810,8 +817,15 @@ def _assignment_window(var_data=None, select=False):
                                     ),
                                     var,
                                 ),
+                                tag=UI_ITEM_TAGS["PREV_PART_DEL"],
+                                enabled=False
                             )
 
+            dpg.add_spacer(height=5)
+            dpg.add_separator()
+            dpg.add_spacer(height=5)
+            with dpg.group(horizontal=True):
+                dpg.add_spacer(width=25)
                 # Variation listbox
                 with dpg.group():
                     _vars = (
@@ -826,18 +840,16 @@ def _assignment_window(var_data=None, select=False):
                         ]
                     )
                     dpg.add_listbox(_vars, tag=UI_ITEM_TAGS["VARIATION_GROUP"])
-            dpg.add_spacer(height=5)
-            dpg.add_separator()
-            dpg.add_spacer(height=5)
 
-            # Listbox buttons
+            # Variation listbox buttons
+            dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
                 if not select:
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE.get()],
                         callback=_add_variation_window,
-                        user_data=(var, -1),
+                        user_data=(var, -1, enable),
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
@@ -1359,6 +1371,9 @@ def show_prev_part(s, a, u: int | str):
     Open an assignment for view. Used only with previous part listbox in assignment edit.
     """
 
+    if not u:
+        return
+
     var = get_assignment_json(
         join(OPEN_COURSE_PATH.get_subdir(metadata=True), u + ".json")
     )
@@ -1449,7 +1464,7 @@ def show_prev_part(s, a, u: int | str):
                         )
                         dpg.add_checkbox(
                             callback=toggle_enabled,
-                            user_data=UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"],
+                            user_data=UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"],
                             default_value=False
                             if not var["next"] or not var["last"]
                             else True,
@@ -1477,66 +1492,68 @@ def show_prev_part(s, a, u: int | str):
                             default_value=var["instruction_language"],
                             enabled=enable,
                         )
-                dpg.add_spacer(height=5)
+                    dpg.add_spacer(height=5)
 
-                # Previous part input
-                with dpg.group():
-                    dpg.add_text(DISPLAY_TEXTS["ui_prev_part"][LANGUAGE.get()])
-                    prev = [] if not var["previous"] else var["previous"]
-                    listbox_tag = dpg.generate_uuid()
-                    dpg.add_listbox(prev, num_items=2, enabled=enable, tag=listbox_tag)
-
-                    # Previous part listbox buttons
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                            callback=show_prev_part,
-                            user_data=dpg.get_value(listbox_tag),
+                    # Previous part input
+                    with dpg.group():
+                        dpg.add_text(DISPLAY_TEXTS["ui_prev_part"][LANGUAGE.get()])
+                        prev = [] if not var["previous"] else var["previous"]
+                        listbox_tag = dpg.generate_uuid()
+                        dpg.add_listbox(
+                            prev, num_items=2, enabled=enable, tag=listbox_tag
                         )
 
-                # Variation listbox
-                with dpg.group():
-                    _vars = (
-                        []
-                        if not var["variations"]
-                        else [
-                            "{} {}".format(
-                                DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()],
-                                item["variation_id"],
+                        # Previous part listbox buttons
+                        with dpg.group(horizontal=True):
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                                callback=show_prev_part,
+                                user_data=dpg.get_value(listbox_tag),
                             )
-                            for item in var["variations"]
-                        ]
-                    )
-                    var_tag = dpg.generate_uuid()
-                    dpg.add_listbox(_vars, tag=var_tag)
-                dpg.add_spacer(height=5)
-                dpg.add_separator()
-                dpg.add_spacer(height=5)
 
-                # Listbox buttons
-                dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                    callback=show_var,
-                    user_data=(
-                        var,
-                        -2
-                        if not var["variations"]
-                        else get_variation_index(
-                            var["variations"],
-                            dpg.get_value(var_tag).split(" ")[1],
+                    # Variation listbox
+                    with dpg.group():
+                        _vars = (
+                            []
+                            if not var["variations"]
+                            else [
+                                "{} {}".format(
+                                    DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()],
+                                    item["variation_id"],
+                                )
+                                for item in var["variations"]
+                            ]
+                        )
+                        var_tag = dpg.generate_uuid()
+                        dpg.add_listbox(_vars, tag=var_tag)
+                    dpg.add_spacer(height=5)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=5)
+
+                    # Listbox buttons
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                        callback=show_var,
+                        user_data=(
+                            var,
+                            -2
+                            if not var["variations"]
+                            else get_variation_index(
+                                var["variations"],
+                                dpg.get_value(var_tag).split(" ")[1],
+                            ),
                         ),
                     ),
-                ),
-                dpg.add_spacer(height=5)
-                dpg.add_separator()
-                dpg.add_spacer(height=5)
+                    dpg.add_spacer(height=5)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=5)
 
-                # Window buttons
-                dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                    callback=lambda s, a, u: close_window(u),
-                    user_data=window_id,
-                )
+                    # Window buttons
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                        callback=lambda s, a, u: close_window(u),
+                        user_data=window_id,
+                    )
 
 
 def show_var(s, a, user_data):
