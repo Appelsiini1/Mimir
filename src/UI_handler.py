@@ -186,60 +186,71 @@ def main_window():
                 with dpg.group():
                     dpg.add_text(DISPLAY_TEXTS["ui_create_new_set"][LANGUAGE.get()])
                     dpg.add_spacer(height=5)
-
-                    dpg.add_text(DISPLAY_TEXTS["ui_one_week"][LANGUAGE.get()] + ":")
                     with dpg.group(horizontal=True):
-                        dpg.add_text(DISPLAY_TEXTS["ui_week"][LANGUAGE.get()] + ":")
-                        week_input_tag = dpg.generate_uuid()
-                        dpg.add_input_int(
-                            callback=None,
-                            width=150,
-                            min_value=1,
-                            min_clamped=True,
-                            tag=week_input_tag,
-                        )
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()])
-                        checkbox_tag = dpg.generate_uuid()
-                        dpg.add_checkbox(tag=checkbox_tag)
-                    dpg.add_spacer(height=5)
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
-                        callback=create_one_set_callback,
-                        user_data=(
-                            dpg.get_value(week_input_tag),
-                            dpg.get_value(checkbox_tag),
-                        ),
-                    )
-                    dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
-                    dpg.add_spacer(height=10)
+                        dpg.add_spacer(width=15)
 
-                    dpg.add_text(DISPLAY_TEXTS["ui_full_course"][LANGUAGE.get()] + ":")
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
-                        callback=None,
-                    )
-                    dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
-                    dpg.add_spacer(height=10)
+                        with dpg.group():
+                            dpg.add_text(DISPLAY_TEXTS["ui_one_week"][LANGUAGE.get()] + ":")
+                            with dpg.group(horizontal=True):
+                                dpg.add_text(DISPLAY_TEXTS["ui_week"][LANGUAGE.get()] + ":")
+                                week_input_tag = dpg.generate_uuid()
+                                dpg.add_input_int(
+                                    callback=None,
+                                    width=150,
+                                    min_value=1,
+                                    min_clamped=True,
+                                    tag=week_input_tag,
+                                )
+                            with dpg.group(horizontal=True):
+                                dpg.add_text(DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()])
+                                checkbox_tag = dpg.generate_uuid()
+                                dpg.add_checkbox(tag=checkbox_tag)
+                            dpg.add_spacer(height=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
+                                callback=create_one_set_callback,
+                                user_data=(
+                                    dpg.get_value(week_input_tag),
+                                    dpg.get_value(checkbox_tag),
+                                ),
+                            )
+                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+                            
+                            dpg.add_spacer(height=10)
+                            dpg.add_separator()
+                            dpg.add_spacer(height=10)
+
+                            dpg.add_text(DISPLAY_TEXTS["ui_full_course"][LANGUAGE.get()] + ":")
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
+                                callback=None,
+                            )
+                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+                            dpg.add_spacer(height=10)
 
         # Assignment management header
         header3_label = DISPLAY_TEXTS["ui_assignment_management"][LANGUAGE.get()]
         with dpg.collapsing_header(label=header3_label):
-            dpg.add_text("Under construction", indent=25)
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
                 with dpg.group():
+                    dpg.add_spacer(height=10)
                     with dpg.group(horizontal=True):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_assignment_window(),
                             tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
                         )
+                        dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_week_window(),
                         )
+                        dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+
+                    dpg.add_spacer(height=10)
+                    dpg.add_separator()
                     dpg.add_spacer(height=10)
                     with dpg.group(horizontal=True):
                         dpg.add_button(
