@@ -1158,7 +1158,7 @@ def assignment_browse_window(
                         width=120,
                         enabled=True,
                         callback=swap_page,
-                        user_data=(pagenum, get_all_indexed_assignments(), "-", True),
+                        user_data=(pagenum, get_all_indexed_assignments(), "-", False),
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_text(
@@ -1177,7 +1177,7 @@ def assignment_browse_window(
                         width=120,
                         enabled=True,
                         callback=swap_page,
-                        user_data=(pagenum, get_all_indexed_assignments(), "+", True),
+                        user_data=(pagenum, get_all_indexed_assignments(), "+", False),
                     )
 
                 dpg.add_spacer(height=10)
