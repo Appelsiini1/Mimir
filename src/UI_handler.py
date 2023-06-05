@@ -453,6 +453,8 @@ def _add_example_run_window(
 
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
+
+    pprint(user_data)
     parent_data = user_data[0]
 
     if user_data[1] == -1:

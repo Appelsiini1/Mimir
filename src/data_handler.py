@@ -85,12 +85,13 @@ def open_index(**args):
         logging.debug("Index set.")
 
 
-def add_assignment_to_index(data: dict):
+def add_assignment_to_index(data: dict, expanding:bool):
     """
     Adds given assignements to the index currently open.
 
     Params:
     data: a dictionary containing assignment data
+    expanding: bool whether the assignment is expanding
     """
 
     if not OPEN_IX.get():
@@ -103,8 +104,6 @@ def add_assignment_to_index(data: dict):
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
     )
-    expanding = bool(data["next"] or data["previous"])
-    expanding = False
 
     writer = ix.writer()
     writer.add_document(
@@ -148,12 +147,13 @@ def save_course_info(**args):
         create_index()
 
 
-def update_index(data: dict):
+def update_index(data: dict, expanding:bool):
     """
     Updates the index with the data from the updated assignment.
 
     Params:
     data: assignment to update
+    expanding: bool whether the assignment is expanding
     """
 
     ix = OPEN_IX.get()
@@ -164,7 +164,6 @@ def update_index(data: dict):
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
     )
-    expanding = bool(data["next, last"][0] or data["next, last"][1])
 
     writer = ix.writer()
     writer.update_document(
@@ -256,7 +255,6 @@ def save_assignment_data(assignment: dict, new: bool):
                 if assignment["assignment_id"] not in prev["next"]:
                     prev["next"].append(assignment["assignment_id"])
 
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         _filename = _hex + ".json"
 
         basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
@@ -279,14 +277,16 @@ def save_assignment_data(assignment: dict, new: bool):
                     copy2(file, datapath)
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
-
-        add_assignment_to_index(assignment)
+        expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
+        add_assignment_to_index(assignment, expanding)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
+        basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
+        datapath = path.join(basepath, assignment["assignment_id"])
 
         _filename = assignment["assignment_id"] + ".json"
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         for item in assignment["variations"]:
             for file in item["codefiles"]:
                 if split(file)[0]:
@@ -304,7 +304,9 @@ def save_assignment_data(assignment: dict, new: bool):
                         copy2(file, datapath)
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
-        update_index(assignment)
+        expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
+        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
+        update_index(assignment, expanding)
 
     _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
