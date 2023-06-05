@@ -322,14 +322,22 @@ def remove_selected(s, a, u):
     dpg.configure_item(u[0], items=final)
 
 
-def toggle_enabled(sender, app_data, item: int | str):
+def toggle_enabled(sender, app_data, item: int | str | tuple):
     """
     Toggles item on or off depending on its previous state
     """
-    if dpg.is_item_enabled(item):
-        dpg.disable_item(item)
+    if isinstance(item, tuple):
+        for i in item:
+            if dpg.is_item_enabled(i):
+                dpg.disable_item(i)
+            else:
+                dpg.enable_item(i)
+        
     else:
-        dpg.enable_item(item)
+        if dpg.is_item_enabled(item):
+            dpg.disable_item(item)
+        else:
+            dpg.enable_item(item)
 
 
 def move_info(s, a, u: list):
