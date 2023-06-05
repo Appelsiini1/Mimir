@@ -103,10 +103,8 @@ def add_assignment_to_index(data: dict):
     json_path = path.join(
         OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
     )
-    try:
-        expanding = bool(data["next, last"][0] or data["next, last"][1])
-    except IndexError:
-        expanding = False
+    expanding = bool(data["next"] or data["previous"])
+    expanding = False
 
     writer = ix.writer()
     writer.add_document(
@@ -265,7 +263,8 @@ def save_assignment_data(assignment: dict, new: bool):
         datapath = path.join(basepath, _hex)
         if not path.exists(basepath):
             mkdir(basepath)
-        mkdir()
+        if not path.exists(datapath):
+            mkdir(datapath)
         for item in assignment["variations"]:
             for file in item["codefiles"]:
                 copy2(file, datapath)

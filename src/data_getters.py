@@ -10,6 +10,7 @@ import logging
 import json
 
 from os import path
+from dearpygui.dearpygui import get_value
 
 from src.constants import (
     ENV,
@@ -291,7 +292,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
     return headers
 
 
-def get_variation_index(vars:list, letter:str) -> int|None:
+def get_variation_index(vars:list, _id:str) -> int|None:
     """
     Return the position of the variation that has the letter as its ID.
 
@@ -299,7 +300,10 @@ def get_variation_index(vars:list, letter:str) -> int|None:
     vars: list of variations
     letter: the letter to search
     """
-
+    if not vars:
+        return -2
+    
+    letter = get_value(_id).split(" ")[1]
     for i, var in enumerate(vars):
         if var["variation_id"] == letter:
             return i

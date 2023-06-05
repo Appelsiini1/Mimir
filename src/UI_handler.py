@@ -256,28 +256,31 @@ def main_window():
                             user_data=(False, None),
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+            dpg.add_spacer(height=10)
 
-                    ###### temp buttons
-                    dpg.add_spacer(height=10)
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(
-                            label="Current index (TEMP)",
-                            callback=lambda s, a, u: pprint(
-                                get_all_indexed_assignments()
-                            ),
-                        )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label="Tehtävävalitsin",
-                            callback=temp_selector_wrapper,
-                            user_data=True,
-                        )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label="Viikkovalitsin",
-                            callback=temp_selector_wrapper,
-                            user_data=False,
-                        )
+        ###### temp buttons
+        with dpg.collapsing_header(label="DEV"):
+            dpg.add_spacer(height=10)
+            with dpg.group(horizontal=True):
+                dpg.add_spacer(width=25)
+
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label="Current index (TEMP)",
+                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label="Tehtävävalitsin",
+                        callback=temp_selector_wrapper,
+                        user_data=True,
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label="Viikkovalitsin",
+                        callback=temp_selector_wrapper,
+                        user_data=False,
+                    )
 
 
 def temp_selector_wrapper(s, a, u: bool):
@@ -295,20 +298,25 @@ def _add_example_run_window(
     """
     Adds an example run input window
     """
-    var = user_data[0]
-    ix = user_data[1]
-    var_listbox = user_data[2]
-    new = False
-    try:
-        ex_run = var["example_runs"][ix]
-    except IndexError:
-        ex_run = get_empty_example_run()
-        new = True
 
+    var = user_data[0]
+    ex_listbox = user_data[2]
+    val = dpg.get_value(ex_listbox).split(" ")
+    ix = None
+    if len(val) != 1:
+        ix = int(val[1]) - 1
+    new = user_data[1]
+    if not new:
+        ex_run = var["example_runs"][ix]
+    elif new:
+        ex_run = get_empty_example_run()
+        ix = len(var["example_runs"])
+    else:
+        return
     select = user_data[3]
 
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
-    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1])
+    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(ix+1)
     with dpg.window(
         label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
     ):
@@ -335,6 +343,7 @@ def _add_example_run_window(
                 dpg.add_input_text(
                     tag=UUIDs["CMD_INPUTS"],
                     enabled=select,
+                    tab_input=True,
                     default_value=", ".join(
                         [str(item) for item in ex_run["cmd_inputs"]]
                     ),
@@ -361,6 +370,7 @@ def _add_example_run_window(
                     multiline=True,
                     height=150,
                     enabled=select,
+                    tab_input=True,
                     default_value=ex_run["output"],
                 )
                 dpg.add_spacer(height=5)
@@ -414,7 +424,7 @@ def _add_example_run_window(
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                         callback=extract_exrun_data,
-                        user_data=(UUIDs, ex_run, var, new, ix, var_listbox),
+                        user_data=(UUIDs, ex_run, var, new, ix, ex_listbox),
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
@@ -441,6 +451,10 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
         data = parent_data["variations"][user_data[1]]
 
     select = user_data[2]
+    if select:
+        select = False
+    else:
+        select = True
 
     var_letter = (
         get_variation_letter(len(parent_data["variations"]) + 1)
@@ -493,12 +507,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE.get()],
                             callback=_add_example_run_window,
-                            user_data=(
-                                data,
-                                len(data["example_runs"]) + 1,
-                                UUIDs["EXAMPLE_LISTBOX"],
-                                select
-                            ),
+                            user_data=(data, True, UUIDs["EXAMPLE_LISTBOX"], select),
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
@@ -514,12 +523,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         callback=_add_example_run_window,
                         user_data=(
                             data,
-                            1
-                            if not data["example_runs"]
-                            else int(
-                                dpg.get_value(UUIDs["EXAMPLE_LISTBOX"]).split(" ")[1]
-                            )
-                            - 1,
+                            False,
                             UUIDs["EXAMPLE_LISTBOX"],
                             select,
                         ),
@@ -633,6 +637,7 @@ def _assignment_window(var_data=None, select=False):
         var = var_data
         new = False
 
+    print(select)
     if select:
         enable = False
         label = "Mímir - {} - {}".format(
@@ -794,7 +799,7 @@ def _assignment_window(var_data=None, select=False):
                                 UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]
                             ),
                             tag=UI_ITEM_TAGS["PREV_PART_SHOW"],
-                            enabled=False
+                            enabled=False,
                         )
                         if enable:
                             dpg.add_spacer(width=5)
@@ -803,7 +808,7 @@ def _assignment_window(var_data=None, select=False):
                                 callback=add_prev,
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_ADD"],
-                                enabled=False
+                                enabled=False,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -818,7 +823,7 @@ def _assignment_window(var_data=None, select=False):
                                     var,
                                 ),
                                 tag=UI_ITEM_TAGS["PREV_PART_DEL"],
-                                enabled=False
+                                enabled=False,
                             )
 
             dpg.add_spacer(height=5)
@@ -849,7 +854,7 @@ def _assignment_window(var_data=None, select=False):
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE.get()],
                         callback=_add_variation_window,
-                        user_data=(var, -1, enable),
+                        user_data=(var, -1, select),
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
@@ -865,13 +870,9 @@ def _assignment_window(var_data=None, select=False):
                     callback=_add_variation_window,
                     user_data=(
                         var,
-                        -2
-                        if not var["variations"]
-                        else get_variation_index(
+                        get_variation_index(
                             var["variations"],
-                            dpg.get_value(UI_ITEM_TAGS["VARIATION_GROUP"]).split(" ")[
-                                1
-                            ],
+                            UI_ITEM_TAGS["VARIATION_GROUP"],
                         ),
                         select,
                     ),
@@ -1540,10 +1541,10 @@ def show_prev_part(s, a, u: int | str):
                             if not var["variations"]
                             else get_variation_index(
                                 var["variations"],
-                                dpg.get_value(var_tag).split(" ")[1],
+                                var_tag,
                             ),
                         ),
-                    ),
+                    )
                     dpg.add_spacer(height=5)
                     dpg.add_separator()
                     dpg.add_spacer(height=5)
