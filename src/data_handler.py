@@ -255,8 +255,6 @@ def save_assignment_data(assignment: dict, new: bool):
                 if assignment["assignment_id"] not in prev["next"]:
                     prev["next"].append(assignment["assignment_id"])
 
-        _filename = _hex + ".json"
-
         basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
         datapath = path.join(basepath, _hex)
         if not path.exists(basepath):
@@ -278,7 +276,6 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         add_assignment_to_index(assignment, expanding)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
@@ -286,7 +283,6 @@ def save_assignment_data(assignment: dict, new: bool):
         basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
         datapath = path.join(basepath, assignment["assignment_id"])
 
-        _filename = assignment["assignment_id"] + ".json"
         for item in assignment["variations"]:
             for file in item["codefiles"]:
                 if split(file)[0]:
@@ -305,13 +301,21 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
         update_index(assignment, expanding)
 
-    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
+    
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
         mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
+    save_assignment_file(assignment)
+
+def save_assignment_file(assignment:dict):
+    """
+    I/O operation to save assignment file
+    """
+
+    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assignment["assignment_id"]+".json")
+    _json = json.dumps(assignment, indent=4, ensure_ascii=False)
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
@@ -547,11 +551,10 @@ def del_prev(s, a, u: dict):
     """
     Delete previous assignment from list
     """
-    print("!")
     
     to_del = get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
     var = u
-    if not isinstance(to_del, int) and not isinstance(to_del, str):
+    if not to_del:
         return
 
     ind = var["previous"].index(to_del)
