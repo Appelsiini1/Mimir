@@ -11,6 +11,7 @@ from tkinter.filedialog import askdirectory
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
 from src.data_getters import get_texdoc_settings, get_week_data
+from src.data_handler import format_metadata_json
 from src.ext_service import generate_pdf
 from src.popups import popup_ok
 
@@ -304,9 +305,8 @@ def _write_tex_file(texdata: str, filename: str):
     Params:
     texdata: TeX data to write as string
     """
-    # XXX should this be changed to return the exception?
 
-    filepath = join(ENV["PROGRAM_DATA"], filename+".tex")
+    filepath = join(ENV["PROGRAM_DATA"], filename + ".tex")
     try:
         with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
@@ -314,9 +314,9 @@ def _write_tex_file(texdata: str, filename: str):
     except OSError:
         logging.exception("Exception occured when writing to file.")
         return False
-    else:
-        logging.info("TeX file written to %s" % filepath)
-        return True
+
+    logging.info("TeX file written to %s" % filepath)
+    return True
 
 
 def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool, filename: str):
@@ -355,8 +355,6 @@ def tex_gen(sets: list):
     week_data = get_week_data()
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
 
-    # TODO use format function for assignments
-
     for i, _set in enumerate(sets):
         gen_info = {
             "course_name": COURSE_INFO["course_title"],
@@ -369,7 +367,8 @@ def tex_gen(sets: list):
             + gen_info["lecture"]
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
         )
-        res = _gen_one(gen_info, _set, False, filename=filename)
+        formatted_set = [format_metadata_json(assig) for assig in _set]
+        res = _gen_one(gen_info, formatted_set, False, filename=filename)
         if res:
             generate_pdf(directory, filename)
 
@@ -379,8 +378,8 @@ def tex_gen(sets: list):
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
         )
-        res = _gen_one(gen_info, _set, True, filename=filename)
+        res = _gen_one(gen_info, formatted_set, True, filename=filename)
         if res:
             generate_pdf(directory, filename)
     if res:
-        popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()]+"\n"+directory)
+        popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)

@@ -180,18 +180,13 @@ def update_index(data: dict):
     writer.commit()
 
 
-def format_week_json(data: dict, lecture_no: int):
-    general = {}
-    general["course_id"] = data["course_id"]
-    general["course_name"] = data["course_name"]
-    general["lecture"] = lecture_no
-    general["topics"] = data["lectures"][lecture_no - 1]["topics"]
-    general["instructions"] = data["lectures"][lecture_no - 1]["instructions"]
-    return general
-
-
 def format_metadata_json(data: dict):
-    # TODO Format better later
+    """
+    Add data of the files in the assignment to the dictionary and return the new one.
+
+    Params:
+    data: the dictionary containing original assignment data. Note, expects there to be only one variation.
+    """
     new = {}
     new["title"] = data["title"]
     new["code_lang"] = data["code_language"]
@@ -205,14 +200,14 @@ def format_metadata_json(data: dict):
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
-                # TODO Add handling for multiple output files
                 {
-                    "filename": variation["example_runs"][i]["outputfiles"][0],
+                    "filename": variation["example_runs"][i]["outputfiles"][j],
                     "data": read_datafile(
-                        variation["example_runs"][i]["outputfiles"][0],
-                        data["assignment_id"]
+                        variation["example_runs"][i]["outputfiles"][j],
+                        data["assignment_id"],
                     ),
                 }
+                for j in variation["example_runs"][i]["outputfiles"]
             ]
             if variation["example_runs"][i]["outputfiles"]
             else [],
@@ -233,9 +228,7 @@ def format_metadata_json(data: dict):
         new["example_codes"].append(
             {
                 "filename": cf,
-                "code": get_assignment_code(
-                    cf, data["assignment_id"] + variation["variation_id"]
-                ),
+                "code": get_assignment_code(cf, data["assignment_id"]),
             }
         )
     return new
@@ -556,6 +549,8 @@ def del_prev(s, a, u: tuple[dict, str]):
 
     var = u[0]
     to_del = u[1]
+    if not isinstance(to_del, int):
+        return
 
     ind = var["previous"].index(to_del)
     var["previous"].pop(ind)

@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 
 #################################
 # Environment spesific constants
@@ -70,6 +70,9 @@ _GENERAL_KEY_LIST = [
     "total_index",
     "PREVIOUS_PART_CHECKBOX",
     "PREVIOUS_PART_LISTBOX",
+    "PREV_PART_ADD",
+    "PREV_PART_SHOW",
+    "PREV_PART_DEL",
     "CODE_LANGUAGE_COMBOBOX",
     "INST_LANGUAGE_COMBOBOX",
     "VARIATION_GROUP",
