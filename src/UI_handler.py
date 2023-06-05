@@ -64,6 +64,7 @@ from src.ui_helper import (
 from src.popups import popup_ok, popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set
+from src.tex_generator import tex_gen
 
 #############################################################
 
@@ -1807,12 +1808,10 @@ def result_window(orig_set: list, weeks: dict):
 
     if not isinstance(_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(_set))]
-        multi = True
         _set = orig_set
     else:
         _set = [orig_set]
         UUIDs = [dpg.generate_uuid()]
-        multi = False
 
     # if week == None:
     #     weeks = get_week_data()
@@ -1889,7 +1888,7 @@ def result_window(orig_set: list, weeks: dict):
             with dpg.group(horizontal=True):
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
-                    callback=None,
+                    callback=accept_result_set,
                     user_data=_set,
                 )
                 dpg.add_spacer(width=5)
@@ -1946,6 +1945,7 @@ def accept_result_set(s, a, u: list):
     """
     Create instruction papers from accepted set
     """
+    tex_gen(u)
 
 
 def result_popup(
