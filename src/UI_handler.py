@@ -454,7 +454,6 @@ def _add_example_run_window(
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
 
-    pprint(user_data)
     parent_data = user_data[0]
 
     if user_data[1] == -1:
@@ -809,7 +808,7 @@ def _assignment_window(var_data=None, select=False):
                             label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
                             callback=show_prev_part,
                             tag=UI_ITEM_TAGS["PREV_PART_SHOW"],
-                            enabled=False,
+                            enabled=False if not var["previous"] else True,
                         )
                         if enable:
                             dpg.add_spacer(width=5)
@@ -818,7 +817,7 @@ def _assignment_window(var_data=None, select=False):
                                 callback=add_prev,
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_ADD"],
-                                enabled=False,
+                                enabled=False if not var["previous"] else True,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -828,7 +827,7 @@ def _assignment_window(var_data=None, select=False):
                                 callback=del_prev,
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_DEL"],
-                                enabled=False,
+                                enabled=False if not var["previous"] else True,
                             )
 
             dpg.add_spacer(height=5)
@@ -1369,7 +1368,10 @@ def week_show_callback(s, a, u: bool):
 def _assignment_edit_callback(s, a, u: bool):
     value = get_value_from_browse()
     _json = get_assignment_json(value["json_path"])
-    show_prev_part(None, None, _json)
+    if u:
+        show_prev_part(None, None, _json)
+    else:
+        open_new_assignment_window(_json, False)
 
 
 def show_prev_part(s, a, u:dict|None):
@@ -1377,7 +1379,6 @@ def show_prev_part(s, a, u:dict|None):
     Open an assignment for view. Used only with previous part listbox in assignment edit.
     """
 
-    print("!")
     if not u:
         val = dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
         if not val:

@@ -8,7 +8,7 @@ from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
-from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, OPEN_COURSE_PATH
 from src.data_handler import (
     path_leaf,
     save_course_info,
@@ -460,8 +460,6 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
     """
 
     result = get_value_from_browse()
-    print(u)
-    print(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
 
     if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:
         data = u[0][0]
@@ -474,7 +472,7 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
         close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     else:
         field_ids = u[1]
-        data = get_assignment_json(result["a_id"])
+        data = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"]+".json"))
         u[0].append(data)
         dpg.configure_item(field_ids["title"], default_value=data["title"])
         dpg.configure_item(
