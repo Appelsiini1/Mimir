@@ -550,18 +550,21 @@ def del_prev(s, a, u: dict):
     print("!")
     
     to_del = get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
-    var = u[0]
+    var = u
     if not isinstance(to_del, int) and not isinstance(to_del, str):
         return
 
     ind = var["previous"].index(to_del)
     var["previous"].pop(ind)
 
-    prev = get_assignment_json(path.join(OPEN_COURSE_PATH, to_del + ".json"))
-
-    ind = prev["next"].index(to_del)
-    prev["next"].pop(ind)
+    prev = get_assignment_json(path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), to_del + ".json"))
+    try:
+        ind = prev["next"].index(to_del)
+        prev["next"].pop(ind)
+    except ValueError:
+        pass
     save_assignment_data(prev, False)
+    configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=var["previous"])
 
 
 def gen_result_headers(_set: list, week: int) -> list:

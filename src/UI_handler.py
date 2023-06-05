@@ -1694,9 +1694,7 @@ def show_exrun(s, a, user_data):
     except IndexError:
         ex_run = get_empty_example_run()
 
-    select = True
-    if user_data[3]:
-        select = False
+    select = False
 
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1])
     window_id = dpg.generate_uuid()
