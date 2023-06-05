@@ -158,7 +158,7 @@ def update_index(data: dict, expanding:bool):
 
     ix = OPEN_IX.get()
 
-    positions = f"{data['exp_lecture']:02d};"
+    positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
     json_path = path.join(
