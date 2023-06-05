@@ -638,7 +638,6 @@ def _assignment_window(var_data=None, select=False):
         var = var_data
         new = False
 
-    print(select)
     if select:
         enable = False
         label = "Mímir - {} - {}".format(
