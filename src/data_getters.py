@@ -10,6 +10,7 @@ import logging
 import json
 
 from os import path
+from dearpygui.dearpygui import get_value
 
 from src.constants import (
     ENV,
@@ -45,7 +46,7 @@ def get_assignment_json(json_path: str) -> dict | None:
         return json_data
 
 
-def get_assignment_code(data_path: str, a_id: str) -> str | None:
+def get_assignment_code(data_path: str, a_id:str) -> str | None:
     """
     Read code file and return its contents, excluding the ID line. Note that function
     checks whether the assignment ID matches the ID given. Raises an exception if
@@ -57,24 +58,22 @@ def get_assignment_code(data_path: str, a_id: str) -> str | None:
     """
 
     try:
-        with open(data_path, "r", encoding="UTF-8") as code_file:
+        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, data_path)
+        with open(full_path, "r", encoding="UTF-8") as code_file:
             code = code_file.read()
-            # TODO uncomment
-            # if not code.startswith(a_id):
-            #    raise ConflictingAssignmentID
-            code = code.strip(a_id)
             return code
     except OSError:
         logging.exception("Unable to read code file!")
         return None
 
 
-def read_datafile(filename: str) -> str | None:
+def read_datafile(filename: str, a_id:str) -> str | None:
     """
     Read a data file of given path and return its data. Returns None on error.
     """
     try:
-        with open(filename, "r", encoding="UTF-8") as _file:
+        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, filename)
+        with open(full_path, "r", encoding="UTF-8") as _file:
             data = _file.read()
             return data
     except OSError:
@@ -102,7 +101,8 @@ def get_empty_assignment() -> dict:
     empty["tags"] = ""
     empty["exp_lecture"] = 0
     empty["exp_assignment_no"] = ""
-    empty["next, last"] = ""
+    empty["next"] = []
+    empty["previous"] = []
     empty["code_language"] = ""
     empty["instruction_language"] = ""
     empty["variations"] = []
@@ -132,10 +132,10 @@ def get_empty_example_run() -> dict:
     """
 
     empty = {}
-    empty["generate"] = None
+    empty["generate"] = False
     empty["inputs"] = []
     empty["cmd_inputs"] = []
-    empty["output"] = []
+    empty["output"] = ""
     empty["outputfiles"] = []
 
     return empty
@@ -284,7 +284,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
                 header += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(
                     item["lecture_no"]
                 )
-                header += " " + DISPLAY_TEXTS["assignments"]
+                header += " " + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             else:
                 header += item["title"]
             headers.append(header)
@@ -292,7 +292,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
     return headers
 
 
-def get_variation_index(vars:list, letter:str) -> int|None:
+def get_variation_index(vars:list, _id:str) -> int|None:
     """
     Return the position of the variation that has the letter as its ID.
 
@@ -300,7 +300,10 @@ def get_variation_index(vars:list, letter:str) -> int|None:
     vars: list of variations
     letter: the letter to search
     """
-
+    if not vars:
+        return -2
+    
+    letter = get_value(_id).split(" ")[1]
     for i, var in enumerate(vars):
         if var["variation_id"] == letter:
             return i

@@ -12,7 +12,6 @@ def popup_ok(msg: str, **args):
     Creates a popup with "OK" button.
 
     Params:
-    sender: the parent object
     msg: Message to display
     """
 
@@ -40,9 +39,6 @@ def popup_ok(msg: str, **args):
 def popup_create_course(**args):
     """
     Creates a popup with course info inputs
-
-    Params:
-    sender: the parent object
     """
 
     field_ids = {
@@ -85,7 +81,7 @@ def popup_create_course(**args):
                     dpg.add_input_int(
                         callback=None,
                         width=150,
-                        min_value=0,
+                        min_value=1,
                         min_clamped=True,
                         tag=field_ids["weeks"],
                     )

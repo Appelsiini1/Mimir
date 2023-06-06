@@ -1,12 +1,7 @@
 #!/bin/bash
 
 # Python dependencies
-# run only with -p
-if [[ $1 -eq '-p']]
-then
-    pip install dearpygui
-    pip install whoosh
-fi
+pip install -r requirements.txt
 
 # Other dependencies
 sudo apt update

@@ -4,18 +4,20 @@
         "documentclass" : "article",
         "documentclass_options" : ["11pt", "a4paper"],
         "font": {
-            "package" : "arimo",
-            "family" : "sfdefault",
+            "package" : "lmodern",
+            "family" : "",
             "type" : "T1"
         }, 
         "packages" : [
             ["graphicx", ""],
             ["setspace", ""],
-            ["unnumberedtotoc", ""],
             ["fancyhdr", ""],
             ["lastpage", ""],
             ["parskip", ""],
-            ["enumitem", ""]
+            ["enumitem", ""],
+            ["xcolor", ""],
+            ["minted", ""],
+            ["hyperref", "hidelinks"]
         ],
         "header" : {
             "page_numbering" : ["R", "\\thepage \\hspace{1pt} / \\pageref{LastPage}"],
@@ -28,7 +30,9 @@
         "margins" : [20, 20, 25, 20],
         "head_height" : "15pt",
         "no_hyphenation" : ["\\tolerance=1", "\\emergencystretch=\\maxdimen", "\\hyphenpenalty=10000", "\\hbadness=10000"],
-        "other" : []
+        "other" : [
+            "\\definecolor{bg}{HTML}{F3F3F3}"
+        ]
     },
     "pagestyle" : "fancy"
 }}

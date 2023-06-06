@@ -9,9 +9,9 @@ compilers or runtime environments
 import logging
 import subprocess
 from os import path
+from shutil import copy
 
 from src.constants import ENV
-from src.custom_errors import CannotMoveFileError
 
 def run_command(command:str, inputs:str|None, process_timeout=10):
     """
@@ -30,6 +30,7 @@ def run_command(command:str, inputs:str|None, process_timeout=10):
 
         output = subprocess.run(
             command,
+            cwd=ENV["PROGRAM_DATA"],
             capture_output=True,
             text=True,
             timeout=process_timeout,
@@ -54,36 +55,28 @@ def run_command(command:str, inputs:str|None, process_timeout=10):
         logging.exception("Cannot find command")
         return fnfe_exception
     else:
-        logging.error("Following errors were encountered during command run: ")
+        logging.info("Process completed.")
+        logging.info("Command output: %s", output)
         return output
 
 
 def generate_pdf(filepath_out:str, filename:str):
     """
-    Runs pdflatex command to generate the PDF from generated TeX file.
+    Runs pdflatex command to generate the PDF from generated TeX file. Moves the file to the output path after generation.
 
     Params:
     filepath_out: the path to move the finished PDF file to
+    filename: the filename that the output will be renamed to
     """
-
-    #TODO add error handling if pdflatex command returns an exception
 
     command = "pdflatex -shell-escape output.tex"
 
-    output= run_command(command, None)
+    output= run_command(command, None, process_timeout=30)
+    output= run_command(command, None, process_timeout=30)
 
-    if output is type(subprocess.CompletedProcess):
-        if ENV["OS"] == "nt":
-            filepath_out = path.join(filepath_out, filename)
-            command = f"cd \"{ENV['PROGRAM_DATA']}\" \
-                && move /Y output.pdf \"{filepath_out}\""
-        else:
-            filepath_dest = path.join(filepath_out, "output.pdf")
-            command = f"cd \"{ENV['PROGRAM_DATA']}\" \
-                && mv output.pdf \"{filepath_dest}\" \
-                && cd \"{filepath_out}\" \
-                && mv output.pdf {filename}"
-
-        output = run_command(command, None)
-        if output is not type(subprocess.CompletedProcess):
-            raise CannotMoveFileError(output)
+    if isinstance(output, subprocess.CompletedProcess):
+        filepath_out = path.join(filepath_out, filename+".pdf")
+        filepath_in = path.join(ENV["PROGRAM_DATA"], "output.pdf")
+        copy(filepath_in, filepath_out)
+        return True
+    return False

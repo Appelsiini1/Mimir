@@ -142,12 +142,8 @@
         "FI" : "Variaatiot",
         "ENG" : "Variations"
     },
-    "ui_serach" : {
-        "FI" : "Hae",
-        "ENG" : "Search"
-    },
     "ui_selected" : {
-        "FI" : "Valittuja",
+        "FI" : "Valitut",
         "ENG" : "Selected"
     },
     "ui_full_course_setup" : {
@@ -403,8 +399,8 @@
         "ENG" : "Input the week a title. If left empty, the default will be used."
     },
     "help_week_topics" : {
-        "FI" : "Lisää tähän viikolla/luennolla käsiteltävät aiheet. Erottele aiheet rivinvaihdolla. Tukee LaTeX komentoja, mutta huomaa että listaus tehdään automaattisesti.",
-        "ENG" : "Add the topics that are covered on this week/lecture. Separate topics with a new line. Supports LaTeX commands, but note that the listing will be done automatically."
+        "FI" : "Lisää tähän viikolla/luennolla käsiteltävät aiheet. Erottele aiheet rivinvaihdolla. \nTukee LaTeX komentoja, mutta huomaa että listaus tehdään automaattisesti.",
+        "ENG" : "Add the topics that are covered on this week/lecture. Separate topics with a new line. \nSupports LaTeX commands, but note that the listing will be done automatically."
     },
     "help_week_tags" : {
         "FI" : "Syötä viikon aihetunnisteet. Erote aihetunnisteet pilkulla.",
@@ -473,5 +469,53 @@
     "ui_show_assignment" : {
         "FI" : "Näytä tehtävä",
         "ENG" : "Show assignment"
+    },
+    "ui_add" : {
+        "FI" : "Lisää",
+        "ENG" : "Add"
+    },
+    "ui_excl_exp" : {
+        "FI" : "Ohita jatkuvat tehtävät",
+        "ENG" : "Exclude expanding assignments"
+    },
+    "ui_assig_set_creation" : {
+        "FI" : "Tehtäväsarjojen luonti",
+        "ENG" : "Assignment set creation"
+    },
+    "ui_move_up" : {
+        "FI" : "Siirrä ylös",
+        "ENG" : "Move up"
+    },
+    "ui_move_down" : {
+        "FI" : "Siirrä alas",
+        "ENG" : "Move down"
+    },
+    "ui_accept" : {
+        "FI" : "Hyväksy",
+        "ENG" : "Accept"
+    },
+    "ui_change" : {
+        "FI" : "Muuta",
+        "ENG"  : "Change"
+    },
+    "ui_current_assig" : {
+        "FI" : "Nykyinen tehtävä",
+        "ENG" : "Current assignment"
+    },
+    "ui_choose_output_folder" : {
+        "FI" : "Valitse tulosten tallennuskansio",
+        "ENG" : "Choose result output folder"
+    },
+    "tex_answers" : {
+        "FI" : "Vastaukset",
+        "ENG" : "Answers"
+    },
+    "ui_pdf_success" : {
+        "FI" : "Tehtäväpaperit luotu onnistuneesti kansioon:",
+        "ENG" : "Assignment instruction papers succesfully created to folder:"
+    },
+    "ui_pdf_error" : {
+        "FI" : "Virhe PDF tiedoston luonnissa. Lisätietoja lokissa:",
+        "ENG" : "Error in PDF generation. Details in log:"
     }
 }

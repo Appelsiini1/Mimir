@@ -7,8 +7,9 @@ from os import getcwd
 from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
+from pprint import pprint
 
-from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS
+from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, OPEN_COURSE_PATH
 from src.data_handler import (
     path_leaf,
     save_course_info,
@@ -18,8 +19,13 @@ from src.data_handler import (
     year_conversion,
     search_index,
     get_value_from_browse,
+    gen_result_headers,
 )
-from src.data_getters import get_header_page, get_all_indexed_assignments
+from src.data_getters import (
+    get_header_page,
+    get_all_indexed_assignments,
+    get_assignment_json,
+)
 from src.common import resource_path, round_up
 
 ################################
@@ -317,14 +323,22 @@ def remove_selected(s, a, u):
     dpg.configure_item(u[0], items=final)
 
 
-def toggle_enabled(sender, app_data, item: int | str):
+def toggle_enabled(sender, app_data, item: int | str | tuple):
     """
     Toggles item on or off depending on its previous state
     """
-    if dpg.is_item_enabled(item):
-        dpg.disable_item(item)
+    if isinstance(item, tuple):
+        for i in item:
+            if dpg.is_item_enabled(i):
+                dpg.disable_item(i)
+            else:
+                dpg.enable_item(i)
+        
     else:
-        dpg.enable_item(item)
+        if dpg.is_item_enabled(item):
+            dpg.disable_item(item)
+        else:
+            dpg.enable_item(item)
 
 
 def move_info(s, a, u: list):
@@ -358,10 +372,6 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     assig["exp_assignment_no"] = [
         int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
     ]
-    assig["next, last"] = [
-        "",
-        dpg.get_value(UI_ITEM_TAGS["PREVIOUS_PART_COMBOBOX"]),
-    ]  # TODO handling for next if exists
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
     logging.debug("Assignment code language: %s", assig["code_language"])
     assig["instruction_language"] = dpg.get_value(
@@ -430,9 +440,9 @@ def swap_page(s, a, u: tuple[list, list, str, bool]):
     )
 
 
-def clear_search_bar(s, a, u:list):
+def clear_search_bar(s, a, u: list):
     """
-    Clears the search bar in week or assignment list windows 
+    Clears the search bar in week or assignment list windows
     and returns the listbox to default view
 
     Params:
@@ -445,17 +455,34 @@ def clear_search_bar(s, a, u:list):
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
 
 
-def save_select(s, a, u:list):
+def save_select(s, a, u: tuple[list, int | str | dict]):
     """
     Save the selected to the list and close browse window.
     """
 
     result = get_value_from_browse()
-    u.append(result)
-    close_window(UI_ITEM_TAGS["LIST_WINDOW"])
-    print(u)
 
-def assignment_search_wrapper(s,a,u:list):
+    if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:
+        data = u[0][0]
+
+        if not data["previous"]:
+            data["previous"] = [result["a_id"]]
+        else:
+            data["previous"].append(result["a_id"])
+        dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"])
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+    else:
+        field_ids = u[1][1]
+        data = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"]+".json"))
+        u[0].append(data)
+        dpg.configure_item(field_ids["title"], default_value=data["title"])
+        dpg.configure_item(
+            field_ids["var"], items=[a["variation_id"] for a in data["variations"]]
+        )
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+
+
+def assignment_search_wrapper(s, a, u: list):
     """
     Wrapper for calling search_index with the search query value
     """
@@ -468,4 +495,36 @@ def assignment_search_wrapper(s,a,u:list):
     headers = get_header_page(u[0], results)
 
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
-    
+
+
+def save_result_popup(s, a, u: tuple[dict, tuple, list, dict]):
+    """
+    Save changed assignment from result popup
+    """
+
+    meta = u[1]
+    select = u[2]
+    _set = meta[0]
+    index = meta[1]
+    assig_index = meta[2]
+    listbox_id = meta[3]
+    week = meta[4]
+    field_ids = u[3]
+
+    var_value = dpg.get_value(field_ids["var"])
+    if not select or not var_value:
+        return
+
+    for item in select[0]["variations"]:
+        if item["variation_id"] == var_value:
+            select[0]["variations"] = [item]
+            break
+
+    if len(_set[index]) - 1 <= assig_index:
+        _set[index].append(select[0])
+    else:
+        _set[index][assig_index] = select[0]
+    headers = gen_result_headers(_set[index], week)
+
+    dpg.configure_item(listbox_id, items=headers)
+    close_window(field_ids["popup"])

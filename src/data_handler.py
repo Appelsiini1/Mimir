@@ -11,6 +11,7 @@ from os import path, mkdir, getcwd
 from ntpath import split, basename
 from tkinter.filedialog import askdirectory
 from hashlib import sha256
+from shutil import copy2
 
 from whoosh import index
 from whoosh.qparser import QueryParser
@@ -29,9 +30,17 @@ from src.constants import (
     WEEK_DATA,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
-from src.data_getters import get_pos_convert, read_datafile, get_assignment_code, get_week_data, get_number_of_docs
+from src.data_getters import (
+    get_pos_convert,
+    read_datafile,
+    get_assignment_code,
+    get_week_data,
+    get_number_of_docs,
+    get_assignment_json,
+)
 
 ########################################
+
 
 def create_index(force=False, **args):
     """
@@ -76,12 +85,13 @@ def open_index(**args):
         logging.debug("Index set.")
 
 
-def add_assignment_to_index(data: dict):
+def add_assignment_to_index(data: dict, expanding:bool):
     """
     Adds given assignements to the index currently open.
 
     Params:
     data: a dictionary containing assignment data
+    expanding: bool whether the assignment is expanding
     """
 
     if not OPEN_IX.get():
@@ -91,13 +101,7 @@ def add_assignment_to_index(data: dict):
     positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
-    json_path = path.join(
-        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
-    )
-    try:
-        expanding = bool(data["next, last"][0] or data["next, last"][1])
-    except IndexError:
-        expanding = False
+    json_path = data["assignment_id"] # TODO legacy, should be removed
 
     writer = ix.writer()
     writer.add_document(
@@ -117,7 +121,7 @@ def _save_course_file():
     """
     f_path = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
     with open(f_path, "w", encoding="utf-8") as f:
-        to_write = json.dumps(COURSE_INFO)
+        to_write = json.dumps(COURSE_INFO, indent=4)
         f.write(to_write)
 
 
@@ -141,23 +145,21 @@ def save_course_info(**args):
         create_index()
 
 
-def update_index(data: dict):
+def update_index(data: dict, expanding:bool):
     """
     Updates the index with the data from the updated assignment.
 
     Params:
     data: assignment to update
+    expanding: bool whether the assignment is expanding
     """
 
     ix = OPEN_IX.get()
 
-    positions = f"{data['exp_lecture']:02d};"
+    positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
-    json_path = path.join(
-        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
-    )
-    expanding = bool(data["next, last"][0] or data["next, last"][1])
+    json_path = data["assignment_id"]
 
     writer = ix.writer()
     writer.update_document(
@@ -171,18 +173,13 @@ def update_index(data: dict):
     writer.commit()
 
 
-def format_week_json(data: dict, lecture_no: int):
-    general = {}
-    general["course_id"] = data["course_id"]
-    general["course_name"] = data["course_name"]
-    general["lecture"] = lecture_no
-    general["topics"] = data["lectures"][lecture_no - 1]["topics"]
-    general["instructions"] = data["lectures"][lecture_no - 1]["instructions"]
-    return general
-
-
 def format_metadata_json(data: dict):
-    # TODO Format better later
+    """
+    Add data of the files in the assignment to the dictionary and return the new one.
+
+    Params:
+    data: the dictionary containing original assignment data. Note, expects there to be only one variation.
+    """
     new = {}
     new["title"] = data["title"]
     new["code_lang"] = data["code_language"]
@@ -196,13 +193,14 @@ def format_metadata_json(data: dict):
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
-                # TODO Add handling for multiple output files
                 {
-                    "filename": variation["example_runs"][i]["outputfiles"][0],
+                    "filename": j,
                     "data": read_datafile(
-                        variation["example_runs"][i]["outputfiles"][0]
+                        j,
+                        data["assignment_id"],
                     ),
                 }
+                for j in variation["example_runs"][i]["outputfiles"]
             ]
             if variation["example_runs"][i]["outputfiles"]
             else [],
@@ -215,7 +213,7 @@ def format_metadata_json(data: dict):
             new["datafiles"].append(
                 {
                     "filename": df,
-                    "data": read_datafile(df),
+                    "data": read_datafile(df, data["assignment_id"]),
                 }
             )
     new["example_codes"] = []
@@ -223,15 +221,13 @@ def format_metadata_json(data: dict):
         new["example_codes"].append(
             {
                 "filename": cf,
-                "code": get_assignment_code(
-                    cf, data["assignment_id"] + variation["variation_id"]
-                ),
+                "code": get_assignment_code(cf, data["assignment_id"]),
             }
         )
     return new
 
 
-def save_assignment_data(assignment, new):
+def save_assignment_data(assignment: dict, new: bool):
     """
     Saves assignment to database
     """
@@ -245,21 +241,77 @@ def save_assignment_data(assignment, new):
         _hex = _hash.hexdigest()
         assignment["assignment_id"] = _hex
 
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
-        _filename = _hex + ".json"
-        add_assignment_to_index(assignment)
+        for last in assignment["previous"]:
+            prev = get_assignment_json(
+                path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), last + ".json")
+            )
+            if not prev["next"]:
+                prev["next"] = [assignment["assignment_id"]]
+            else:
+                if assignment["assignment_id"] not in prev["next"]:
+                    prev["next"].append(assignment["assignment_id"])
+
+        basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
+        datapath = path.join(basepath, _hex)
+        if not path.exists(basepath):
+            mkdir(basepath)
+        if not path.exists(datapath):
+            mkdir(datapath)
+        for item in assignment["variations"]:
+            for file in item["codefiles"]:
+                copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["codefiles"]]
+            item["codefiles"] = leafs
+            for file in item["datafiles"]:
+                copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["datafiles"]]
+            item["datafiles"] = leafs
+            for exrun in item["example_runs"]:
+                for file in exrun["outputfiles"]:
+                    copy2(file, datapath)
+                leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
+                exrun["outputfiles"] = leafs
+        expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
+        add_assignment_to_index(assignment, expanding)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
+        basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
+        datapath = path.join(basepath, assignment["assignment_id"])
 
-        _filename = assignment["assignment_id"] + ".json"
-        _json = json.dumps(assignment, indent=4, ensure_ascii=False)
-        update_index(assignment)
+        for item in assignment["variations"]:
+            for file in item["codefiles"]:
+                if split(file)[0]:
+                    copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["codefiles"]]
+            item["codefiles"] = leafs
+            for file in item["datafiles"]:
+                if split(file)[0]:
+                    copy2(file, datapath)
+            leafs = [path_leaf(f_path) for f_path in item["datafiles"]]
+            item["datafiles"] = leafs
+            for exrun in item["example_runs"]:
+                for file in exrun["outputfiles"]:
+                    if split(file)[0]:
+                        copy2(file, datapath)
+                leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
+                exrun["outputfiles"] = leafs
+        expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
+        update_index(assignment, expanding)
 
-    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), _filename)
+    
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
         mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
+    save_assignment_file(assignment)
+
+def save_assignment_file(assignment:dict):
+    """
+    I/O operation to save assignment file
+    """
+
+    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assignment["assignment_id"]+".json")
+    _json = json.dumps(assignment, indent=4, ensure_ascii=False)
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
@@ -408,7 +460,7 @@ def save_week_data(week, new) -> None:
     logging.debug("Week data saved: %s", _json)
 
 
-def year_conversion(data: list, encode:bool) -> list:
+def year_conversion(data: list, encode: bool) -> list:
     """
     Converts the 'used in' value to number from text or vice versa.
     """
@@ -467,7 +519,7 @@ def get_value_from_browse():
 
     value = get_value(UI_ITEM_TAGS["LISTBOX"])
     if not value:
-        return
+        return None
     try:
         lecture = int(value.split(" - ")[0])
     except ValueError:
@@ -489,3 +541,93 @@ def get_value_from_browse():
         for week in get_week_data()["lectures"]:
             if week["lecture_no"] == lecture:
                 return week
+
+
+def del_prev(s, a, u: dict):
+    """
+    Delete previous assignment from list
+    """
+    
+    to_del = get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
+    var = u
+    if not to_del:
+        return
+
+    ind = var["previous"].index(to_del)
+    var["previous"].pop(ind)
+
+    prev = get_assignment_json(path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), to_del + ".json"))
+    try:
+        ind = prev["next"].index(to_del)
+        prev["next"].pop(ind)
+    except ValueError:
+        pass
+    save_assignment_data(prev, False)
+    configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=var["previous"])
+
+
+def gen_result_headers(_set: list, week: int) -> list:
+    """
+    Generate result window assignment headers
+    """
+
+    headers = []
+
+    for i, item in enumerate(_set, start=1):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
+        t += " - " + item["title"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
+            + item["variations"][0]["variation_id"]
+        )
+        headers.append(t)
+
+    return headers
+
+
+def del_result(s, a, u: tuple[int | str, int, list]):
+    """
+    Delete result from the result set.
+    """
+    listbox_id = u[0]
+    value = get_value(listbox_id)
+    index_n = u[1]
+    _set = u[2]
+    week = u[3]["lectures"][index_n]["lecture_no"]
+    assig_index = None
+    for i, item in enumerate(_set[index_n], start=1):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
+        t += " - " + item["title"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
+            + item["variations"][0]["variation_id"]
+        )
+        if t == value:
+            assig_index = i-1
+    if not assig_index:
+        return
+    _set[index_n].pop(assig_index)
+    headers = gen_result_headers(_set[index_n], week)
+    configure_item(listbox_id, items=headers)
+
+
+def move_up(s, a, u: tuple[int | str, int, list]):
+    """
+    Move result up in the result set.
+    """
+    print("Not implemented.")
+
+
+def move_down(s, a, u: tuple[int | str, int, list]):
+    """
+    Move result down in the result set.
+    """
+    print("Not implemented.")
