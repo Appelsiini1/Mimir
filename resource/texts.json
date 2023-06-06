@@ -513,5 +513,9 @@
     "ui_pdf_success" : {
         "FI" : "Tehtäväpaperit luotu onnistuneesti kansioon:",
         "ENG" : "Assignment instruction papers succesfully created to folder:"
+    },
+    "ui_pdf_error" : {
+        "FI" : "Virhe PDF tiedoston luonnissa. Lisätietoja lokissa:",
+        "ENG" : "Error in PDF generation. Details in log:"
     }
 }

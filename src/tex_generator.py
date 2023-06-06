@@ -297,7 +297,7 @@ def _tex_gen(
     return tex_data
 
 
-def _write_tex_file(texdata: str, filename: str):
+def _write_tex_file(texdata: str):
     """
     Write 'texdata' to 'filepath'. Uses UTF-8 encoding.
     Returns True if writing is succesfull, otherwise False.
@@ -306,7 +306,7 @@ def _write_tex_file(texdata: str, filename: str):
     texdata: TeX data to write as string
     """
 
-    filepath = join(ENV["PROGRAM_DATA"], filename + ".tex")
+    filepath = join(ENV["PROGRAM_DATA"], "output.tex")
     try:
         with open(filepath, "w", encoding="utf-8") as tex_doc:
             tex_doc.write(texdata)
@@ -319,7 +319,7 @@ def _write_tex_file(texdata: str, filename: str):
     return True
 
 
-def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool, filename: str):
+def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool):
     """
     Generates a briefing for a spesified week.
 
@@ -332,7 +332,7 @@ def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool, filenam
 
     tex_data = _tex_gen(assignment_list, gen_info, document_settings, incl_solution)
 
-    result = _write_tex_file(tex_data, filename)
+    result = _write_tex_file(tex_data)
 
     return result
 
@@ -361,25 +361,31 @@ def tex_gen(sets: list):
             "course_id": COURSE_INFO["course_id"],
             "lecture": week_data["lectures"][i]["lecture_no"],
             "topics": week_data["lectures"][i]["topics"],
+            "instructions": week_data["lectures"][i]["instructions"]
         }
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + gen_info["lecture"]
+            + str(gen_info["lecture"])
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
         )
         formatted_set = [format_metadata_json(assig) for assig in _set]
-        res = _gen_one(gen_info, formatted_set, False, filename=filename)
+        res = _gen_one(gen_info, formatted_set, False)
         if res:
-            generate_pdf(directory, filename)
+            res2 = generate_pdf(directory, filename)
 
+        if not res2:
+            popup_ok(DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()] + "\n" + ENV["PROGRAM_DATA"]+"\\log.txt")
+            return
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + gen_info["lecture"]
+            + str(gen_info["lecture"])
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
         )
-        res = _gen_one(gen_info, formatted_set, True, filename=filename)
+        res = _gen_one(gen_info, formatted_set, True)
         if res:
-            generate_pdf(directory, filename)
-    if res:
-        popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)
+            res2 = generate_pdf(directory, filename)
+        if not res2:
+            popup_ok(DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()] + "\n" + ENV["PROGRAM_DATA"]+"\\log.txt")
+            return
+    popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)
