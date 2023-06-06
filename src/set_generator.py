@@ -51,8 +51,11 @@ def generate_one_set(
     for i in range(0, positions):
         pos = []
         for item in filtered:
-            if i in item["exp_assignment_no"]:
+            if i+1 in item["exp_assignment_no"]:
                 pos.append(item)
+
+        if not pos:
+            continue
         selected = select_for_position(pos)
         if selected[0]:
             ind = filtered.index(selected[0])
@@ -103,7 +106,8 @@ def count_weight(data: list) -> int:
         return 1
 
     pos_table: dict = get_pos_convert()[LANGUAGE.get()]
-    pos_table_keys = list(pos_table.keys()).sort()
+    pos_table_keys = list(pos_table.keys())
+    pos_table_keys.sort()
     pos_weights = {}
     i = 1
     for key in pos_table_keys:
@@ -114,10 +118,10 @@ def count_weight(data: list) -> int:
     item_weights = []
     for item in data:
         year = int(item[-4:])
-        pos = int(item[:-4])
+        pos = item[:-4]
         weight = pos_weights[pos] + (cur_year - year) * i + randint(0, 5)
         weight -= len(data)
-        if weight < 0:
+        if weight <= 0:
             weight = 1
         item_weights.append(weight)
 
