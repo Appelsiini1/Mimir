@@ -63,7 +63,7 @@ from src.ui_helper import (
 )
 from src.popups import popup_ok, popup_create_course
 from src.common import round_up
-from src.set_generator import generate_one_set, format_set
+from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen
 
 #############################################################
@@ -190,9 +190,13 @@ def main_window():
                         dpg.add_spacer(width=15)
 
                         with dpg.group():
-                            dpg.add_text(DISPLAY_TEXTS["ui_one_week"][LANGUAGE.get()] + ":")
+                            dpg.add_text(
+                                DISPLAY_TEXTS["ui_one_week"][LANGUAGE.get()] + ":"
+                            )
                             with dpg.group(horizontal=True):
-                                dpg.add_text(DISPLAY_TEXTS["ui_week"][LANGUAGE.get()] + ":")
+                                dpg.add_text(
+                                    DISPLAY_TEXTS["ui_week"][LANGUAGE.get()] + ":"
+                                )
                                 week_input_tag = dpg.generate_uuid()
                                 dpg.add_input_int(
                                     callback=None,
@@ -202,30 +206,49 @@ def main_window():
                                     tag=week_input_tag,
                                 )
                             with dpg.group(horizontal=True):
-                                dpg.add_text(DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()])
+                                dpg.add_text(
+                                    DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()]
+                                )
                                 checkbox_tag = dpg.generate_uuid()
                                 dpg.add_checkbox(tag=checkbox_tag)
                             dpg.add_spacer(height=5)
                             dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()]
+                                + "...",
                                 callback=create_one_set_callback,
                                 user_data=(
-                                    dpg.get_value(week_input_tag),
-                                    dpg.get_value(checkbox_tag),
+                                    week_input_tag,
+                                    checkbox_tag,
                                 ),
                             )
-                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
-                            
+                            dpg.bind_item_theme(
+                                dpg.last_item(), "alternate_button_theme"
+                            )
+
                             dpg.add_spacer(height=10)
                             dpg.add_separator()
                             dpg.add_spacer(height=10)
 
-                            dpg.add_text(DISPLAY_TEXTS["ui_full_course"][LANGUAGE.get()] + ":")
-                            dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
-                                callback=None,
+                            dpg.add_text(
+                                DISPLAY_TEXTS["ui_full_course"][LANGUAGE.get()] + ":"
                             )
-                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+                            dpg.add_spacer(height=5)
+                            with dpg.group(horizontal=True):
+                                dpg.add_text(
+                                    DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()]
+                                )
+                                checkbox_tag2 = dpg.generate_uuid()
+                                dpg.add_checkbox(tag=checkbox_tag2)
+                            dpg.add_spacer(height=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()]
+                                + "...",
+                                callback=create_all_sets_callback,
+                                user_data=checkbox_tag2,
+                            )
+                            dpg.bind_item_theme(
+                                dpg.last_item(), "alternate_button_theme"
+                            )
                             dpg.add_spacer(height=10)
 
         # Assignment management header
@@ -328,7 +351,7 @@ def _add_example_run_window(
     select = user_data[3]
 
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
-    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(ix+1)
+    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(ix + 1)
     with dpg.window(
         label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
     ):
@@ -453,7 +476,6 @@ def _add_example_run_window(
 
 
 def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
-
     parent_data = user_data[0]
 
     if user_data[1] == -1:
@@ -1221,7 +1243,9 @@ def open_assignment_browse(s, a, u: tuple[bool, bool, list, int | str]):
     if not dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
         if OPEN_COURSE_PATH.get():
             if COURSE_INFO["course_id"]:
-                assignment_browse_window(search=u[0], select=u[1], select_save=u[2], listbox_id=u[3])
+                assignment_browse_window(
+                    search=u[0], select=u[1], select_save=u[2], listbox_id=u[3]
+                )
             else:
                 popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
         else:
@@ -1374,7 +1398,7 @@ def _assignment_edit_callback(s, a, u: bool):
         open_new_assignment_window(_json, False)
 
 
-def show_prev_part(s, a, u:dict|None):
+def show_prev_part(s, a, u: dict | None):
     """
     Open an assignment for view. Used only with previous part listbox in assignment edit.
     """
@@ -1620,7 +1644,9 @@ def show_var(s, a, user_data):
                             []
                             if not data["example_runs"]
                             else [
-                                "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
+                                "{} {}".format(
+                                    DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i
+                                )
                                 for i, _ in enumerate(data["example_runs"], start=1)
                             ]
                         )
@@ -1646,7 +1672,9 @@ def show_var(s, a, user_data):
                     dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
                     help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
                     dpg.add_input_text(
-                        default_value=", ".join(year_conversion(data["used_in"], False)),
+                        default_value=", ".join(
+                            year_conversion(data["used_in"], False)
+                        ),
                         enabled=select,
                     )
                     dpg.add_spacer(width=5)
@@ -1786,10 +1814,13 @@ def create_one_set_callback(s, a, u):
     Callback function for main window button
     """
 
+    print("!")
+    week_n = dpg.get_value(u[0])
+    exc_exp = dpg.get_value(u[1])
     all_weeks = get_week_data()
     week = False
     for w in all_weeks["lectures"]:
-        if w["lecture_no"] == u[0]:
+        if w["lecture_no"] == week_n:
             all_weeks["lectures"] = [w]
             week = True
             break
@@ -1798,10 +1829,23 @@ def create_one_set_callback(s, a, u):
         _set = generate_one_set(
             all_weeks["lectures"][0]["lecture_no"],
             all_weeks["lectures"][0]["assignment_count"],
-            exclude_expanding=u[1],
+            exclude_expanding=exc_exp,
         )
         formatted = format_set(_set)
         result_window(formatted, all_weeks)
+
+
+def create_all_sets_callback(s, a, u):
+    """
+    Callback function for main window button
+    """
+
+    print("!")
+    exc_exp = dpg.get_value(u)
+    _set = generate_full_set(exclude_expanding=exc_exp)
+    formatted = format_set(_set)
+    weeks = get_week_data()
+    result_window(formatted, weeks)
 
 
 def result_window(orig_set: list, weeks: dict):
@@ -1809,6 +1853,7 @@ def result_window(orig_set: list, weeks: dict):
     The result preview window for generated sets
     """
 
+    print("!")
     label = "Mímir - {} - {}".format(
         DISPLAY_TEXTS["ui_assig_set_creation"][LANGUAGE.get()],
         DISPLAY_TEXTS["ui_results"][LANGUAGE.get()],
