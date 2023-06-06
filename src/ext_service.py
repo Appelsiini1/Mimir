@@ -55,7 +55,8 @@ def run_command(command:str, inputs:str|None, process_timeout=10):
         logging.exception("Cannot find command")
         return fnfe_exception
     else:
-        logging.error("Following errors were encountered during command run: %s", output)
+        logging.info("Process completed.")
+        logging.info("Command output: %s", output)
         return output
 
 
@@ -73,7 +74,7 @@ def generate_pdf(filepath_out:str, filename:str):
     output= run_command(command, None, process_timeout=30)
     output= run_command(command, None, process_timeout=30)
 
-    if output is type(subprocess.CompletedProcess):
+    if isinstance(output, subprocess.CompletedProcess):
         filepath_out = path.join(filepath_out, filename+".pdf")
         filepath_in = path.join(ENV["PROGRAM_DATA"], "output.pdf")
         copy(filepath_in, filepath_out)
