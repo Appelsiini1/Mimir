@@ -101,9 +101,7 @@ def add_assignment_to_index(data: dict, expanding:bool):
     positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
-    json_path = path.join(
-        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
-    )
+    json_path = data["assignment_id"] # TODO legacy, should be removed
 
     writer = ix.writer()
     writer.add_document(
@@ -161,9 +159,7 @@ def update_index(data: dict, expanding:bool):
     positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
-    json_path = path.join(
-        OPEN_COURSE_PATH.get_subdir(metadata=True), data["assignment_id"] + ".json"
-    )
+    json_path = data["assignment_id"]
 
     writer = ix.writer()
     writer.update_document(

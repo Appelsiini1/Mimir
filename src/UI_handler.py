@@ -1396,7 +1396,7 @@ def week_show_callback(s, a, u: bool):
 
 def _assignment_edit_callback(s, a, u: bool):
     value = get_value_from_browse()
-    _json = get_assignment_json(value["json_path"])
+    _json = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), value["a_id"] + ".json"))
     if u:
         show_prev_part(None, None, _json)
     else:
@@ -1845,8 +1845,9 @@ def create_all_sets_callback(s, a, u):
     """
 
     exc_exp = dpg.get_value(u)
-    _set = generate_full_set(exclude_expanding=exc_exp)
-    formatted = format_set(_set)
+    _sets = generate_full_set(exclude_expanding=exc_exp)
+    formatted = [format_set(_set) for _set in _sets]
+    print(len(formatted))
     weeks = get_week_data()
     result_window(formatted, weeks)
 
@@ -1864,7 +1865,7 @@ def result_window(orig_set: list, weeks: dict):
     window_id = dpg.generate_uuid()
 
     if not isinstance(orig_set[0], dict):
-        UUIDs = [dpg.generate_uuid() for i in range(0, len(_set))]
+        UUIDs = [dpg.generate_uuid() for i in range(0, len(orig_set))]
         _set = orig_set
     else:
         _set = [orig_set]
@@ -1959,7 +1960,7 @@ def result_window(orig_set: list, weeks: dict):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
                             callback=accept_result_set,
-                            user_data=_set,
+                            user_data=(_set, weeks),
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
@@ -2049,7 +2050,7 @@ def show_result_assig(s, a, u):
     show_prev_part(None, None, correct)
 
 
-def accept_result_set(s, a, u: list):
+def accept_result_set(s, a, u: tuple[list, dict]):
     """
     Create instruction papers from accepted set
     """
