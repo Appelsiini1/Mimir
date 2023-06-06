@@ -7,6 +7,7 @@ from os import getcwd
 from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
+from pprint import pprint
 
 from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, OPEN_COURSE_PATH
 from src.data_handler import (
@@ -471,13 +472,14 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
         dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"])
         close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     else:
-        field_ids = u[1]
+        field_ids = u[1][1]
         data = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"]+".json"))
         u[0].append(data)
         dpg.configure_item(field_ids["title"], default_value=data["title"])
         dpg.configure_item(
             field_ids["var"], items=[a["variation_id"] for a in data["variations"]]
         )
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
 
 
 def assignment_search_wrapper(s, a, u: list):

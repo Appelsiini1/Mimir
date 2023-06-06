@@ -30,6 +30,9 @@ from src.data_handler import (
     get_value_from_browse,
     del_prev,
     gen_result_headers,
+    del_result,
+    move_down,
+    move_up,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -112,6 +115,8 @@ def main_window():
             dpg.add_menu_item(
                 label=DISPLAY_TEXTS["menu_exit"][LANGUAGE.get()], callback=_stop
             )
+
+        # Info header
         header1_label = DISPLAY_TEXTS["ui_info"][LANGUAGE.get()]
         with dpg.collapsing_header(label=header1_label, default_open=True):
             dpg.add_spacer(height=20)
@@ -1814,17 +1819,16 @@ def create_one_set_callback(s, a, u):
     Callback function for main window button
     """
 
-    print("!")
     week_n = dpg.get_value(u[0])
     exc_exp = dpg.get_value(u[1])
-    all_weeks = get_week_data()
+    all_weeks = get_week_data().copy()
     week = False
     for w in all_weeks["lectures"]:
         if w["lecture_no"] == week_n:
             all_weeks["lectures"] = [w]
             week = True
             break
-
+    
     if week:
         _set = generate_one_set(
             all_weeks["lectures"][0]["lecture_no"],
@@ -1840,7 +1844,6 @@ def create_all_sets_callback(s, a, u):
     Callback function for main window button
     """
 
-    print("!")
     exc_exp = dpg.get_value(u)
     _set = generate_full_set(exclude_expanding=exc_exp)
     formatted = format_set(_set)
@@ -1853,7 +1856,6 @@ def result_window(orig_set: list, weeks: dict):
     The result preview window for generated sets
     """
 
-    print("!")
     label = "Mímir - {} - {}".format(
         DISPLAY_TEXTS["ui_assig_set_creation"][LANGUAGE.get()],
         DISPLAY_TEXTS["ui_results"][LANGUAGE.get()],
@@ -1861,7 +1863,7 @@ def result_window(orig_set: list, weeks: dict):
 
     window_id = dpg.generate_uuid()
 
-    if not isinstance(_set[0], dict):
+    if not isinstance(orig_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(_set))]
         _set = orig_set
     else:
@@ -1877,7 +1879,7 @@ def result_window(orig_set: list, weeks: dict):
     with dpg.window(
         label=label,
         width=1400,
-        height=695,
+        height=725,
         tag=window_id,
         no_close=True,
         no_collapse=True,
@@ -1885,73 +1887,86 @@ def result_window(orig_set: list, weeks: dict):
     ):
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
-            for i, _id in enumerate(UUIDs):
-                with dpg.group():
-                    dpg.add_text(
-                        DISPLAY_TEXTS["ui_week"][LANGUAGE.get()]
-                        + " "
-                        + str(weeks["lectures"][i]["lecture_no"])
-                    )
-                    items = gen_result_headers(
-                        _set[i], weeks["lectures"][i]["lecture_no"]
-                    )
-                    dpg.add_listbox(
-                        items,
-                        tag=_id,
-                        num_items=weeks["lectures"][i]["assignment_count"],
-                    )
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set),
+            with dpg.group():
+                i = 0
+                for i, _id in enumerate(UUIDs):
+                    with dpg.group():
+                        dpg.add_text(
+                            DISPLAY_TEXTS["ui_week"][LANGUAGE.get()]
+                            + " "
+                            + str(weeks["lectures"][i]["lecture_no"])
                         )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set),
+                        items = gen_result_headers(
+                            _set[i], weeks["lectures"][i]["lecture_no"]
                         )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set, weeks),
+                        dpg.add_listbox(
+                            items,
+                            tag=_id,
+                            num_items=weeks["lectures"][i]["assignment_count"],
                         )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
-                            callback=change_result,
-                            user_data=(_id, i, _set, weeks),
-                        )
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_move_up"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set),
-                        )
-                        dpg.add_spacer(width=5)
-                        dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_move_down"][LANGUAGE.get()],
-                            callback=None,
-                            user_data=(_id, i, _set),
-                        )
+                        with dpg.group(horizontal=True):
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                                callback=show_result_assig,
+                                user_data=(
+                                    _id,
+                                    i,
+                                    _set,
+                                    weeks["lectures"][i]["lecture_no"],
+                                ),
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                                callback=del_result,
+                                user_data=(_id, i, _set, weeks),
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
+                                callback=add_result,
+                                user_data=(_id, i, _set, weeks),
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
+                                callback=change_result,
+                                user_data=(_id, i, _set, weeks),
+                            )
+                        dpg.add_spacer(height=5)
+                        with dpg.group(horizontal=True):
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_move_up"][LANGUAGE.get()],
+                                callback=move_up,
+                                user_data=(_id, i, _set),
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_move_down"][LANGUAGE.get()],
+                                callback=move_down,
+                                user_data=(_id, i, _set),
+                            )
 
-            dpg.add_spacer(height=5)
-            dpg.add_separator()
-            dpg.add_spacer(height=5)
-            with dpg.group(horizontal=True):
-                dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
-                    callback=accept_result_set,
-                    user_data=_set,
-                )
-                dpg.add_spacer(width=5)
-                dpg.add_button(
-                    label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
-                    callback=lambda s, a, u: close_window(u),
-                    user_data=window_id,
-                )
+                with dpg.group():
+                    dpg.add_spacer(height=5)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=5)
+                    if i == 0:
+                        dpg.add_spacer(height=325)
+                        dpg.add_separator()
+                        dpg.add_spacer(height=5)
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
+                            callback=accept_result_set,
+                            user_data=_set,
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                            callback=lambda s, a, u: close_window(u),
+                            user_data=window_id,
+                        )
 
 
 def add_result(s, a, u: tuple[int | str, int, list]):
@@ -1977,23 +1992,61 @@ def change_result(s, a, u: tuple[int | str, int, list]):
     week = u[3]["lectures"][index]["lecture_no"]
     correct = None
     assig_index = None
-    for i, item in enumerate(_set[index]):
+    for i, item in enumerate(_set[index], start=1):
         t = ""
         t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
-        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(index)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
         t += " - " + item["title"]
         t += (
             " - "
             + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
             + item["variations"][0]["variation_id"]
         )
         if t == value:
             correct_item = item
-            assig_index = i
+            assig_index = i-1
 
-    correct = get_assignment_json(correct_item["assignment_id"])
+    correct = get_assignment_json(
+        join(
+            OPEN_COURSE_PATH.get_subdir(metadata=True),
+            correct_item["assignment_id"] + ".json",
+        )
+    )
     meta = (_set, index, assig_index, listbox_id, week)
     result_popup(correct, correct_item["variations"][0]["variation_id"], meta)
+
+
+def show_result_assig(s, a, u):
+    """
+    Show resulting assignment from result window
+    """
+    listbox_id = u[0]
+    value = dpg.get_value(listbox_id)
+    index = u[1]
+    _set = u[2]
+    week = u[3]
+    for i, item in enumerate(_set[index], start=1):
+        t = ""
+        t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
+        t += " - " + item["title"]
+        t += (
+            " - "
+            + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
+            + item["variations"][0]["variation_id"]
+        )
+        if t == value:
+            correct_item = item
+
+    correct = get_assignment_json(
+        join(
+            OPEN_COURSE_PATH.get_subdir(metadata=True),
+            correct_item["assignment_id"] + ".json",
+        )
+    )
+    show_prev_part(None, None, correct)
 
 
 def accept_result_set(s, a, u: list):
@@ -2017,12 +2070,14 @@ def result_popup(
     }
     select = []
     with dpg.window(
-        modal=True,
         tag=field_ids["popup"],
         no_close=True,
+        no_collapse=True,
         no_title_bar=True,
         autosize=True,
     ):
+        with dpg.group():
+            dpg.add_spacer(height=2)
         with dpg.group():
             dpg.add_text(label=DISPLAY_TEXTS["ui_current_assig"][LANGUAGE.get()] + ":")
             dpg.add_input_text(
@@ -2072,7 +2127,9 @@ def show_var_result(s, a, u: tuple[list, dict]):
 
     value = dpg.get_value(u[1]["var"])
     if value:
-        for i, a in enumerate(u[0]["variations"]):
+        i = -1
+        for i, a in enumerate(u[0][0]["variations"]):
             if a["variation_id"] == value:
                 break
-        show_var(s, a, (u[0], i))
+        if i != -1 :
+            show_var(None, None, (u[0][0], i))

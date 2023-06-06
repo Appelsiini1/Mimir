@@ -198,9 +198,9 @@ def format_metadata_json(data: dict):
             "CMD": variation["example_runs"][i]["cmd_inputs"],
             "outputfiles": [
                 {
-                    "filename": variation["example_runs"][i]["outputfiles"][j],
+                    "filename": j,
                     "data": read_datafile(
-                        variation["example_runs"][i]["outputfiles"][j],
+                        j,
                         data["assignment_id"],
                     ),
                 }
@@ -585,6 +585,7 @@ def gen_result_headers(_set: list, week: int) -> list:
         t += (
             " - "
             + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
             + item["variations"][0]["variation_id"]
         )
         headers.append(t)
@@ -602,18 +603,21 @@ def del_result(s, a, u: tuple[int | str, int, list]):
     _set = u[2]
     week = u[3]["lectures"][index_n]["lecture_no"]
     assig_index = None
-    for i, item in enumerate(_set[index_n]):
+    for i, item in enumerate(_set[index_n], start=1):
         t = ""
         t += DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()] + str(week)
-        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(index_n)
+        t += DISPLAY_TEXTS["tex_assignment_letter"][LANGUAGE.get()] + str(i)
         t += " - " + item["title"]
         t += (
             " - "
             + DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()]
+            + " "
             + item["variations"][0]["variation_id"]
         )
         if t == value:
-            assig_index = i
+            assig_index = i-1
+    if not assig_index:
+        return
     _set[index_n].pop(assig_index)
     headers = gen_result_headers(_set[index_n], week)
     configure_item(listbox_id, items=headers)
@@ -623,9 +627,11 @@ def move_up(s, a, u: tuple[int | str, int, list]):
     """
     Move result up in the result set.
     """
+    print("Not implemented.")
 
 
 def move_down(s, a, u: tuple[int | str, int, list]):
     """
     Move result down in the result set.
     """
+    print("Not implemented.")
