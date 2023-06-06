@@ -68,12 +68,10 @@ def generate_pdf(filepath_out:str, filename:str):
     filename: the filename that the output will be renamed to
     """
 
-    #TODO add error handling if pdflatex command returns an exception
-
     command = "pdflatex -shell-escape output.tex"
 
-    output= run_command(command, None)
-    output= run_command(command, None)
+    output= run_command(command, None, process_timeout=30)
+    output= run_command(command, None, process_timeout=30)
 
     if output is type(subprocess.CompletedProcess):
         filepath_out = path.join(filepath_out, filename+".pdf")
