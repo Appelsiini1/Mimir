@@ -39,10 +39,10 @@ def generate_one_set(
     for item in _all:
         if exclude_expanding:
             if int(item["position"].split(";")[0]) == week and not item["is_expanding"]:
-                filtered.append(get_assignment_json(item["json_path"]))
+                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
         else:
             if int(item["position"].split(";")[0]) == week:
-                filtered.append(get_assignment_json(item["json_path"]))
+                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
 
     if not filtered:
         return None
@@ -144,8 +144,8 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
     if exclude_expanding:
         for i in range(0, COURSE_INFO["course_weeks"]):
             _set = generate_one_set(
-                week_data["lecture"][i]["lecture_no"],
-                week_data["lecture"][i]["assignment_count"],
+                week_data["lectures"][i]["lecture_no"],
+                week_data["lectures"][i]["assignment_count"],
                 exclude_expanding=True,
             )
             if _set:
@@ -156,17 +156,27 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
         filtered = []
         for item in _all:
             if item["is_expanding"]:
-                filtered.append(item)
+                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
         if not filtered:
-            return None
+            for i in range(0, COURSE_INFO["course_weeks"]):
+                _set = generate_one_set(
+                    week_data["lectures"][i]["lecture_no"],
+                    week_data["lectures"][i]["assignment_count"],
+                    exclude_expanding=True,
+                )
+                sets.append(_set)
 
         exp_positions = {}
         for week_n in range(0, COURSE_INFO["course_weeks"]):
+            #print(week_n)
             week_filtered = []
             for item in filtered:
-                if int(item["position"].split(";")[0]) == i + 1:
-                    week_filtered.append(get_assignment_json(item["json_path"]))
+                if int(item["exp_lecture"]) == week_n+1:
+                    week_filtered.append(item)
 
+            #print(week_filtered)
+            if not week_filtered:
+                continue
             selected = select_for_position(week_filtered)
             if selected[0]:
                 ind = filtered.index(selected[0])
@@ -183,14 +193,15 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
                     if str(week_n) not in exp_positions:
                         exp_positions[str(week_n)] = {}
                     if str(week_n) not in exp_positions[str(week_n)]:
-                        exp_positions[str(week_n)][str(pos_n)] = selected
+                        exp_positions[str(week_n)][str(pos_n[0])] = selected
 
-                    next_a = choice(selected[0]["next"])
-                    choose_next(filtered, next_a, exp_positions)
+                    if selected[0]["next"]:
+                        next_a = choice(selected[0]["next"])
+                        choose_next(filtered, next_a, exp_positions)
 
             _set = generate_one_set(
-                week_data["lecture"][i]["lecture_no"],
-                week_data["lecture"][i]["assignment_count"],
+                week_data["lectures"][i]["lecture_no"],
+                week_data["lectures"][i]["assignment_count"],
                 exclude_expanding=True,
             )
             try:
