@@ -337,13 +337,15 @@ def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool):
     return result
 
 
-def tex_gen(sets: list):
+def tex_gen(data: tuple[list, dict]):
     """
     Generates all instruction papers based on given set. Calls PDF generation afterwards.
 
     Params:
     _set: a list of lists containing the assingment data
     """
+    sets = data[0]
+    week_data = data[1]
 
     directory = askdirectory(
         mustexist=True, title=DISPLAY_TEXTS["ui_choose_output_folder"][LANGUAGE.get()]
@@ -352,7 +354,6 @@ def tex_gen(sets: list):
     if not directory:
         return
 
-    week_data = get_week_data()
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
 
     for i, _set in enumerate(sets):
