@@ -400,8 +400,11 @@ def open_course(**args):
     else:
         OPEN_COURSE_PATH.set(_dir)
         save_recent()
-    finally:
+
+    if OPEN_COURSE_PATH.get() is not None:
         _file = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
+    else:
+        return
 
     try:
         with open(_file, "r", encoding="utf-8") as f:
