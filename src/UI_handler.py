@@ -8,7 +8,6 @@ Functions to handle UI
 import logging
 from os.path import join
 import dearpygui.dearpygui as dpg
-from pprint import pprint
 
 from src.constants import (
     DISPLAY_TEXTS,
@@ -64,7 +63,8 @@ from src.ui_helper import (
     save_select,
     save_result_popup,
 )
-from src.popups import popup_ok, popup_create_course
+from src.popups import popup_ok
+from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen
