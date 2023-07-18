@@ -38,6 +38,7 @@ from src.data_getters import (
     get_number_of_docs,
     get_assignment_json,
 )
+from src.popups import popup_ok
 
 ########################################
 
@@ -272,7 +273,6 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        add_assignment_to_index(assignment, expanding)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
@@ -297,15 +297,13 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        update_index(assignment, expanding)
-
     
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
         mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
-    save_assignment_file(assignment)
+    save_assignment_file(assignment, new, expanding)
 
-def save_assignment_file(assignment:dict):
+def save_assignment_file(assignment:dict, new:bool, expanding:bool):
     """
     I/O operation to save assignment file
     """
@@ -315,13 +313,17 @@ def save_assignment_file(assignment:dict):
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
+        if new:
+            add_assignment_to_index(assignment, expanding)
+        else:
+            update_index(assignment, expanding)
         logging.info(
             "Successfully saved assignment %s to file and index.",
             assignment["assignment_id"],
         )
     except OSError:
-        # TODO Popup for user
         logging.exception("Error while saving assignment data!")
+        popup_ok("Error saving assignment data into a file!")
 
 
 def path_leaf(f_path):
