@@ -32,6 +32,8 @@ from src.data_handler import (
     del_result,
     move_down,
     move_up,
+    del_assignment_files,
+    del_assignment_from_index,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -68,6 +70,7 @@ from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen
+from pprint import pprint
 
 #############################################################
 
@@ -298,29 +301,29 @@ def main_window():
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
             dpg.add_spacer(height=10)
 
-        ###### temp buttons
-        # with dpg.collapsing_header(label="DEV"):
-        #     dpg.add_spacer(height=10)
-        #     with dpg.group(horizontal=True):
-        #         dpg.add_spacer(width=25)
+        ##### temp buttons
+        with dpg.collapsing_header(label="DEV"):
+            dpg.add_spacer(height=10)
+            with dpg.group(horizontal=True):
+                dpg.add_spacer(width=25)
 
-        #         with dpg.group(horizontal=True):
-        #             dpg.add_button(
-        #                 label="Current index (TEMP)",
-        #                 callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
-        #             )
-        #             dpg.add_spacer(width=5)
-        #             dpg.add_button(
-        #                 label="Tehtävävalitsin",
-        #                 callback=temp_selector_wrapper,
-        #                 user_data=True,
-        #             )
-        #             dpg.add_spacer(width=5)
-        #             dpg.add_button(
-        #                 label="Viikkovalitsin",
-        #                 callback=temp_selector_wrapper,
-        #                 user_data=False,
-        #             )
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label="Current index (TEMP)",
+                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label="Tehtävävalitsin",
+                        callback=temp_selector_wrapper,
+                        user_data=True,
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label="Viikkovalitsin",
+                        callback=temp_selector_wrapper,
+                        user_data=False,
+                    )
 
 
 def temp_selector_wrapper(s, a, u: bool):
@@ -926,7 +929,12 @@ def _assignment_window(var_data=None, select=False):
                         user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                     )
                     dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()], callback=None
+                        label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                        callback=delete_assignment,
+                        user_data=(
+                            var["assignment_id"],
+                            UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                        ),
                     )
             else:
                 dpg.add_button(
@@ -1396,7 +1404,9 @@ def week_show_callback(s, a, u: bool):
 
 def _assignment_edit_callback(s, a, u: bool):
     value = get_value_from_browse()
-    _json = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), value["a_id"] + ".json"))
+    _json = get_assignment_json(
+        join(OPEN_COURSE_PATH.get_subdir(metadata=True), value["a_id"] + ".json")
+    )
     if u:
         show_prev_part(None, None, _json)
     else:
@@ -1828,7 +1838,7 @@ def create_one_set_callback(s, a, u):
             all_weeks["lectures"] = [w]
             week = True
             break
-    
+
     if week:
         _set = generate_one_set(
             all_weeks["lectures"][0]["lecture_no"],
@@ -2006,7 +2016,7 @@ def change_result(s, a, u: tuple[int | str, int, list]):
         )
         if t == value:
             correct_item = item
-            assig_index = i-1
+            assig_index = i - 1
 
     correct = get_assignment_json(
         join(
@@ -2132,5 +2142,25 @@ def show_var_result(s, a, u: tuple[list, dict]):
         for i, a in enumerate(u[0][0]["variations"]):
             if a["variation_id"] == value:
                 break
-        if i != -1 :
+        if i != -1:
             show_var(None, None, (u[0][0], i))
+
+
+def delete_assignment(s, a, u: tuple[str, str | int]):
+    """
+    Shorthand for deleting assignment from both disk and index.
+    """
+
+    assignment_id = u[0]
+    window_id = u[1]
+
+    res = del_assignment_files(assignment_id)
+    if not res:
+        popup_ok(DISPLAY_TEXTS["ui_del_error_disk"][LANGUAGE.get()])
+    else:
+        res = del_assignment_from_index(assignment_id)
+        if not res:
+            popup_ok(DISPLAY_TEXTS["ui_del_error_index"][LANGUAGE.get()])
+        else:
+            popup_ok(DISPLAY_TEXTS["ui_del_ok"][LANGUAGE.get()])
+    close_window(window_id)

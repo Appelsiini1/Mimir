@@ -517,5 +517,17 @@
     "ui_pdf_error" : {
         "FI" : "Virhe PDF tiedoston luonnissa. Lisätietoja lokissa:",
         "ENG" : "Error in PDF generation. Details in log:"
+    },
+    "ui_del_error_disk" : {
+        "FI" : "Virhe tehtävän poistamisessa levyltä! Lisätietoja lokissa.",
+        "ENG" : "Error deleting assignment files from disk! See log for details."
+    },
+    "ui_del_error_index" : {
+        "FI" : "Virhe poistettaessa tehtävää indeksistä. Lisätietoja lokissa.",
+        "ENG" : "Error deleting assignment from index. See log for details."
+    },
+    "ui_del_ok" : {
+        "FI" : "Tehtävä poistettu onnistuneesti.",
+        "ENG" : "Assignment deleted succesfully."
     }
 }
