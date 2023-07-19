@@ -75,8 +75,18 @@ def generate_pdf(filepath_out:str, filename:str):
     output= run_command(command, None, process_timeout=30)
 
     if isinstance(output, subprocess.CompletedProcess):
-        filepath_out = path.join(filepath_out, filename+".pdf")
+        fpath_out = path.join(filepath_out, filename)
+        filepath_out = fpath_out+".pdf"
         filepath_in = path.join(ENV["PROGRAM_DATA"], "output.pdf")
-        copy(filepath_in, filepath_out)
-        return True
+        if not path.exists(filepath_out):
+            copy(filepath_in, filepath_out)
+            return True
+        for i in range(1,100):
+            filepath_out = fpath_out + f" ({str(i)}).pdf"
+            if not path.exists(filepath_out):
+                copy(filepath_in, filepath_out)
+                return True
+        logging.error("Too many iterations to output filename!\
+                        Please delete old files or choose a new folder.")
+        return False
     return False
