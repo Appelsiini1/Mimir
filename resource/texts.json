@@ -529,5 +529,9 @@
     "ui_del_ok" : {
         "FI" : "Tehtävä poistettu onnistuneesti.",
         "ENG" : "Assignment deleted succesfully."
+    },
+    "ui_confirm" : {
+        "FI" : "Oletko varma?",
+        "ENG" : "Are you sure?"
     }
 }

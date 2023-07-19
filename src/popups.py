@@ -34,3 +34,46 @@ def popup_ok(msg: str, **args):
             user_data=popup_id,
             width=75,
         )
+
+
+def popup_confirmation(s, a, u):
+    """
+    Creates a popup with "OK" and "Cancel" buttons.
+
+    Params:
+    msg: message to display
+    function: function to call
+    parameters: a tuple containing parameters to pass on to the callable function
+    """
+
+    msg = u[0]
+    function = u[1]
+
+    popup_id = dpg.generate_uuid()
+    parameters = u[2] + (popup_id,)
+
+    with dpg.window(
+        modal=True,
+        tag=popup_id,
+        no_close=True,
+        no_title_bar=True,
+        autosize=True,
+    ):
+        dpg.add_spacer(height=5)
+        dpg.add_text(msg)
+        dpg.add_spacer(height=5)
+        dpg.add_separator()
+        dpg.add_spacer(height=5)
+        with dpg.group(horizontal=True):
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_ok"][LANGUAGE.get()],
+                callback=function,
+                user_data=parameters,
+                width=75,
+            )
+            dpg.add_button(
+                label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                callback=lambda s, a, u: close_window(u),
+                user_data=popup_id,
+                width=75
+            )

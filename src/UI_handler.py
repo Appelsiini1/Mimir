@@ -65,7 +65,7 @@ from src.ui_helper import (
     save_select,
     save_result_popup,
 )
-from src.popups import popup_ok
+from src.popups import popup_ok, popup_confirmation
 from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
@@ -928,14 +928,19 @@ def _assignment_window(var_data=None, select=False):
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                     )
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
-                        callback=delete_assignment,
-                        user_data=(
-                            var["assignment_id"],
-                            UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
-                        ),
-                    )
+                    if not new:
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                            callback=popup_confirmation,
+                            user_data=(
+                                DISPLAY_TEXTS["ui_confirm"][LANGUAGE.get()],
+                                delete_assignment,
+                                (
+                                    var,
+                                    UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                                )
+                            ),
+                        )
             else:
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
@@ -2146,13 +2151,16 @@ def show_var_result(s, a, u: tuple[list, dict]):
             show_var(None, None, (u[0][0], i))
 
 
-def delete_assignment(s, a, u: tuple[str, str | int]):
+def delete_assignment(s, a, u: tuple[str, str | int, str|int]):
     """
     Shorthand for deleting assignment from both disk and index.
     """
 
-    assignment_id = u[0]
+    assignment_id = u[0]["assignment_id"]
     window_id = u[1]
+    popup_id = u[2]
+
+    close_window(popup_id)
 
     res = del_assignment_files(assignment_id)
     if not res:
@@ -2163,4 +2171,7 @@ def delete_assignment(s, a, u: tuple[str, str | int]):
             popup_ok(DISPLAY_TEXTS["ui_del_error_index"][LANGUAGE.get()])
         else:
             popup_ok(DISPLAY_TEXTS["ui_del_ok"][LANGUAGE.get()])
+
+    dpg.configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
+    clear_search_bar(None, None, [1])
     close_window(window_id)
