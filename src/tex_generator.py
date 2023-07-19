@@ -208,8 +208,6 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     incl_solution: A boolean that spesifies whether to include the example solution in the assingment
     """
 
-    # TODO Add numbered list generator for lines starting with '-'
-
     text = ""
     for i, assignment in enumerate(assignment_list, start=1):
         text += "\\phantomsection\n"
@@ -233,11 +231,14 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
             )
             text += "\\hfill\\break\\newline\n"
             if example_run["CMD"]:
-                text += _block_gen("cmd_input", example_run["CMD"])
+                if example_run["CMD"][0] != "":
+                    text += _block_gen("cmd_input", example_run["CMD"])
             if example_run["inputs"]:
-                text += _block_gen("ex_input", example_run["inputs"])
+                if example_run["inputs"][0] != "":
+                    text += _block_gen("ex_input", example_run["inputs"])
             if example_run["output"]:
-                text += _block_gen("ex_output", example_run["output"])
+                if example_run["output"][0] != "":
+                    text += _block_gen("ex_output", example_run["output"])
             if example_run["outputfiles"]:
                 for resultfile in example_run["outputfiles"]:
                     text += _block_gen(
