@@ -7,13 +7,17 @@ Functions to generate instruction TeX file from available data
 # pylint: disable=import-error, logging-not-lazy, consider-using-f-string
 import logging
 from os.path import join, split
+from time import sleep
+from subprocess import CompletedProcess
 from tkinter.filedialog import askdirectory
+from dearpygui.dearpygui import generate_uuid, configure_item
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
-from src.data_getters import get_texdoc_settings, get_week_data
 from src.data_handler import format_metadata_json
-from src.ext_service import generate_pdf
-from src.popups import popup_ok
+from src.data_getters import get_texdoc_settings
+from src.ext_service import generate_pdf, copy_files
+from src.popups import popup_ok, popup_load
+from src.window_helper import close_window
 
 
 # pylint: disable=anomalous-backslash-in-string
@@ -348,6 +352,9 @@ def tex_gen(data: tuple[list, dict]):
     sets = data[0]
     week_data = data[1]
 
+    popupID = generate_uuid()
+    textID = generate_uuid()
+
     directory = askdirectory(
         mustexist=True, title=DISPLAY_TEXTS["ui_choose_output_folder"][LANGUAGE.get()]
     )
@@ -355,6 +362,7 @@ def tex_gen(data: tuple[list, dict]):
     if not directory:
         return
 
+    popup_load(DISPLAY_TEXTS["ui_generating_tex"][LANGUAGE.get()], popupID, textID)
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
 
     for i, _set in enumerate(sets):
@@ -363,7 +371,7 @@ def tex_gen(data: tuple[list, dict]):
             "course_id": COURSE_INFO["course_id"],
             "lecture": week_data["lectures"][i]["lecture_no"],
             "topics": week_data["lectures"][i]["topics"],
-            "instructions": week_data["lectures"][i]["instructions"]
+            "instructions": week_data["lectures"][i]["instructions"],
         }
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
@@ -373,21 +381,71 @@ def tex_gen(data: tuple[list, dict]):
         formatted_set = [format_metadata_json(assig) for assig in _set]
         res = _gen_one(gen_info, formatted_set, False)
         if res:
-            res2 = generate_pdf(directory, filename)
+            configure_item(
+                textID, default_value=DISPLAY_TEXTS["ui_creating_pdf"][LANGUAGE.get()]
+            )
+            output = generate_pdf()
+            if not isinstance(output, CompletedProcess):
+                close_window(popupID)
+                popup_ok(
+                    DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()]
+                    + "\n"
+                    + ENV["PROGRAM_DATA"]
+                    + "\\log.txt"
+                )
+                return
 
-        if not res2:
-            popup_ok(DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()] + "\n" + ENV["PROGRAM_DATA"]+"\\log.txt")
-            return
+            configure_item(
+                textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()]
+            )
+            res2 = copy_files(directory, filename)
+            if not res2:
+                close_window(popupID)
+                popup_ok(
+                    DISPLAY_TEXTS["ui_copy_error"][LANGUAGE.get()]
+                    + "\n"
+                    + ENV["PROGRAM_DATA"]
+                    + "\\log.txt"
+                )
+
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
             + str(gen_info["lecture"])
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
         )
+
+        configure_item(
+            textID, default_value=DISPLAY_TEXTS["ui_generating_tex"][LANGUAGE.get()]
+        )
         res = _gen_one(gen_info, formatted_set, True)
         if res:
-            res2 = generate_pdf(directory, filename)
-        if not res2:
-            popup_ok(DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()] + "\n" + ENV["PROGRAM_DATA"]+"\\log.txt")
-            return
+            configure_item(
+                textID, default_value=DISPLAY_TEXTS["ui_creating_pdf"][LANGUAGE.get()]
+            )
+            output = generate_pdf()
+            if not isinstance(output, CompletedProcess):
+                close_window(popupID)
+                popup_ok(
+                    DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()]
+                    + "\n"
+                    + ENV["PROGRAM_DATA"]
+                    + "\\log.txt"
+                )
+                return
+
+            configure_item(
+                textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()]
+            )
+            res2 = copy_files(directory, filename)
+            if not res2:
+                close_window(popupID)
+                popup_ok(
+                    DISPLAY_TEXTS["ui_copy_error"][LANGUAGE.get()]
+                    + "\n"
+                    + ENV["PROGRAM_DATA"]
+                    + "\\log.txt"
+                )
+    close_window(popupID)
+    sleep(0.1)
     popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)

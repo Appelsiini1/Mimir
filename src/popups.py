@@ -77,3 +77,24 @@ def popup_confirmation(s, a, u):
                 user_data=popup_id,
                 width=75
             )
+
+
+def popup_load(msg:str, ID:str|int, textID:str|int):
+    """
+    Creates a popup with no buttons.
+
+    Params:
+    msg: message to display
+    ID: the window ID that the popup will get
+    """
+
+    with dpg.window(
+        modal=True,
+        tag=ID,
+        no_close=True,
+        no_title_bar=True,
+        autosize=True,
+    ):
+        dpg.add_spacer(height=5)
+        dpg.add_text(msg, tag=textID)
+        dpg.add_spacer(height=5)

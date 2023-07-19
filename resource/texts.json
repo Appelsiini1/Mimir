@@ -533,5 +533,21 @@
     "ui_confirm" : {
         "FI" : "Oletko varma?",
         "ENG" : "Are you sure?"
+    },
+    "ui_generating_tex" : {
+        "FI" : "Luodaan TeX-tiedostoa...",
+        "ENG" : "Generating TeX-file..."
+    },
+    "ui_creating_pdf" : {
+        "FI" : "Luodaan PDF-tiedostoja...",
+        "ENG" : "Generating PDF-files..."
+    },
+    "ui_copying" : {
+        "FI" : "Kopioidaan tulostiedostoja...",
+        "ENG" : "Copying files..."
+    },
+    "ui_copy_error" : {
+        "FI" : "Virhe PDF tiedostojen siirrossa. Lisätietoja lokissa:",
+        "ENG" : "Error moving PDF files. Details in log:"
     }
 }
