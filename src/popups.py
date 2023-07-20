@@ -95,6 +95,6 @@ def popup_load(msg:str, ID:str|int, textID:str|int):
         no_title_bar=True,
         autosize=True,
     ):
-        dpg.add_spacer(height=5)
+        dpg.add_spacer(height=10)
         dpg.add_text(msg, tag=textID)
         dpg.add_spacer(height=5)

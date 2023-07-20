@@ -645,7 +645,7 @@ def move_down(s, a, u: tuple[int | str, int, list]):
     print("Not implemented.")
 
 
-def del_assignment_files(ID: str):
+def del_assignment_files(ID: str) -> bool:
     """
     Delete assignment from disk.
     """
@@ -663,7 +663,7 @@ def del_assignment_files(ID: str):
         return False
 
 
-def del_assignment_from_index(ID: str):
+def del_assignment_from_index(ID: str) -> bool:
     """
     Deletes spesified assignment from index.
     """
@@ -674,3 +674,16 @@ def del_assignment_from_index(ID: str):
         return True
     return False
 
+
+def format_week_data(data:dict) -> dict:
+    """
+    Changes week data to include lectures as one dict, with week number as key.
+    """
+
+    weeks = data["lectures"]
+    new_dict = {}
+
+    for week in weeks:
+        new_dict[str(week["lecture_no"])] = week
+
+    return new_dict
