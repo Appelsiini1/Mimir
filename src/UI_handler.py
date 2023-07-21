@@ -89,7 +89,6 @@ def main_window():
     # TODO Move label to a normal text bc primary window hides title bar
     label = "Mímir - " + DISPLAY_TEXTS["ui_main"][LANGUAGE.get()]
     with dpg.window(
-        label=label,
         width=1484,
         height=761,
         menubar=True,
@@ -114,11 +113,19 @@ def main_window():
                             callback=lambda s, a, item: open_course(dir=item),
                             user_data=item,
                         )
+            with dpg.menu(label=DISPLAY_TEXTS["ui_menu_language"][LANGUAGE.get()]):
+                for key in LANGUAGE.get_all():
+                    dpg.add_menu_item(
+                        label=DISPLAY_TEXTS["languages"][key],
+                        user_data=key,
+                        callback=reopen_main,
+                    )
 
             dpg.add_menu_item(
                 label=DISPLAY_TEXTS["menu_exit"][LANGUAGE.get()], callback=_stop
             )
 
+        dpg.add_text(label)
         # Info header
         header1_label = DISPLAY_TEXTS["ui_info"][LANGUAGE.get()]
         with dpg.collapsing_header(label=header1_label, default_open=True):
@@ -146,6 +153,7 @@ def main_window():
                                 width=400,
                                 hint="No course selected",
                                 tag=UI_ITEM_TAGS["COURSE_ID"],
+                                default_value=COURSE_INFO["course_id"] if COURSE_INFO["course_id"] is not None else ""
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -155,6 +163,7 @@ def main_window():
                                 callback=None,
                                 width=400,
                                 tag=UI_ITEM_TAGS["COURSE_TITLE"],
+                                default_value=COURSE_INFO["course_title"] if COURSE_INFO["course_title"] is not None else ""
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -166,6 +175,7 @@ def main_window():
                                 min_value=1,
                                 min_clamped=True,
                                 tag=UI_ITEM_TAGS["COURSE_WEEKS"],
+                                default_value=COURSE_INFO["course_weeks"]
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -301,7 +311,7 @@ def main_window():
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
             dpg.add_spacer(height=10)
 
-        ##### temp buttons
+        ##### DEV buttons
         with dpg.collapsing_header(label="DEV"):
             dpg.add_spacer(height=10)
             with dpg.group(horizontal=True):
@@ -938,7 +948,7 @@ def _assignment_window(var_data=None, select=False):
                                 (
                                     var,
                                     UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
-                                )
+                                ),
                             ),
                         )
             else:
@@ -2150,7 +2160,7 @@ def show_var_result(s, a, u: tuple[list, dict]):
             show_var(None, None, (u[0][0], i))
 
 
-def delete_assignment(s, a, u: tuple[str, str | int, str|int]):
+def delete_assignment(s, a, u: tuple[str, str | int, str | int]):
     """
     Shorthand for deleting assignment from both disk and index.
     """
@@ -2174,3 +2184,17 @@ def delete_assignment(s, a, u: tuple[str, str | int, str|int]):
     dpg.configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
     clear_search_bar(None, None, [1])
     close_window(window_id)
+
+
+def reopen_main(s, a, lang:str):
+    """
+    Reopens the main window after language selection. Sets the new language.
+    """
+
+    LANGUAGE.set(lang)
+    close_window(UI_ITEM_TAGS["MAIN_WINDOW"])
+    # for window in dpg.get_windows():
+    #     print(window)
+    #     close_window(window)
+    main_window()
+    dpg.set_primary_window(UI_ITEM_TAGS["MAIN_WINDOW"], True)

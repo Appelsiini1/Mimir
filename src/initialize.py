@@ -7,7 +7,7 @@ Functions to initialize Mímir states and constants
 from os import path, mkdir
 import logging
 
-from src.constants import ENV, VERSION, LOG_LEVEL
+from src.constants import ENV, VERSION, LOG_LEVEL, LANGUAGE, DISPLAY_TEXTS
 from src.data_getters import get_recents
 from src.common import resource_path
 
@@ -60,6 +60,8 @@ def init_defaults():
     #                 f2.write(data)
     #     except OSError:
     #         logging.exception("Unable to write needed TeX libraries to ENV!!")
+
+    LANGUAGE.set_all(list(DISPLAY_TEXTS["languages"].keys()))
 
 
 def init_environment():

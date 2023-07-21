@@ -549,5 +549,13 @@
     "ui_copy_error" : {
         "FI" : "Virhe PDF tiedostojen siirrossa. Lisätietoja lokissa:",
         "ENG" : "Error moving PDF files. Details in log:"
+    },
+    "ui_menu_language" : {
+        "FI" : "Kieli",
+        "ENG" : "Language"
+    },
+    "languages" : {
+        "FI" : "Suomi",
+        "ENG" : "English"
     }
 }
