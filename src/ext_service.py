@@ -60,23 +60,45 @@ def run_command(command:str, inputs:str|None, process_timeout=10):
         return output
 
 
-def generate_pdf(filepath_out:str, filename:str):
+def generate_pdf():
     """
-    Runs pdflatex command to generate the PDF from generated TeX file. Moves the file to the output path after generation.
-
-    Params:
-    filepath_out: the path to move the finished PDF file to
-    filename: the filename that the output will be renamed to
+    Runs pdflatex command to generate the PDF from generated TeX file.
     """
 
     command = "pdflatex -shell-escape output.tex"
 
     output= run_command(command, None, process_timeout=30)
     output= run_command(command, None, process_timeout=30)
+    return output
 
-    if isinstance(output, subprocess.CompletedProcess):
-        filepath_out = path.join(filepath_out, filename+".pdf")
-        filepath_in = path.join(ENV["PROGRAM_DATA"], "output.pdf")
-        copy(filepath_in, filepath_out)
+def copy_files(filepath_out:str, filename:str):
+    """
+    Copy files from input to output. Rename files if necessary, up to 100 iterations.
+    
+    Params:
+    filepath_out: the path to move the finished PDF file to
+    filename: the filename that the output will be renamed to
+    """
+
+    fpath_out = path.join(filepath_out, filename)
+    filepath_out = fpath_out+".pdf"
+    filepath_in = path.join(ENV["PROGRAM_DATA"], "output.pdf")
+    if not path.exists(filepath_out):
+        try:
+            copy(filepath_in, filepath_out)
+        except OSError:
+            logging.exception("Error copying files!")
+            return False
         return True
+    for i in range(1,100):
+        filepath_out = fpath_out + f" ({str(i)}).pdf"
+        if not path.exists(filepath_out):
+            try:
+                copy(filepath_in, filepath_out)
+            except OSError:
+                logging.exception("Error copying files!")
+                return False
+            return True
+    logging.error("Too many iterations to output filename!\
+                    Please delete old files or choose a new folder.")
     return False

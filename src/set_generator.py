@@ -10,9 +10,7 @@ from random import choice, choices, randint
 from os.path import join
 
 from src.constants import LANGUAGE, COURSE_INFO, OPEN_COURSE_PATH
-from src.data_handler import (
-    get_pos_convert,
-)
+from src.data_handler import get_pos_convert, format_week_data
 from src.data_getters import (
     get_all_indexed_assignments,
     get_assignment_json,
@@ -39,10 +37,24 @@ def generate_one_set(
     for item in _all:
         if exclude_expanding:
             if int(item["position"].split(";")[0]) == week and not item["is_expanding"]:
-                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
+                filtered.append(
+                    get_assignment_json(
+                        join(
+                            OPEN_COURSE_PATH.get_subdir(metadata=True),
+                            item["a_id"] + ".json",
+                        )
+                    )
+                )
         else:
             if int(item["position"].split(";")[0]) == week:
-                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
+                filtered.append(
+                    get_assignment_json(
+                        join(
+                            OPEN_COURSE_PATH.get_subdir(metadata=True),
+                            item["a_id"] + ".json",
+                        )
+                    )
+                )
 
     if not filtered:
         return None
@@ -51,7 +63,7 @@ def generate_one_set(
     for i in range(0, positions):
         pos = []
         for item in filtered:
-            if i+1 in item["exp_assignment_no"]:
+            if i + 1 in item["exp_assignment_no"]:
                 pos.append(item)
 
         if not pos:
@@ -139,83 +151,102 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
 
     week_data = get_week_data()
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
+    fm_week = format_week_data(week_data)
 
     sets = []
     if exclude_expanding:
         for i in range(0, COURSE_INFO["course_weeks"]):
-            _set = generate_one_set(
-                week_data["lectures"][i]["lecture_no"],
-                week_data["lectures"][i]["assignment_count"],
-                exclude_expanding=True,
-            )
-            if _set:
-                sets.append()
-
+            if str(i + 1) in fm_week:
+                _set = generate_one_set(
+                    fm_week[str(i + 1)]["lecture_no"],
+                    fm_week[str(i + 1)]["assignment_count"],
+                    exclude_expanding=True,
+                )
+                sets.append(_set)
     else:
         _all = get_all_indexed_assignments()
         filtered = []
         for item in _all:
             if item["is_expanding"]:
-                filtered.append(get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), item["a_id"] + ".json")))
+                filtered.append(
+                    get_assignment_json(
+                        join(
+                            OPEN_COURSE_PATH.get_subdir(metadata=True),
+                            item["a_id"] + ".json",
+                        )
+                    )
+                )
+
         if not filtered:
             for i in range(0, COURSE_INFO["course_weeks"]):
+                if str(i + 1) in fm_week:
+                    _set = generate_one_set(
+                        fm_week[str(i + 1)]["lecture_no"],
+                        fm_week[str(i + 1)]["assignment_count"],
+                        exclude_expanding=True,
+                    )
+                    sets.append(_set)
+
+        else:
+            exp_positions = {}
+            for week_n in range(0, COURSE_INFO["course_weeks"]):
+                week_filtered = []
+                for item in filtered:
+                    if int(item["exp_lecture"]) == week_n + 1:
+                        week_filtered.append(item)
+
+                if not week_filtered and str(week_n + 1) not in fm_week:
+                    continue
+                if not week_filtered and str(week_n + 1) in fm_week:
+                    _set = generate_one_set(
+                        fm_week[str(week_n + 1)]["lecture_no"],
+                        fm_week[str(week_n + 1)]["assignment_count"],
+                        exclude_expanding=True,
+                    )
+                    sets.append(_set)
+                    continue
+                selected = select_for_position(week_filtered)
+                if selected[0]:
+                    ind = filtered.index(selected[0])
+                    filtered.pop(ind)
+                    positions = selected[0]["exp_assignment_no"]
+
+                    weights = []
+                    for i in range(0, len(selected[0]["exp_assignment_no"])):
+                        weights.append(2)
+                    weights.append(1)
+                    positions.append(-1)
+                    pos_n = choices(positions, weights=weights)
+                    if pos_n != -1:
+                        if str(week_n) not in exp_positions:
+                            exp_positions[str(week_n)] = {}
+                        if str(week_n) not in exp_positions[str(week_n)]:
+                            exp_positions[str(week_n)][str(pos_n[0])] = selected
+
+                        if selected[0]["next"]:
+                            next_a = choice(selected[0]["next"])
+                            choose_next(filtered, next_a, exp_positions)
+
                 _set = generate_one_set(
-                    week_data["lectures"][i]["lecture_no"],
-                    week_data["lectures"][i]["assignment_count"],
+                    fm_week[str(week_n + 1)]["lecture_no"],
+                    fm_week[str(week_n + 1)]["assignment_count"],
                     exclude_expanding=True,
                 )
+                try:
+                    set_pos = exp_positions[str(week_n)]
+                except KeyError:
+                    pass
+                else:
+                    for key in set_pos.keys():
+                        if len(_set) < int(key) - 1:
+                            _set.append(set_pos[key])
+                        else:
+                            listA = _set[0:int(key)]
+                            listA.append(set_pos[key])
+                            listB = _set[int(key):]
+                            _set = listA + listB
+
                 sets.append(_set)
-
-        exp_positions = {}
-        for week_n in range(0, COURSE_INFO["course_weeks"]):
-            #print(week_n)
-            week_filtered = []
-            for item in filtered:
-                if int(item["exp_lecture"]) == week_n+1:
-                    week_filtered.append(item)
-
-            #print(week_filtered)
-            if not week_filtered:
-                continue
-            selected = select_for_position(week_filtered)
-            if selected[0]:
-                ind = filtered.index(selected[0])
-                filtered.pop(ind)
-                positions = selected[0]["exp_assignment_no"]
-
-                weights = []
-                for i in range(0, len(selected[0]["exp_assignment_no"])):
-                    weights.append(2)
-                weights.append(1)
-                positions.append(-1)
-                pos_n = choices(positions, weights=weights)
-                if pos_n != -1:
-                    if str(week_n) not in exp_positions:
-                        exp_positions[str(week_n)] = {}
-                    if str(week_n) not in exp_positions[str(week_n)]:
-                        exp_positions[str(week_n)][str(pos_n[0])] = selected
-
-                    if selected[0]["next"]:
-                        next_a = choice(selected[0]["next"])
-                        choose_next(filtered, next_a, exp_positions)
-
-            _set = generate_one_set(
-                week_data["lectures"][i]["lecture_no"],
-                week_data["lectures"][i]["assignment_count"],
-                exclude_expanding=True,
-            )
-            try:
-                set_pos = exp_positions[str(week_n)]
-            except KeyError:
-                pass
-            else:
-                for key in set_pos.keys():
-                    if len(_set) < int(key) - 1:
-                        _set.append(set_pos[key])
-                    else:
-                        _set[int(key) - 1] = set_pos[key]
-
-            sets.append(_set)
 
     return sets
 
@@ -254,7 +285,7 @@ def choose_next(filtered: list, next_a: str, exp_positions: dict) -> None:
     return
 
 
-def format_set(_set:list) -> list[dict]:
+def format_set(_set: list) -> list[dict]:
     """
     Format the set to include only the correct variations
 

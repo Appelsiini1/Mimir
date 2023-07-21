@@ -8,7 +8,6 @@ Functions to handle UI
 import logging
 from os.path import join
 import dearpygui.dearpygui as dpg
-from pprint import pprint
 
 from src.constants import (
     DISPLAY_TEXTS,
@@ -33,6 +32,8 @@ from src.data_handler import (
     del_result,
     move_down,
     move_up,
+    del_assignment_files,
+    del_assignment_from_index,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -64,10 +65,12 @@ from src.ui_helper import (
     save_select,
     save_result_popup,
 )
-from src.popups import popup_ok, popup_create_course
+from src.popups import popup_ok, popup_confirmation
+from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen
+from pprint import pprint
 
 #############################################################
 
@@ -86,7 +89,6 @@ def main_window():
     # TODO Move label to a normal text bc primary window hides title bar
     label = "Mímir - " + DISPLAY_TEXTS["ui_main"][LANGUAGE.get()]
     with dpg.window(
-        label=label,
         width=1484,
         height=761,
         menubar=True,
@@ -111,11 +113,19 @@ def main_window():
                             callback=lambda s, a, item: open_course(dir=item),
                             user_data=item,
                         )
+            with dpg.menu(label=DISPLAY_TEXTS["ui_menu_language"][LANGUAGE.get()]):
+                for key in LANGUAGE.get_all():
+                    dpg.add_menu_item(
+                        label=DISPLAY_TEXTS["languages"][key],
+                        user_data=key,
+                        callback=reopen_main,
+                    )
 
             dpg.add_menu_item(
                 label=DISPLAY_TEXTS["menu_exit"][LANGUAGE.get()], callback=_stop
             )
 
+        dpg.add_text(label)
         # Info header
         header1_label = DISPLAY_TEXTS["ui_info"][LANGUAGE.get()]
         with dpg.collapsing_header(label=header1_label, default_open=True):
@@ -143,6 +153,7 @@ def main_window():
                                 width=400,
                                 hint="No course selected",
                                 tag=UI_ITEM_TAGS["COURSE_ID"],
+                                default_value=COURSE_INFO["course_id"] if COURSE_INFO["course_id"] is not None else ""
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -152,6 +163,7 @@ def main_window():
                                 callback=None,
                                 width=400,
                                 tag=UI_ITEM_TAGS["COURSE_TITLE"],
+                                default_value=COURSE_INFO["course_title"] if COURSE_INFO["course_title"] is not None else ""
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -163,6 +175,7 @@ def main_window():
                                 min_value=1,
                                 min_clamped=True,
                                 tag=UI_ITEM_TAGS["COURSE_WEEKS"],
+                                default_value=COURSE_INFO["course_weeks"]
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -298,7 +311,7 @@ def main_window():
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
             dpg.add_spacer(height=10)
 
-        ###### temp buttons
+        ##### DEV buttons
         with dpg.collapsing_header(label="DEV"):
             dpg.add_spacer(height=10)
             with dpg.group(horizontal=True):
@@ -925,9 +938,19 @@ def _assignment_window(var_data=None, select=False):
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                     )
-                    dpg.add_button(
-                        label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()], callback=None
-                    )
+                    if not new:
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                            callback=popup_confirmation,
+                            user_data=(
+                                DISPLAY_TEXTS["ui_confirm"][LANGUAGE.get()],
+                                delete_assignment,
+                                (
+                                    var,
+                                    UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                                ),
+                            ),
+                        )
             else:
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
@@ -1396,7 +1419,9 @@ def week_show_callback(s, a, u: bool):
 
 def _assignment_edit_callback(s, a, u: bool):
     value = get_value_from_browse()
-    _json = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), value["a_id"] + ".json"))
+    _json = get_assignment_json(
+        join(OPEN_COURSE_PATH.get_subdir(metadata=True), value["a_id"] + ".json")
+    )
     if u:
         show_prev_part(None, None, _json)
     else:
@@ -1828,7 +1853,7 @@ def create_one_set_callback(s, a, u):
             all_weeks["lectures"] = [w]
             week = True
             break
-    
+
     if week:
         _set = generate_one_set(
             all_weeks["lectures"][0]["lecture_no"],
@@ -1847,7 +1872,6 @@ def create_all_sets_callback(s, a, u):
     exc_exp = dpg.get_value(u)
     _sets = generate_full_set(exclude_expanding=exc_exp)
     formatted = [format_set(_set) for _set in _sets]
-    print(len(formatted))
     weeks = get_week_data()
     result_window(formatted, weeks)
 
@@ -2006,7 +2030,7 @@ def change_result(s, a, u: tuple[int | str, int, list]):
         )
         if t == value:
             correct_item = item
-            assig_index = i-1
+            assig_index = i - 1
 
     correct = get_assignment_json(
         join(
@@ -2132,5 +2156,45 @@ def show_var_result(s, a, u: tuple[list, dict]):
         for i, a in enumerate(u[0][0]["variations"]):
             if a["variation_id"] == value:
                 break
-        if i != -1 :
+        if i != -1:
             show_var(None, None, (u[0][0], i))
+
+
+def delete_assignment(s, a, u: tuple[str, str | int, str | int]):
+    """
+    Shorthand for deleting assignment from both disk and index.
+    """
+
+    assignment_id = u[0]["assignment_id"]
+    window_id = u[1]
+    popup_id = u[2]
+
+    close_window(popup_id)
+
+    res = del_assignment_files(assignment_id)
+    if not res:
+        popup_ok(DISPLAY_TEXTS["ui_del_error_disk"][LANGUAGE.get()])
+    else:
+        res = del_assignment_from_index(assignment_id)
+        if not res:
+            popup_ok(DISPLAY_TEXTS["ui_del_error_index"][LANGUAGE.get()])
+        else:
+            popup_ok(DISPLAY_TEXTS["ui_del_ok"][LANGUAGE.get()])
+
+    dpg.configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
+    clear_search_bar(None, None, [1])
+    close_window(window_id)
+
+
+def reopen_main(s, a, lang:str):
+    """
+    Reopens the main window after language selection. Sets the new language.
+    """
+
+    LANGUAGE.set(lang)
+    close_window(UI_ITEM_TAGS["MAIN_WINDOW"])
+    # for window in dpg.get_windows():
+    #     print(window)
+    #     close_window(window)
+    main_window()
+    dpg.set_primary_window(UI_ITEM_TAGS["MAIN_WINDOW"], True)

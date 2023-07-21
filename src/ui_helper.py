@@ -7,7 +7,6 @@ from os import getcwd
 from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
-from pprint import pprint
 
 from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, OPEN_COURSE_PATH
 from src.data_handler import (
@@ -27,6 +26,7 @@ from src.data_getters import (
     get_assignment_json,
 )
 from src.common import resource_path, round_up
+from src.window_helper import close_window
 
 ################################
 
@@ -142,18 +142,6 @@ def get_variation_letter(var):
         result = ascii_uppercase[(var - 1) % base] + result
         var = (var - 1) // base
     return result
-
-
-def close_window(window_id: int | str):
-    """
-    Closes a UI window.
-
-    Params:
-    sender: Not used.
-    app_data: Not used.
-    window_id: The UUID of the window to close.
-    """
-    dpg.delete_item(window_id)
 
 
 def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):

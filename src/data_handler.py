@@ -11,7 +11,7 @@ from os import path, mkdir, getcwd
 from ntpath import split, basename
 from tkinter.filedialog import askdirectory
 from hashlib import sha256
-from shutil import copy2
+from shutil import copy2, rmtree
 
 from whoosh import index
 from whoosh.qparser import QueryParser
@@ -38,6 +38,7 @@ from src.data_getters import (
     get_number_of_docs,
     get_assignment_json,
 )
+from src.popups import popup_ok
 
 ########################################
 
@@ -85,7 +86,7 @@ def open_index(**args):
         logging.debug("Index set.")
 
 
-def add_assignment_to_index(data: dict, expanding:bool):
+def add_assignment_to_index(data: dict, expanding: bool):
     """
     Adds given assignements to the index currently open.
 
@@ -101,7 +102,7 @@ def add_assignment_to_index(data: dict, expanding:bool):
     positions = f"{data['exp_lecture']};"
     positions += ",".join([str(item) for item in data["exp_assignment_no"]])
     tags = ",".join(data["tags"])
-    json_path = data["assignment_id"] # TODO legacy, should be removed
+    json_path = data["assignment_id"]  # TODO legacy, should be removed
 
     writer = ix.writer()
     writer.add_document(
@@ -145,7 +146,7 @@ def save_course_info(**args):
         create_index()
 
 
-def update_index(data: dict, expanding:bool):
+def update_index(data: dict, expanding: bool):
     """
     Updates the index with the data from the updated assignment.
 
@@ -178,7 +179,8 @@ def format_metadata_json(data: dict):
     Add data of the files in the assignment to the dictionary and return the new one.
 
     Params:
-    data: the dictionary containing original assignment data. Note, expects there to be only one variation.
+    data: the dictionary containing original assignment data.
+    Note, expects there to be only one variation.
     """
     new = {}
     new["title"] = data["title"]
@@ -272,7 +274,6 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        add_assignment_to_index(assignment, expanding)
     else:
         assignment["course_id"] = COURSE_INFO["course_id"]
         assignment["course_title"] = COURSE_INFO["course_title"]
@@ -297,31 +298,37 @@ def save_assignment_data(assignment: dict, new: bool):
                 leafs = [path_leaf(f_path) for f_path in exrun["outputfiles"]]
                 exrun["outputfiles"] = leafs
         expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
-        update_index(assignment, expanding)
 
-    
     if not path.exists(OPEN_COURSE_PATH.get_subdir(metadata=True)):
         mkdir(OPEN_COURSE_PATH.get_subdir(metadata=True))
 
-    save_assignment_file(assignment)
+    save_assignment_file(assignment, new, expanding)
 
-def save_assignment_file(assignment:dict):
+
+def save_assignment_file(assignment: dict, new: bool, expanding: bool):
     """
     I/O operation to save assignment file
     """
 
-    _filepath = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assignment["assignment_id"]+".json")
+    _filepath = path.join(
+        OPEN_COURSE_PATH.get_subdir(metadata=True),
+        assignment["assignment_id"] + ".json",
+    )
     _json = json.dumps(assignment, indent=4, ensure_ascii=False)
     try:
         with open(_filepath, "w", encoding="utf-8") as _file:
             _file.write(_json)
+        if new:
+            add_assignment_to_index(assignment, expanding)
+        else:
+            update_index(assignment, expanding)
         logging.info(
             "Successfully saved assignment %s to file and index.",
             assignment["assignment_id"],
         )
     except OSError:
-        # TODO Popup for user
         logging.exception("Error while saving assignment data!")
+        popup_ok("Error saving assignment data into a file!")
 
 
 def path_leaf(f_path):
@@ -400,8 +407,11 @@ def open_course(**args):
     else:
         OPEN_COURSE_PATH.set(_dir)
         save_recent()
-    finally:
+
+    if OPEN_COURSE_PATH.get() is not None:
         _file = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
+    else:
+        return
 
     try:
         with open(_file, "r", encoding="utf-8") as f:
@@ -547,7 +557,7 @@ def del_prev(s, a, u: dict):
     """
     Delete previous assignment from list
     """
-    
+
     to_del = get_value(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
     var = u
     if not to_del:
@@ -556,7 +566,9 @@ def del_prev(s, a, u: dict):
     ind = var["previous"].index(to_del)
     var["previous"].pop(ind)
 
-    prev = get_assignment_json(path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), to_del + ".json"))
+    prev = get_assignment_json(
+        path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), to_del + ".json")
+    )
     try:
         ind = prev["next"].index(to_del)
         prev["next"].pop(ind)
@@ -611,7 +623,7 @@ def del_result(s, a, u: tuple[int | str, int, list]):
             + item["variations"][0]["variation_id"]
         )
         if t == value:
-            assig_index = i-1
+            assig_index = i - 1
     if not assig_index:
         return
     _set[index_n].pop(assig_index)
@@ -631,3 +643,47 @@ def move_down(s, a, u: tuple[int | str, int, list]):
     Move result down in the result set.
     """
     print("Not implemented.")
+
+
+def del_assignment_files(ID: str) -> bool:
+    """
+    Delete assignment from disk.
+    """
+    data_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), ID)
+    meta_path = path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), ID)
+
+    try:
+        if path.exists(data_path):
+            rmtree(data_path)
+        if path.exists(meta_path):
+            rmtree(meta_path)
+        return True
+    except OSError:
+        logging.exception("Unable to delete assignment files!")
+        return False
+
+
+def del_assignment_from_index(ID: str) -> bool:
+    """
+    Deletes spesified assignment from index.
+    """
+    writer = OPEN_IX.get().writer()
+    res = writer.delete_by_term("a_id", ID)
+    writer.commit()
+    if res:
+        return True
+    return False
+
+
+def format_week_data(data:dict) -> dict:
+    """
+    Changes week data to include lectures as one dict, with week number as key.
+    """
+
+    weeks = data["lectures"]
+    new_dict = {}
+
+    for week in weeks:
+        new_dict[str(week["lecture_no"])] = week
+
+    return new_dict

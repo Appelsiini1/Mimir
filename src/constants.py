@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.9.6"
+VERSION = "0.9.12"
 
 #################################
 # Environment spesific constants
@@ -126,7 +126,7 @@ UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
 # Misc constants
 OPEN_IX = IX()
 OPEN_COURSE_PATH = COURSE_PATH()
-COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": None}
+COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": 0}
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
 RECENTS = RECENTS_LIST()
