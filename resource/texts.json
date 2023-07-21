@@ -283,24 +283,24 @@
         "ENG" : "Input the inputs used in the example run. Separate inputs with a line break."
     },
     "help_cmd_inputs" : {
-        "FI" : "Jotain",
-        "ENG" : "TBD"
+        "FI" : "Syötä testiajon komentoriviparametrit. Erota parametrit pilkulla.",
+        "ENG" : "Input the commandline arguments here. Separate inputs with a comma."
     },
     "help_gen_ex_checkbox" : {
-        "FI" : "TBD",
-        "ENG" : "TBD"
+        "FI" : "Jos tämä on valittuna, ohjelma yrittää suorittaa tehtävän syötteiden perusteella ja kopioi tulokset ohjeisiin.",
+        "ENG" : "If this is selected, the program will try to run the assignment based on the inputs and copies the output to the briefing."
     },
     "help_ex_output" : {
-        "FI" : "TBD",
-        "ENG" : "TBD"
+        "FI" : "Kopioi tähän tehtävän esimerkkituloste. Jos esimerkkitulosteen generointi on päällä, tämä kenttä ohitetaan.",
+        "ENG" : "Copy the example output of the assignment here. If the example output generation is on, this field will be ignored."
     },
     "help_output_filename" : {
-        "FI" : "TBD",
-        "ENG" : "TBD"
+        "FI" : "Klikkaa 'Tuo tulostiedostot' nappia tuodaksesi tehtävän esimerkkitulostiedostot",
+        "ENG" : "Click 'Import output files' to import the assignment example output files."
     },
     "help_used_in" : {
-        "FI" : "TBD",
-        "ENG" : "TBD"
+        "FI" : "Syötä tähän setit joissa tehtävää on aiemmin käytetty. Oletusformaatti on 'Kevät/Kesä/Syksy[vuosi]', esim. Syksy2023",
+        "ENG" : "Input the sets where this assignment has been used before. Default format is 'Spring/Summer/Fall[year]', ex. Fall2023"
     },
     "ui_assig_man_warning_popup" : {
         "FI" : "'Lisää tehtävä' ikkuna on jo avattuna.",
