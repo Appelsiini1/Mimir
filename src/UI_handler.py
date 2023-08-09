@@ -151,7 +151,7 @@ def main_window():
                             dpg.add_input_text(
                                 callback=None,
                                 width=400,
-                                hint="No course selected",
+                                hint=DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()],
                                 tag=UI_ITEM_TAGS["COURSE_ID"],
                                 default_value=COURSE_INFO["course_id"] if COURSE_INFO["course_id"] is not None else ""
                             )
