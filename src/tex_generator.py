@@ -150,7 +150,7 @@ def _starting_instructions_gen(gen_info: dict):
     text += topics
     text += "\\end{itemize}\n"
     text += gen_info["instructions"] + "\n"
-    text += "\\tableofcontents\n\\vspace{1cm}\n"
+    text += "\\tableofcontents\n\\vspace{0.5cm}\n"
 
     logging.debug("TEX STARTING INSTRUCTIONS")
     logging.debug(text)
@@ -213,6 +213,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     """
 
     text = ""
+    text += "\\vspace{0.3cm}\n"
     for i, assignment in enumerate(assignment_list, start=1):
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
@@ -257,7 +258,6 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
                 text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
 
-        text += "\\vspace{0.5cm}\n"
         text += "\\fontfamily{lmr}\\selectfont\n"
 
     return text
