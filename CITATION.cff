@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Mímir
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Rami
+    family-names: Saarivuori
+    orcid: 'https://orcid.org/0000-0001-9843-1068'
+    affiliation: LUT University
+identifiers:
+  - type: url
+    value: 'https://github.com/Appelsiini1/Mimir/tree/v0.9.6'
+    description: Mímir v0.9.6
+repository-code: 'https://github.com/Appelsiini1/Mimir'
+abstract: >-
+  Mímir is a dynamic programming assignment management tool
+  intended for small programming assignments. Assignments
+  can be imported to easily manage large sets of
+  assignments. It can also create standardized and easy to
+  read weekly instruction PDF's from assignment sets.
+keywords:
+  - programming assignment
+  - python
+  - LaTeX
+  - dearpygui
+  - whoosh
+  - assignment management
+  - programming education
+license: MIT
+commit: ab7c165
+version: 0.9.6
+date-released: '2023-06-06'
