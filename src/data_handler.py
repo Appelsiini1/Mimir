@@ -112,6 +112,7 @@ def add_assignment_to_index(data: dict, expanding: bool):
         title=data["title"],
         json_path=json_path,
         is_expanding=expanding,
+        level=str(data["level"]),
     )
     writer.commit()
 
@@ -137,6 +138,21 @@ def save_course_info(**args):
     COURSE_INFO["course_title"] = get_value(UI_ITEM_TAGS["COURSE_TITLE"])
     COURSE_INFO["course_id"] = get_value(UI_ITEM_TAGS["COURSE_ID"])
     COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
+    levels = {}
+    raw = get_value(UI_ITEM_TAGS["COURSE_LEVELS"]).strip().split("\n")
+    try:
+        for item in raw:
+            data = item.split(":")
+            levels[int(data[0])] = [data[1]]
+            if len(data) == 3:
+                levels[int(data[0])].append(data[2])
+        COURSE_INFO["course_levels"] = levels
+        COURSE_INFO["min_level"] = min(levels.keys())
+        COURSE_INFO["max_level"] = max(levels.keys())
+    except (IndexError, ValueError):
+        logging.exception("Error in course level saving:")
+        popup_ok(DISPLAY_TEXTS["ui_level_error"][LANGUAGE.get()])
+        return
 
     if not OPEN_COURSE_PATH.get():
         ask_course_dir()
@@ -170,6 +186,7 @@ def update_index(data: dict, expanding: bool):
         title=data["title"],
         json_path=json_path,
         is_expanding=expanding,
+        level=str(data["level"]),
     )
     writer.commit()
 
@@ -185,6 +202,7 @@ def format_metadata_json(data: dict):
     new = {}
     new["title"] = data["title"]
     new["code_lang"] = data["code_language"]
+    new["level"] = data["level"]
     variation = None
     variation = data["variations"][0]
     new["instructions"] = variation["instructions"]
@@ -433,6 +451,16 @@ def open_course(**args):
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
         configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
+        
+        levels = ""
+        data = list(COURSE_INFO["course_levels"].keys())
+        data.sort()
+        for key in data:
+            levels += f"{str(key)}:{COURSE_INFO['course_levels'][key][0]}"
+            if len(COURSE_INFO['course_levels'][key]) == 2:
+                levels += f":{COURSE_INFO['course_levels'][key][1]}"
+            levels += "\n"
+        configure_item(UI_ITEM_TAGS["COURSE_LEVELS"], default_value=levels)
 
 
 def close_index() -> None:

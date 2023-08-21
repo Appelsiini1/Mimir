@@ -172,3 +172,6 @@ test.py
 inst.txt
 res.txt
 custom_layout.ini
+
+# Other dev scripts
+index_updater.py

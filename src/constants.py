@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.9.12"
+VERSION = "0.9.13"
 
 #################################
 # Environment spesific constants
@@ -87,11 +87,13 @@ _GENERAL_KEY_LIST = [
     "COURSE_ID",
     "COURSE_TITLE",
     "COURSE_WEEKS",
+    "COURSE_LEVELS",
     "ADD_WEEK",
     "SEARCH_BAR",
     "LIST_WINDOW",
     "LISTBOX",
-    "PAGENUM"
+    "PAGENUM",
+    "ASSIGNMENT_LEVEL",
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
@@ -117,7 +119,7 @@ WEEK_WINDOW_KEY_LIST = [
     "INSTRUCTIONS",
     "A_COUNT",
     "TAGS",
-    "TITLE"
+    "TITLE",
 ]
 
 UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
@@ -126,7 +128,14 @@ UI_ITEM_TAGS = {"{}".format(i): generate_uuid() for i in _GENERAL_KEY_LIST}
 # Misc constants
 OPEN_IX = IX()
 OPEN_COURSE_PATH = COURSE_PATH()
-COURSE_INFO = {"course_title": None, "course_id": None, "course_weeks": 0}
+COURSE_INFO = {
+    "course_title": None,
+    "course_id": None,
+    "course_weeks": 0,
+    "course_levels": None,
+    "min_level": 0,
+    "max_level": 100,
+}
 FILETYPES = _get_filetypes()
 LOG_LEVEL = DEBUG
 RECENTS = RECENTS_LIST()
@@ -137,5 +146,6 @@ INDEX_SCHEMA = Schema(
     title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     json_path=STORED,
     is_expanding=BOOLEAN(stored=True),
+    level=ID(stored=True),
 )
 WEEK_DATA = WEEK()

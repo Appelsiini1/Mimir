@@ -86,7 +86,7 @@ def main_window():
     """
     Create main window
     """
-    # TODO Move label to a normal text bc primary window hides title bar
+
     label = "Mímir - " + DISPLAY_TEXTS["ui_main"][LANGUAGE.get()]
     with dpg.window(
         width=1484,
@@ -153,7 +153,9 @@ def main_window():
                                 width=400,
                                 hint=DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()],
                                 tag=UI_ITEM_TAGS["COURSE_ID"],
-                                default_value=COURSE_INFO["course_id"] if COURSE_INFO["course_id"] is not None else ""
+                                default_value=COURSE_INFO["course_id"]
+                                if COURSE_INFO["course_id"] is not None
+                                else "",
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -163,7 +165,9 @@ def main_window():
                                 callback=None,
                                 width=400,
                                 tag=UI_ITEM_TAGS["COURSE_TITLE"],
-                                default_value=COURSE_INFO["course_title"] if COURSE_INFO["course_title"] is not None else ""
+                                default_value=COURSE_INFO["course_title"]
+                                if COURSE_INFO["course_title"] is not None
+                                else "",
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -175,7 +179,7 @@ def main_window():
                                 min_value=1,
                                 min_clamped=True,
                                 tag=UI_ITEM_TAGS["COURSE_WEEKS"],
-                                default_value=COURSE_INFO["course_weeks"]
+                                default_value=COURSE_INFO["course_weeks"],
                             )
                         with dpg.table_row():
                             dpg.add_text(
@@ -186,6 +190,20 @@ def main_window():
                                 str(get_number_of_docs()),
                                 tag=UI_ITEM_TAGS["total_index"],
                             )
+                        with dpg.table_row():
+                            dpg.add_text(
+                                DISPLAY_TEXTS["ui_course_levels"][LANGUAGE.get()] + ":"
+                            )
+                            help_(DISPLAY_TEXTS["help_course_levels"][LANGUAGE.get()])
+                            dpg.add_input_text(
+                                width=400,
+                                tag=UI_ITEM_TAGS["COURSE_LEVELS"],
+                                default_value=COURSE_INFO["course_levels"]
+                                if COURSE_INFO["course_levels"] is not None
+                                else "",
+                                multiline=True,
+                            )
+
                         with dpg.table_row():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
@@ -337,6 +355,7 @@ def main_window():
 
 
 def temp_selector_wrapper(s, a, u: bool):
+    """DEV only"""
     if u:
         selected = []
         open_assignment_browse(None, None, (True, True, selected))
@@ -706,7 +725,7 @@ def _assignment_window(var_data=None, select=False):
     with dpg.window(
         label=label,
         width=750,
-        height=725,
+        height=750,
         tag=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
         no_close=True,
     ):
@@ -769,6 +788,21 @@ def _assignment_window(var_data=None, select=False):
                                 [str(item) for item in var["exp_assignment_no"]]
                             ),
                             enabled=enable,
+                        )
+
+                    # Assignment level
+                    with dpg.table_row():
+                        dpg.add_text(
+                            DISPLAY_TEXTS["ui_assignment_level"][LANGUAGE.get()] + ":"
+                        )
+                        dpg.add_input_int(
+                            width=150,
+                            min_value=COURSE_INFO["min_level"],
+                            max_value=COURSE_INFO["max_level"],
+                            max_clamped=True,
+                            min_clamped=True,
+                            tag=UI_ITEM_TAGS["ASSIGNMENT_LEVEL"],
+                            default_value=var["level"],
                         )
 
                     # Assignment tags
@@ -2186,7 +2220,7 @@ def delete_assignment(s, a, u: tuple[str, str | int, str | int]):
     close_window(window_id)
 
 
-def reopen_main(s, a, lang:str):
+def reopen_main(s, a, lang: str):
     """
     Reopens the main window after language selection. Sets the new language.
     """

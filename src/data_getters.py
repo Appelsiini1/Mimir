@@ -98,9 +98,10 @@ def get_empty_assignment() -> dict:
     """
     empty = {}
     empty["title"] = ""
-    empty["tags"] = ""
     empty["exp_lecture"] = 0
     empty["exp_assignment_no"] = ""
+    empty["level"] = 0
+    empty["tags"] = ""
     empty["next"] = []
     empty["previous"] = []
     empty["code_language"] = ""

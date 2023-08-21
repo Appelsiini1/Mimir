@@ -557,5 +557,21 @@
     "languages" : {
         "FI" : "Suomi",
         "ENG" : "English"
+    },
+    "ui_assignment_level" : {
+        "FI" : "Tehtävän taso",
+        "ENG" : "Assignment level"
+    },
+    "ui_course_levels" : {
+        "FI" : "Kurssitehtävien tasot",
+        "ENG" : "Course assignment levels"
+    },
+    "help_course_levels" : {
+        "FI" : "Syötä tähän kurssin tehtävien tasot. Erota tason numero, nimi ja lyhenne kaksoispisteellä, ja tasot toisistaan rivinvaihdolla. Lyhenne on valinnainen.\nEsimerkiksi: '1:Helppo:H'",
+        "ENG" : "Input the levels of course assignments here. Separate level number, name and abbreviation with a colon and levels with new line. Abbreviation is optional.\nFor example: '1:Easy:E'"
+    },
+    "ui_level_error" : {
+        "FI" : "Virhe tasojen muotoilussa. Tarkista oikea muotoilu (?)-merkistä.",
+        "ENG" : "Error in level formatting Check correct formatin from (?)"
     }
 }
