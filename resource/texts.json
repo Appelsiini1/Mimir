@@ -573,5 +573,9 @@
     "ui_level_error" : {
         "FI" : "Virhe tasojen muotoilussa. Tarkista oikea muotoilu (?)-merkistä.",
         "ENG" : "Error in level formatting Check correct formatin from (?)"
+    },
+    "tex_level_subheader" : {
+        "FI" : "Tehtävän taso",
+        "ENG" : "Assignment level"
     }
 }
