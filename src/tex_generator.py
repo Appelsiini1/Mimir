@@ -109,7 +109,7 @@ bottom={margins[3]}mm]\
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
     metadata += (
         ", pdftitle={L"
-        + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
+        + f"{lecture:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
         + "}}"
     )
 
