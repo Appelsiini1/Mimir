@@ -21,7 +21,7 @@
 
  Start the program by running `main.py`.
 
- To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Mímir can use this either via PowerShell or WSL to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` to use highlighting.
+ To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Note that you need to install extra LaTeX packages, like `lastpage`. These should come with the LaTeX Extra. Mímir can use pdflatex either via PowerShell or WSL to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` for the highlighting to work.
  
  You can install them using these commands on Ubuntu:
 
@@ -29,5 +29,6 @@
 
  ```
 sudo apt install texlive
+sudo apt install texlive-latex-extra
 sudo apt install python3-pygments
 ```

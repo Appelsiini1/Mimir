@@ -360,6 +360,7 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     assig["exp_assignment_no"] = [
         int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
     ]
+    assig["level"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LEVEL"])
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
     logging.debug("Assignment code language: %s", assig["code_language"])
     assig["instruction_language"] = dpg.get_value(

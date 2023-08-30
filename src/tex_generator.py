@@ -139,7 +139,7 @@ def _starting_instructions_gen(gen_info: dict):
     gen_info: General instructions as a dict
     """
     text = ""
-    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
+    title = f"\\section*{{L{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
@@ -215,13 +215,24 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     text = ""
     text += "\\vspace{0.3cm}\n"
     for i, assignment in enumerate(assignment_list, start=1):
+        a_level = COURSE_INFO["course_levels"][str(assignment["level"])][0]
+        level_abbr = (
+            COURSE_INFO["course_levels"][str(assignment["level"])][1]
+            if len(COURSE_INFO["course_levels"][str(assignment["level"])]) == 2
+            else None
+        )
+
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
-        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}}}\n"
+        title = f"{{L{gen_info['lecture']:02}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}"
+        if level_abbr:
+            title += f" ({level_abbr})"
+        title += "}\n"
         text += title
         text += "\\section*" + title
+        text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
         text += assignment["instructions"] + "\n"
-        text += "\\vspace{0.1cm}\n"
+        text += "\\vspace{5mm}\n"
 
         if "datafiles" in assignment:
             text += "\\hfill\\break\\newline\n"
