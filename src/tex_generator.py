@@ -139,7 +139,7 @@ def _starting_instructions_gen(gen_info: dict):
     gen_info: General instructions as a dict
     """
     text = ""
-    title = f"\\section*{{L{gen_info['lecture']} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
+    title = f"\\section*{{L{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
@@ -224,14 +224,13 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
-        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}"
+        title = f"{{L{gen_info['lecture']:02}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}"
         if level_abbr:
             title += f" ({level_abbr})"
         title += "}\n"
         text += title
         text += "\\section*" + title
         text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
-        text += "\\vspace{5mm}\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{5mm}\n"
 
