@@ -520,7 +520,8 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     elif user_data[1] == -2:
         return
     else:
-        data = parent_data["variations"][user_data[1]]
+        var_index = get_variation_index(*user_data[1])
+        data = parent_data["variations"][var_index]
 
     select = user_data[2]
     if select:
@@ -948,7 +949,7 @@ def _assignment_window(var_data=None, select=False):
                     callback=_add_variation_window,
                     user_data=(
                         var,
-                        get_variation_index(
+                        (
                             var["variations"],
                             UI_ITEM_TAGS["VARIATION_GROUP"],
                         ),
@@ -1640,7 +1641,7 @@ def show_prev_part(s, a, u: dict | None):
                             var,
                             -2
                             if not var["variations"]
-                            else get_variation_index(
+                            else (
                                 var["variations"],
                                 var_tag,
                             ),
@@ -1670,7 +1671,8 @@ def show_var(s, a, user_data):
     elif user_data[1] == -2:
         return
     else:
-        data = parent_data["variations"][user_data[1]]
+        var_index = get_variation_index(*user_data[1])
+        data = parent_data["variations"][var_index]
 
     select = False
 
