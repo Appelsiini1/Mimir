@@ -386,7 +386,7 @@ def tex_gen(data: tuple[list, dict]):
         }
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + str(gen_info["lecture"])
+            + f"{gen_info['lecture']:02}"
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
         )
         formatted_set = [format_metadata_json(assig) for assig in _set]
@@ -421,7 +421,7 @@ def tex_gen(data: tuple[list, dict]):
 
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + str(gen_info["lecture"])
+            + f"{gen_info['lecture']:02}"
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
         )
