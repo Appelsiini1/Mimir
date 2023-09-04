@@ -256,7 +256,6 @@ def save_next(assignment:dict):
     """
 
     for last in assignment["previous"]:
-        print(last)
         prev = get_assignment_json(
             path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), last + ".json")
         )
@@ -363,9 +362,11 @@ def save_assignment_file(assignment: dict, new: bool, expanding: bool):
             "Successfully saved assignment %s to file and index.",
             assignment["assignment_id"],
         )
+        configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
     except OSError:
         logging.exception("Error while saving assignment data!")
         popup_ok("Error saving assignment data into a file!")
+
 
 
 def path_leaf(f_path):
