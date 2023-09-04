@@ -247,9 +247,36 @@ def format_metadata_json(data: dict):
     return new
 
 
+def save_next(assignment:dict):
+    """
+    Saves information on continuing assignments
+
+    Params:
+    assignment: a dict containing the assignment information to save
+    """
+
+    for last in assignment["previous"]:
+        print(last)
+        prev = get_assignment_json(
+            path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), last + ".json")
+        )
+        if not prev["next"]:
+            prev["next"] = [assignment["assignment_id"]]
+        else:
+            if assignment["assignment_id"] not in prev["next"]:
+                prev["next"].append(assignment["assignment_id"])
+
+    expanding = get_value(UI_ITEM_TAGS["PREVIOUS_PART_CHECKBOX"])
+    save_assignment_file(prev, False, expanding)
+
+
 def save_assignment_data(assignment: dict, new: bool):
     """
     Saves assignment to database
+
+    Params:
+    assignment: Assignment data to save
+    new: whether the assignment is new or existing
     """
 
     if new:
@@ -260,16 +287,7 @@ def save_assignment_data(assignment: dict, new: bool):
         _hash.update(_bytes)
         _hex = _hash.hexdigest()
         assignment["assignment_id"] = _hex
-
-        for last in assignment["previous"]:
-            prev = get_assignment_json(
-                path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), last + ".json")
-            )
-            if not prev["next"]:
-                prev["next"] = [assignment["assignment_id"]]
-            else:
-                if assignment["assignment_id"] not in prev["next"]:
-                    prev["next"].append(assignment["assignment_id"])
+        save_next(assignment)
 
         basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
         datapath = path.join(basepath, _hex)
@@ -297,6 +315,7 @@ def save_assignment_data(assignment: dict, new: bool):
         assignment["course_title"] = COURSE_INFO["course_title"]
         basepath = OPEN_COURSE_PATH.get_subdir(assignment_data=True)
         datapath = path.join(basepath, assignment["assignment_id"])
+        save_next(assignment)
 
         for item in assignment["variations"]:
             for file in item["codefiles"]:
