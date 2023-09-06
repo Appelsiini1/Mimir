@@ -299,7 +299,7 @@ def get_variation_index(vars:list, _id:str) -> int|None:
 
     Params:
     vars: list of variations
-    letter: the letter to search
+    _id: the id of the listbox
     """
     if not vars:
         return -2

@@ -109,7 +109,7 @@ bottom={margins[3]}mm]\
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
     metadata += (
         ", pdftitle={L"
-        + f"{lecture} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
+        + f"{lecture:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
         + "}}"
     )
 
@@ -139,7 +139,10 @@ def _starting_instructions_gen(gen_info: dict):
     gen_info: General instructions as a dict
     """
     text = ""
-    title = f"\\section*{{L{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
+    if not gen_info["title"]:
+        title = f"\\section*{{L{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
+    else:
+        title = f"\\section*{{{gen_info['title']}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
@@ -215,12 +218,16 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
     text = ""
     text += "\\vspace{0.3cm}\n"
     for i, assignment in enumerate(assignment_list, start=1):
-        a_level = COURSE_INFO["course_levels"][str(assignment["level"])][0]
-        level_abbr = (
-            COURSE_INFO["course_levels"][str(assignment["level"])][1]
-            if len(COURSE_INFO["course_levels"][str(assignment["level"])]) == 2
-            else None
-        )
+        if assignment["level"] != 0:
+            a_level = COURSE_INFO["course_levels"][str(assignment["level"])][0]
+            level_abbr = (
+                COURSE_INFO["course_levels"][str(assignment["level"])][1]
+                if len(COURSE_INFO["course_levels"][str(assignment["level"])]) == 2
+                else None
+            )
+        else:
+            a_level = None
+            level_abbr = None
 
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
@@ -230,7 +237,8 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
         title += "}\n"
         text += title
         text += "\\section*" + title
-        text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
+        if a_level != None:
+            text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
         text += assignment["instructions"] + "\n"
         text += "\\vspace{5mm}\n"
 
@@ -383,10 +391,11 @@ def tex_gen(data: tuple[list, dict]):
             "lecture": week_data["lectures"][i]["lecture_no"],
             "topics": week_data["lectures"][i]["topics"],
             "instructions": week_data["lectures"][i]["instructions"],
+            "title": week_data["lectures"][i]["title"]
         }
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + str(gen_info["lecture"])
+            + f"{gen_info['lecture']:02}"
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
         )
         formatted_set = [format_metadata_json(assig) for assig in _set]
@@ -421,7 +430,7 @@ def tex_gen(data: tuple[list, dict]):
 
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
-            + str(gen_info["lecture"])
+            + f"{gen_info['lecture']:02}"
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
             + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
         )

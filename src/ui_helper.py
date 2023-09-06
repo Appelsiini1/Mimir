@@ -24,6 +24,7 @@ from src.data_getters import (
     get_header_page,
     get_all_indexed_assignments,
     get_assignment_json,
+    get_variation_index,
 )
 from src.common import resource_path, round_up
 from src.window_helper import close_window
@@ -174,7 +175,8 @@ def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
         )
         dpg.configure_item(UI_ITEM_TAGS["VARIATION_GROUP"], items=_vars)
     else:
-        parent_data["variations"][ix] = data
+        new_index = get_variation_index(*ix)
+        parent_data["variations"][new_index] = data
 
     close_window(UUIDS["WINDOW_ID"])
 

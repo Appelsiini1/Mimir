@@ -330,38 +330,38 @@ def main_window():
             dpg.add_spacer(height=10)
 
         ##### DEV buttons
-        with dpg.collapsing_header(label="DEV"):
-            dpg.add_spacer(height=10)
-            with dpg.group(horizontal=True):
-                dpg.add_spacer(width=25)
+        # with dpg.collapsing_header(label="DEV"):
+        #     dpg.add_spacer(height=10)
+        #     with dpg.group(horizontal=True):
+        #         dpg.add_spacer(width=25)
 
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label="Current index (TEMP)",
-                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label="Tehtävävalitsin",
-                        callback=temp_selector_wrapper,
-                        user_data=True,
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label="Viikkovalitsin",
-                        callback=temp_selector_wrapper,
-                        user_data=False,
-                    )
+        #         with dpg.group(horizontal=True):
+        #             dpg.add_button(
+        #                 label="Current index (TEMP)",
+        #                 callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
+        #             )
+        #             dpg.add_spacer(width=5)
+        #             dpg.add_button(
+        #                 label="Tehtävävalitsin",
+        #                 callback=temp_selector_wrapper,
+        #                 user_data=True,
+        #             )
+        #             dpg.add_spacer(width=5)
+        #             dpg.add_button(
+        #                 label="Viikkovalitsin",
+        #                 callback=temp_selector_wrapper,
+        #                 user_data=False,
+        #             )
 
 
-def temp_selector_wrapper(s, a, u: bool):
-    """DEV only"""
-    if u:
-        selected = []
-        open_assignment_browse(None, None, (True, True, selected))
-    else:
-        selected = []
-        open_week_browse(None, None, (True, selected))
+# def temp_selector_wrapper(s, a, u: bool):
+#     """DEV only"""
+#     if u:
+#         selected = []
+#         open_assignment_browse(None, None, (True, True, selected))
+#     else:
+#         selected = []
+#         open_week_browse(None, None, (True, selected))
 
 
 def _add_example_run_window(
@@ -390,7 +390,7 @@ def _add_example_run_window(
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(ix + 1)
     with dpg.window(
-        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=750, no_close=True
     ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
@@ -520,7 +520,8 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     elif user_data[1] == -2:
         return
     else:
-        data = parent_data["variations"][user_data[1]]
+        var_index = get_variation_index(*user_data[1])
+        data = parent_data["variations"][var_index]
 
     select = user_data[2]
     if select:
@@ -537,7 +538,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
     with dpg.window(
-        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=750, no_close=True
     ):
         dpg.add_spacer(height=5)
 
@@ -948,7 +949,7 @@ def _assignment_window(var_data=None, select=False):
                     callback=_add_variation_window,
                     user_data=(
                         var,
-                        get_variation_index(
+                        (
                             var["variations"],
                             UI_ITEM_TAGS["VARIATION_GROUP"],
                         ),
@@ -1640,7 +1641,7 @@ def show_prev_part(s, a, u: dict | None):
                             var,
                             -2
                             if not var["variations"]
-                            else get_variation_index(
+                            else (
                                 var["variations"],
                                 var_tag,
                             ),
@@ -1670,7 +1671,8 @@ def show_var(s, a, user_data):
     elif user_data[1] == -2:
         return
     else:
-        data = parent_data["variations"][user_data[1]]
+        var_index = get_variation_index(*user_data[1])
+        data = parent_data["variations"][var_index]
 
     select = False
 
