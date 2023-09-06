@@ -330,38 +330,38 @@ def main_window():
             dpg.add_spacer(height=10)
 
         ##### DEV buttons
-        with dpg.collapsing_header(label="DEV"):
-            dpg.add_spacer(height=10)
-            with dpg.group(horizontal=True):
-                dpg.add_spacer(width=25)
+        # with dpg.collapsing_header(label="DEV"):
+        #     dpg.add_spacer(height=10)
+        #     with dpg.group(horizontal=True):
+        #         dpg.add_spacer(width=25)
 
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label="Current index (TEMP)",
-                        callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label="Tehtävävalitsin",
-                        callback=temp_selector_wrapper,
-                        user_data=True,
-                    )
-                    dpg.add_spacer(width=5)
-                    dpg.add_button(
-                        label="Viikkovalitsin",
-                        callback=temp_selector_wrapper,
-                        user_data=False,
-                    )
+        #         with dpg.group(horizontal=True):
+        #             dpg.add_button(
+        #                 label="Current index (TEMP)",
+        #                 callback=lambda s, a, u: pprint(get_all_indexed_assignments()),
+        #             )
+        #             dpg.add_spacer(width=5)
+        #             dpg.add_button(
+        #                 label="Tehtävävalitsin",
+        #                 callback=temp_selector_wrapper,
+        #                 user_data=True,
+        #             )
+        #             dpg.add_spacer(width=5)
+        #             dpg.add_button(
+        #                 label="Viikkovalitsin",
+        #                 callback=temp_selector_wrapper,
+        #                 user_data=False,
+        #             )
 
 
-def temp_selector_wrapper(s, a, u: bool):
-    """DEV only"""
-    if u:
-        selected = []
-        open_assignment_browse(None, None, (True, True, selected))
-    else:
-        selected = []
-        open_week_browse(None, None, (True, selected))
+# def temp_selector_wrapper(s, a, u: bool):
+#     """DEV only"""
+#     if u:
+#         selected = []
+#         open_assignment_browse(None, None, (True, True, selected))
+#     else:
+#         selected = []
+#         open_week_browse(None, None, (True, selected))
 
 
 def _add_example_run_window(
