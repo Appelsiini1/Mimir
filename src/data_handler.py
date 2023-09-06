@@ -254,6 +254,8 @@ def save_next(assignment:dict):
     Params:
     assignment: a dict containing the assignment information to save
     """
+    if not assignment["previous"]:
+        return
 
     for last in assignment["previous"]:
         prev = get_assignment_json(
