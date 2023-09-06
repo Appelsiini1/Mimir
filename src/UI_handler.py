@@ -538,7 +538,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
     with dpg.window(
-        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=750, no_close=True
     ):
         dpg.add_spacer(height=5)
 
