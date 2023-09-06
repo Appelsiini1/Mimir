@@ -390,7 +390,7 @@ def _add_example_run_window(
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in EXAMPLE_RUN_KEY_LIST}
     label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(ix + 1)
     with dpg.window(
-        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=700, no_close=True
+        label=label, tag=UUIDs["WINDOW_ID"], width=750, height=750, no_close=True
     ):
         dpg.add_spacer(height=5)
         with dpg.group(horizontal=True):
