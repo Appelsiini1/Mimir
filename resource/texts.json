@@ -577,5 +577,9 @@
     "tex_level_subheader" : {
         "FI" : "Tehtävän taso",
         "ENG" : "Assignment level"
+    },
+    "ui_no_week" : {
+        "FI" : "Syöttämäsi viikon ohjeita ei löydy. Lisää viikon tiedot ennen tehtäväsarjan luontia.",
+        "ENG" : "No instructions found for inputted week. Please add week data before creating assignment set."
     }
 }

@@ -237,7 +237,7 @@ def main_window():
                                 dpg.add_input_int(
                                     callback=None,
                                     width=150,
-                                    min_value=1,
+                                    min_value=0,
                                     min_clamped=True,
                                     tag=week_input_tag,
                                 )
@@ -1898,6 +1898,8 @@ def create_one_set_callback(s, a, u):
         )
         formatted = format_set(_set)
         result_window(formatted, all_weeks)
+    else:
+        popup_ok(DISPLAY_TEXTS["ui_no_week"][LANGUAGE.get()])
 
 
 def create_all_sets_callback(s, a, u):
@@ -1909,6 +1911,9 @@ def create_all_sets_callback(s, a, u):
     _sets = generate_full_set(exclude_expanding=exc_exp)
     formatted = [format_set(_set) for _set in _sets]
     weeks = get_week_data()
+    if not weeks:
+        popup_ok(DISPLAY_TEXTS["ui_no_week"][LANGUAGE.get()])
+        return
     result_window(formatted, weeks)
 
 
