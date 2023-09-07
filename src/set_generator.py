@@ -96,12 +96,12 @@ def select_for_position(pos: list) -> tuple[dict, str]:
     if selection[0] == 0:
         selected = (pos[0], pos[0]["variations"][0]["variation_id"])
     else:
-        x = 0
         for item in pos:
+            x = 0
             for var in item["variations"]:
-                x += 1
                 if x == selection[0]:
                     selected = (item, var["variation_id"])
+                x += 1
 
     return selected
 
