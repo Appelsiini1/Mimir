@@ -1899,7 +1899,7 @@ def create_one_set_callback(s, a, u):
         formatted = format_set(_set)
         result_window(formatted, all_weeks)
     else:
-        popup_ok(DISPLAY_TEXTS["ui_no_week"][LANGUAGE.get()])
+        popup_ok(DISPLAY_TEXTS["ui_no_week_data"][LANGUAGE.get()])
 
 
 def create_all_sets_callback(s, a, u):
@@ -1911,9 +1911,6 @@ def create_all_sets_callback(s, a, u):
     _sets = generate_full_set(exclude_expanding=exc_exp)
     formatted = [format_set(_set) for _set in _sets]
     weeks = get_week_data()
-    if not weeks:
-        popup_ok(DISPLAY_TEXTS["ui_no_week"][LANGUAGE.get()])
-        return
     result_window(formatted, weeks)
 
 
@@ -1936,11 +1933,7 @@ def result_window(orig_set: list, weeks: dict):
         _set = [orig_set]
         UUIDs = [dpg.generate_uuid()]
 
-    # if week == None:
-    #     weeks = get_week_data()
-    #     weeks["lectures"].sort(key=lambda a: a["lecture_no"])
-    # else:
-    #     weeks = [week]
+    weeks["lectures"].sort(key=lambda a: a["lecture_no"])
 
     with dpg.window(
         label=label,

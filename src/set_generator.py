@@ -9,13 +9,14 @@ from datetime import date
 from random import choice, choices, randint
 from os.path import join
 
-from src.constants import LANGUAGE, COURSE_INFO, OPEN_COURSE_PATH
+from src.constants import LANGUAGE, COURSE_INFO, OPEN_COURSE_PATH, DISPLAY_TEXTS
 from src.data_handler import get_pos_convert, format_week_data
 from src.data_getters import (
     get_all_indexed_assignments,
     get_assignment_json,
     get_week_data,
 )
+from src.popups import popup_ok
 
 
 def generate_one_set(
@@ -150,6 +151,9 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
     """
 
     week_data = get_week_data()
+    if not week_data["lectures"]:
+        popup_ok(DISPLAY_TEXTS["ui_no_weeks_data"][LANGUAGE.get()])
+        return
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
     fm_week = format_week_data(week_data)
 

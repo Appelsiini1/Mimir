@@ -578,8 +578,12 @@
         "FI" : "Tehtävän taso",
         "ENG" : "Assignment level"
     },
-    "ui_no_week" : {
+    "ui_no_week_data" : {
         "FI" : "Syöttämäsi viikon ohjeita ei löydy. Lisää viikon tiedot ennen tehtäväsarjan luontia.",
         "ENG" : "No instructions found for inputted week. Please add week data before creating assignment set."
+    },
+    "ui_no_weeks_data" :{
+        "FI" : "Viikkojen ohjeita ei löydy. Lisää viikkojen ohjeet ennen tehtäväsarjojen luontia.",
+        "ENG" : "No week instructions found. Please add week data before creating assignment sets."
     }
 }
