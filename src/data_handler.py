@@ -79,11 +79,14 @@ def open_index(**args):
     name = COURSE_INFO["course_id"]
     try:
         ix = index.open_dir(ix_path, name)
-    except OSError:
+    except (OSError, index.EmptyIndexError):
         logging.exception("Could not open index file.")
+        popup_ok(DISPLAY_TEXTS["ui_index_open_error"][LANGUAGE.get()])
+        return -1
     else:
         OPEN_IX.set(ix)
         logging.debug("Index set.")
+        return 0
 
 
 def add_assignment_to_index(data: dict, expanding: bool):
@@ -122,9 +125,13 @@ def _save_course_file():
     Save course metadata to file
     """
     f_path = path.join(OPEN_COURSE_PATH.get(), "course_info.mcif")
-    with open(f_path, "w", encoding="utf-8") as f:
-        to_write = json.dumps(COURSE_INFO, indent=4)
-        f.write(to_write)
+    try:
+        with open(f_path, "w", encoding="utf-8") as f:
+            to_write = json.dumps(COURSE_INFO, indent=4)
+            f.write(to_write)
+    except OSError:
+        logging.exception("Unable to save course info file.")
+        popup_ok(DISPLAY_TEXTS["ui_error_save_course"][LANGUAGE.get()])
 
 
 def save_course_info(**args):
@@ -140,19 +147,24 @@ def save_course_info(**args):
     COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
     levels = {}
     raw = get_value(UI_ITEM_TAGS["COURSE_LEVELS"]).strip().split("\n")
-    try:
-        for item in raw:
-            data = item.split(":")
-            levels[int(data[0])] = [data[1]]
-            if len(data) == 3:
-                levels[int(data[0])].append(data[2])
-        COURSE_INFO["course_levels"] = levels
-        COURSE_INFO["min_level"] = min(levels.keys())
-        COURSE_INFO["max_level"] = max(levels.keys())
-    except (IndexError, ValueError):
-        logging.exception("Error in course level saving:")
-        popup_ok(DISPLAY_TEXTS["ui_level_error"][LANGUAGE.get()])
-        return
+    if raw[0] != '':
+        try:
+            for item in raw:
+                data = item.split(":")
+                levels[int(data[0])] = [data[1]]
+                if len(data) == 3:
+                    levels[int(data[0])].append(data[2])
+            COURSE_INFO["course_levels"] = levels
+            COURSE_INFO["min_level"] = min(levels.keys())
+            COURSE_INFO["max_level"] = max(levels.keys())
+        except (IndexError, ValueError):
+            logging.exception("Error in course level saving:")
+            popup_ok(DISPLAY_TEXTS["ui_level_error"][LANGUAGE.get()])
+            return
+    else:
+        COURSE_INFO["course_levels"] = {}
+        COURSE_INFO["min_level"] = 0
+        COURSE_INFO["max_level"] = 0
 
     if not OPEN_COURSE_PATH.get():
         ask_course_dir()
@@ -462,7 +474,8 @@ def open_course(**args):
         _json = json.loads(_data)
         for key in _json.keys():
             COURSE_INFO[key] = _json[key]
-        open_index()
+        if open_index() == -1:
+            return
         configure_item(
             UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"]
         )

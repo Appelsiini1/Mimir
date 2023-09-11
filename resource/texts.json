@@ -585,5 +585,13 @@
     "ui_no_weeks_data" :{
         "FI" : "Viikkojen ohjeita ei löydy. Lisää viikkojen ohjeet ennen tehtäväsarjojen luontia.",
         "ENG" : "No week instructions found. Please add week data before creating assignment sets."
+    },
+    "ui_index_open_error" : {
+        "FI" : "Tehtäväindeksiä ei voitu avata. Lisätietoa lokitiedostossa.",
+        "ENG" : "Assignment index could not be opened. More details in the log file."
+    },
+    "ui_error_save_course" : {
+        "FI" : "Virhe kurssin tietojen tallennuksessa. Lisätietoja lokitiedostossa.",
+        "ENG" : "Error saving course information. More details in the log file."
     }
 }

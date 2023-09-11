@@ -1909,6 +1909,8 @@ def create_all_sets_callback(s, a, u):
 
     exc_exp = dpg.get_value(u)
     _sets = generate_full_set(exclude_expanding=exc_exp)
+    if not _sets:
+        return
     formatted = [format_set(_set) for _set in _sets]
     weeks = get_week_data()
     result_window(formatted, weeks)
