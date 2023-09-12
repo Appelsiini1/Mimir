@@ -8,7 +8,13 @@ from string import ascii_uppercase
 from tkinter.filedialog import askopenfilenames
 import dearpygui.dearpygui as dpg
 
-from src.constants import FILETYPES, DISPLAY_TEXTS, LANGUAGE, UI_ITEM_TAGS, OPEN_COURSE_PATH
+from src.constants import (
+    FILETYPES,
+    DISPLAY_TEXTS,
+    LANGUAGE,
+    UI_ITEM_TAGS,
+    OPEN_COURSE_PATH,
+)
 from src.data_handler import (
     path_leaf,
     save_course_info,
@@ -323,7 +329,7 @@ def toggle_enabled(sender, app_data, item: int | str | tuple):
                 dpg.disable_item(i)
             else:
                 dpg.enable_item(i)
-        
+
     else:
         if dpg.is_item_enabled(item):
             dpg.disable_item(item)
@@ -460,11 +466,15 @@ def save_select(s, a, u: tuple[list, int | str | dict]):
             data["previous"] = [result["a_id"]]
         else:
             data["previous"].append(result["a_id"])
-        dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"])
+        dpg.configure_item(
+            UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"]
+        )
         close_window(UI_ITEM_TAGS["LIST_WINDOW"])
     else:
         field_ids = u[1][1]
-        data = get_assignment_json(join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"]+".json"))
+        data = get_assignment_json(
+            join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"] + ".json")
+        )
         u[0].append(data)
         dpg.configure_item(field_ids["title"], default_value=data["title"])
         dpg.configure_item(
@@ -503,9 +513,21 @@ def save_result_popup(s, a, u: tuple[dict, tuple, list, dict]):
     field_ids = u[3]
 
     var_value = dpg.get_value(field_ids["var"])
-    if not select or not var_value:
+    if not var_value:
         return
+    if not select:
+        title = dpg.get_value(field_ids["title"])
+        for item in _set[index]:
+            if item["title"] == title:
+                select.append(item)
+                break
 
+    select[0] = get_assignment_json(
+        join(
+            OPEN_COURSE_PATH.get_subdir(metadata=True),
+            select[0]["assignment_id"] + ".json",
+        )
+    )
     for item in select[0]["variations"]:
         if item["variation_id"] == var_value:
             select[0]["variations"] = [item]

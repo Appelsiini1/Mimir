@@ -672,7 +672,7 @@ def del_result(s, a, u: tuple[int | str, int, list]):
     value = get_value(listbox_id)
     index_n = u[1]
     _set = u[2]
-    week = u[3]["lectures"][index_n]["lecture_no"]
+    week = u[3]
     assig_index = None
     for i, item in enumerate(_set[index_n], start=1):
         t = ""
@@ -687,7 +687,8 @@ def del_result(s, a, u: tuple[int | str, int, list]):
         )
         if t == value:
             assig_index = i - 1
-    if not assig_index:
+            break
+    if assig_index == None:
         return
     _set[index_n].pop(assig_index)
     headers = gen_result_headers(_set[index_n], week)

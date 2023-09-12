@@ -1980,7 +1980,7 @@ def result_window(orig_set: list, weeks: dict):
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
                                 callback=del_result,
-                                user_data=(_id, i, _set, weeks),
+                                user_data=(_id, i, _set, weeks["lectures"][i]["lecture_no"]),
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -2159,11 +2159,11 @@ def result_popup(
                 tag=field_ids["var"],
                 default_value=var_id,
             )
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                callback=show_var_result,
-                user_data=(select, field_ids),
-            )
+            # dpg.add_button(
+            #     label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+            #     callback=show_var_result,
+            #     user_data=(select, field_ids),
+            # )
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)
