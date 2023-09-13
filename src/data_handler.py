@@ -39,6 +39,7 @@ from src.data_getters import (
     get_assignment_json,
 )
 from src.popups import popup_ok
+from src.window_helper import close_window
 
 ########################################
 
@@ -511,6 +512,10 @@ def close_index() -> None:
 def save_week_data(week, new) -> None:
     """
     Save week data to file.
+
+    Params:
+    week: single week to save
+    new: boolean if week is new
     """
     parent = get_week_data()
 
@@ -521,6 +526,15 @@ def save_week_data(week, new) -> None:
             if item["lecture_no"] == week["lecture_no"]:
                 parent["lectures"][i] = week
                 break
+    save_full_week(parent)
+
+def save_full_week(parent):
+    """
+    File operation for week saving
+
+    Params:
+    parent: the full week data dict
+    """
 
     f_path = path.join(OPEN_COURSE_PATH.get(), "weeks.json")
     try:
@@ -530,7 +544,8 @@ def save_week_data(week, new) -> None:
             WEEK_DATA.set(parent)
     except OSError:
         logging.exception("Error in saving week JSON.")
-    logging.debug("Week data saved: %s", _json)
+    else:
+        logging.debug("Week data saved: %s", _json)
 
 
 def year_conversion(data: list, encode: bool) -> list:
@@ -751,3 +766,18 @@ def format_week_data(data:dict) -> dict:
         new_dict[str(week["lecture_no"])] = week
 
     return new_dict
+
+
+def del_week_data(s, a, u:tuple[dict, int]) -> None:
+    """
+    Delete a week from week data
+    """
+    parent = u[0]
+    _index = u[1]
+    window_id = u[2]
+    popup_id = u[3]
+
+    close_window(popup_id)
+    close_window(window_id)
+    del parent["lectures"][_index]
+    save_full_week(parent)

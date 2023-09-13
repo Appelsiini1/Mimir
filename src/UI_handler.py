@@ -34,6 +34,7 @@ from src.data_handler import (
     move_up,
     del_assignment_files,
     del_assignment_from_index,
+    del_week_data,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -1145,6 +1146,17 @@ def _add_week_window(parent=None, index=None, select=False):
                             user_data=UI_ITEM_TAGS["ADD_WEEK"],
                             width=90,
                         )
+                        if not new:
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                                callback=popup_confirmation,
+                                user_data=(
+                                    DISPLAY_TEXTS["ui_confirm"][LANGUAGE.get()],
+                                    del_week_data,
+                                    (parent, index, UI_ITEM_TAGS["ADD_WEEK"]),
+                                ),
+                                width=90,
+                            )
 
 
 def open_new_week_window(parent=None, index=None, select=False):
@@ -1980,7 +1992,12 @@ def result_window(orig_set: list, weeks: dict):
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
                                 callback=del_result,
-                                user_data=(_id, i, _set, weeks["lectures"][i]["lecture_no"]),
+                                user_data=(
+                                    _id,
+                                    i,
+                                    _set,
+                                    weeks["lectures"][i]["lecture_no"],
+                                ),
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
