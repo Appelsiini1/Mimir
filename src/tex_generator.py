@@ -406,13 +406,7 @@ def tex_gen(data: tuple[list, dict]):
             )
             output = generate_pdf()
             if not isinstance(output, CompletedProcess):
-                close_window(popupID)
-                popup_ok(
-                    DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()]
-                    + "\n"
-                    + ENV["PROGRAM_DATA"]
-                    + "\\log.txt"
-                )
+                pdf_error(popupID)
                 return
 
             configure_item(
@@ -420,13 +414,8 @@ def tex_gen(data: tuple[list, dict]):
             )
             res2 = copy_files(directory, filename)
             if not res2:
-                close_window(popupID)
-                popup_ok(
-                    DISPLAY_TEXTS["ui_copy_error"][LANGUAGE.get()]
-                    + "\n"
-                    + ENV["PROGRAM_DATA"]
-                    + "\\log.txt"
-                )
+                copy_error(popupID)
+                return
 
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
@@ -445,13 +434,7 @@ def tex_gen(data: tuple[list, dict]):
             )
             output = generate_pdf()
             if not isinstance(output, CompletedProcess):
-                close_window(popupID)
-                popup_ok(
-                    DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()]
-                    + "\n"
-                    + ENV["PROGRAM_DATA"]
-                    + "\\log.txt"
-                )
+                pdf_error(popupID)
                 return
 
             configure_item(
@@ -459,13 +442,41 @@ def tex_gen(data: tuple[list, dict]):
             )
             res2 = copy_files(directory, filename)
             if not res2:
-                close_window(popupID)
-                popup_ok(
-                    DISPLAY_TEXTS["ui_copy_error"][LANGUAGE.get()]
-                    + "\n"
-                    + ENV["PROGRAM_DATA"]
-                    + "\\log.txt"
-                )
+                copy_error(popupID)
+                return
     close_window(popupID)
     sleep(0.1)
     popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)
+
+
+def pdf_error(popupID):
+    """
+    Displays a PDF error popup.
+
+    Params:
+    popupID: ID of the loading popup to close
+    """
+    close_window(popupID)
+    sleep(0.1)
+    popup_ok(
+        DISPLAY_TEXTS["ui_pdf_error"][LANGUAGE.get()]
+        + "\n"
+        + ENV["PROGRAM_DATA"]
+        + "\\log.txt"
+    )
+
+def copy_error(popupID):
+    """
+    Displays a copy error popup.
+
+    Params:
+    popupID: ID of the loading popup to close
+    """
+    close_window(popupID)
+    sleep(0.1)
+    popup_ok(
+        DISPLAY_TEXTS["ui_copy_error"][LANGUAGE.get()]
+        + "\n"
+        + ENV["PROGRAM_DATA"]
+        + "\\log.txt"
+    )

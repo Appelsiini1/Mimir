@@ -34,6 +34,7 @@ from src.data_handler import (
     move_up,
     del_assignment_files,
     del_assignment_from_index,
+    del_week_data,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -237,7 +238,7 @@ def main_window():
                                 dpg.add_input_int(
                                     callback=None,
                                     width=150,
-                                    min_value=1,
+                                    min_value=0,
                                     min_clamped=True,
                                     tag=week_input_tag,
                                 )
@@ -1145,6 +1146,17 @@ def _add_week_window(parent=None, index=None, select=False):
                             user_data=UI_ITEM_TAGS["ADD_WEEK"],
                             width=90,
                         )
+                        if not new:
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                                callback=popup_confirmation,
+                                user_data=(
+                                    DISPLAY_TEXTS["ui_confirm"][LANGUAGE.get()],
+                                    del_week_data,
+                                    (parent, index, UI_ITEM_TAGS["ADD_WEEK"]),
+                                ),
+                                width=90,
+                            )
 
 
 def open_new_week_window(parent=None, index=None, select=False):
@@ -1898,6 +1910,8 @@ def create_one_set_callback(s, a, u):
         )
         formatted = format_set(_set)
         result_window(formatted, all_weeks)
+    else:
+        popup_ok(DISPLAY_TEXTS["ui_no_week_data"][LANGUAGE.get()])
 
 
 def create_all_sets_callback(s, a, u):
@@ -1907,6 +1921,8 @@ def create_all_sets_callback(s, a, u):
 
     exc_exp = dpg.get_value(u)
     _sets = generate_full_set(exclude_expanding=exc_exp)
+    if not _sets:
+        return
     formatted = [format_set(_set) for _set in _sets]
     weeks = get_week_data()
     result_window(formatted, weeks)
@@ -1931,11 +1947,7 @@ def result_window(orig_set: list, weeks: dict):
         _set = [orig_set]
         UUIDs = [dpg.generate_uuid()]
 
-    # if week == None:
-    #     weeks = get_week_data()
-    #     weeks["lectures"].sort(key=lambda a: a["lecture_no"])
-    # else:
-    #     weeks = [week]
+    weeks["lectures"].sort(key=lambda a: a["lecture_no"])
 
     with dpg.window(
         label=label,
@@ -1980,7 +1992,12 @@ def result_window(orig_set: list, weeks: dict):
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
                                 callback=del_result,
-                                user_data=(_id, i, _set, weeks),
+                                user_data=(
+                                    _id,
+                                    i,
+                                    _set,
+                                    weeks["lectures"][i]["lecture_no"],
+                                ),
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -2159,11 +2176,11 @@ def result_popup(
                 tag=field_ids["var"],
                 default_value=var_id,
             )
-            dpg.add_button(
-                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
-                callback=show_var_result,
-                user_data=(select, field_ids),
-            )
+            # dpg.add_button(
+            #     label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+            #     callback=show_var_result,
+            #     user_data=(select, field_ids),
+            # )
             dpg.add_spacer(height=5)
             dpg.add_separator()
             dpg.add_spacer(height=5)

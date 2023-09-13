@@ -9,13 +9,14 @@ from datetime import date
 from random import choice, choices, randint
 from os.path import join
 
-from src.constants import LANGUAGE, COURSE_INFO, OPEN_COURSE_PATH
+from src.constants import LANGUAGE, COURSE_INFO, OPEN_COURSE_PATH, DISPLAY_TEXTS
 from src.data_handler import get_pos_convert, format_week_data
 from src.data_getters import (
     get_all_indexed_assignments,
     get_assignment_json,
     get_week_data,
 )
+from src.popups import popup_ok
 
 
 def generate_one_set(
@@ -96,12 +97,12 @@ def select_for_position(pos: list) -> tuple[dict, str]:
     if selection[0] == 0:
         selected = (pos[0], pos[0]["variations"][0]["variation_id"])
     else:
-        x = 0
         for item in pos:
+            x = 0
             for var in item["variations"]:
-                x += 1
                 if x == selection[0]:
                     selected = (item, var["variation_id"])
+                x += 1
 
     return selected
 
@@ -150,16 +151,19 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
     """
 
     week_data = get_week_data()
+    if not week_data["lectures"]:
+        popup_ok(DISPLAY_TEXTS["ui_no_weeks_data"][LANGUAGE.get()])
+        return
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
     fm_week = format_week_data(week_data)
 
     sets = []
     if exclude_expanding:
         for i in range(0, COURSE_INFO["course_weeks"]):
-            if str(i + 1) in fm_week:
+            if str(i) in fm_week:
                 _set = generate_one_set(
-                    fm_week[str(i + 1)]["lecture_no"],
-                    fm_week[str(i + 1)]["assignment_count"],
+                    fm_week[str(i)]["lecture_no"],
+                    fm_week[str(i)]["assignment_count"],
                     exclude_expanding=True,
                 )
                 sets.append(_set)
@@ -179,10 +183,10 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
 
         if not filtered:
             for i in range(0, COURSE_INFO["course_weeks"]):
-                if str(i + 1) in fm_week:
+                if str(i) in fm_week:
                     _set = generate_one_set(
-                        fm_week[str(i + 1)]["lecture_no"],
-                        fm_week[str(i + 1)]["assignment_count"],
+                        fm_week[str(i)]["lecture_no"],
+                        fm_week[str(i)]["assignment_count"],
                         exclude_expanding=True,
                     )
                     sets.append(_set)
@@ -192,15 +196,15 @@ def generate_full_set(exclude_expanding=False) -> list[list[tuple[dict, str]]] |
             for week_n in range(0, COURSE_INFO["course_weeks"]):
                 week_filtered = []
                 for item in filtered:
-                    if int(item["exp_lecture"]) == week_n + 1:
+                    if int(item["exp_lecture"]) == week_n:
                         week_filtered.append(item)
 
-                if not week_filtered and str(week_n + 1) not in fm_week:
+                if not week_filtered and str(week_n) not in fm_week:
                     continue
-                if not week_filtered and str(week_n + 1) in fm_week:
+                if not week_filtered and str(week_n) in fm_week:
                     _set = generate_one_set(
-                        fm_week[str(week_n + 1)]["lecture_no"],
-                        fm_week[str(week_n + 1)]["assignment_count"],
+                        fm_week[str(week_n)]["lecture_no"],
+                        fm_week[str(week_n)]["assignment_count"],
                         exclude_expanding=True,
                     )
                     sets.append(_set)
@@ -276,8 +280,10 @@ def choose_next(filtered: list, next_a: str, exp_positions: dict) -> None:
         if str(lecture) not in exp_positions[str(lecture)]:
             exp_positions[str(lecture)][str(c_position)] = item
         for i, a in enumerate(filtered):
-            if a["a_id"] == next_a:
+            if a["assignment_id"] == next_a:
                 filtered.pop(i)
+        if not item["next"]:
+            return
         next_a = choice(item["next"])
         choose_next(filtered, next_a, exp_positions)
     else:
