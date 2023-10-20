@@ -1894,7 +1894,10 @@ def create_one_set_callback(s, a, u):
 
     week_n = dpg.get_value(u[0])
     exc_exp = dpg.get_value(u[1])
-    all_weeks = get_week_data().copy()
+    try:
+        all_weeks = get_week_data().copy()
+    except TypeError:
+        popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
     week = False
     for w in all_weeks["lectures"]:
         if w["lecture_no"] == week_n:

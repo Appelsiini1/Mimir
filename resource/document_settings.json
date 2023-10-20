@@ -17,7 +17,9 @@
             ["enumitem", ""],
             ["xcolor", ""],
             ["minted", ""],
-            ["hyperref", "hidelinks"]
+            ["hyperref", "hidelinks"],
+            ["float", ""],
+            ["soul", ""]
         ],
         "header" : {
             "page_numbering" : ["R", "\\thepage \\hspace{1pt} / \\pageref{LastPage}"],
@@ -34,5 +36,11 @@
             "\\definecolor{bg}{HTML}{F3F3F3}"
         ]
     },
-    "pagestyle" : "fancy"
+    "pagestyle" : "fancy",
+    "colour_links" : true,
+    "colours" : {
+        "urlcolor" : "blue",
+        "linkcolor" : "black",
+        "filecolor" : "magenta"
+    }
 }}

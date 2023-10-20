@@ -71,6 +71,7 @@ def _preamble_gen(doc_settings: dict, lecture: int):
     doc_settings: Documents settings as a JSON string.
     """
     preamble = doc_settings["document"]["preamble"]
+    colours = doc_settings["document"]["colours"]
 
     doc_class = preamble["documentclass_options"]
     doc_class_cmd = f"\\documentclass[{doc_class[0]}, \
@@ -108,10 +109,18 @@ bottom={margins[3]}mm]\
     )
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
     metadata += (
-        ", pdftitle={L"
+        ",\n\tpdftitle={L"
         + f"{lecture:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
-        + "}}"
+        + "}"
     )
+    if doc_settings["document"]["colour_links"]:
+        metadata += (
+            ",\n\tcolorlinks=true,\n\t"
+            + f"urlcolor={colours['urlcolor']},\n\t"
+            + f"linkcolor={colours['linkcolor']},\n\t"
+            + f"filecolor={colours['filecolor']}"
+        )
+    metadata += "}"
 
     result = [
         doc_class_cmd,
