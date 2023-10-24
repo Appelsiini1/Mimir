@@ -309,7 +309,7 @@ def remove_selected(s, a, u):
                 final = [path_leaf(i) for i in data["outputfiles"]]
                 break
     elif i_type == "ex_run":
-        index = selected.split(" ")[1] - 1
+        index = int(selected.split(" ")[1]) - 1
         data["example_runs"].pop(index)
         final = [
             "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
