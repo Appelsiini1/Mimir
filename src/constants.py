@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "0.9.26"
+VERSION = "0.9.27"
 
 #################################
 # Environment spesific constants
@@ -94,6 +94,7 @@ _GENERAL_KEY_LIST = [
     "LISTBOX",
     "PAGENUM",
     "ASSIGNMENT_LEVEL",
+    "PROJECT_WORK_DISPLAY",
 ]
 VARIATION_KEY_LIST = [
     "INSTRUCTIONS",
