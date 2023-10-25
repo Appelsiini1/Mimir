@@ -70,7 +70,7 @@ from src.popups import popup_ok, popup_confirmation
 from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
-from src.tex_generator import tex_gen
+from src.tex_generator import tex_gen, create_pw_pdf
 from pprint import pprint
 
 #############################################################
@@ -226,6 +226,7 @@ def main_window():
                     with dpg.group(horizontal=True):
                         dpg.add_spacer(width=15)
 
+                        # One Week Set
                         with dpg.group():
                             dpg.add_text(
                                 DISPLAY_TEXTS["ui_one_week"][LANGUAGE.get()] + ":"
@@ -243,25 +244,21 @@ def main_window():
                                     tag=week_input_tag,
                                 )
                             with dpg.group(horizontal=True):
-                                dpg.add_text(
-                                    DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()]
-                                )
+                                dpg.add_text(DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()])
                                 checkbox_tag = dpg.generate_uuid()
                                 dpg.add_checkbox(tag=checkbox_tag)
                             dpg.add_spacer(height=5)
                             dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()]
-                                + "...",
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_one_set_callback,
                                 user_data=(
                                     week_input_tag,
                                     checkbox_tag,
                                 ),
                             )
-                            dpg.bind_item_theme(
-                                dpg.last_item(), "alternate_button_theme"
-                            )
+                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
+                            # Full set
                             dpg.add_spacer(height=10)
                             dpg.add_separator()
                             dpg.add_spacer(height=10)
@@ -271,21 +268,53 @@ def main_window():
                             )
                             dpg.add_spacer(height=5)
                             with dpg.group(horizontal=True):
-                                dpg.add_text(
-                                    DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()]
-                                )
+                                dpg.add_text(DISPLAY_TEXTS["ui_excl_exp"][LANGUAGE.get()])
                                 checkbox_tag2 = dpg.generate_uuid()
                                 dpg.add_checkbox(tag=checkbox_tag2)
                             dpg.add_spacer(height=5)
                             dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()]
-                                + "...",
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_all_sets_callback,
                                 user_data=checkbox_tag2,
                             )
-                            dpg.bind_item_theme(
-                                dpg.last_item(), "alternate_button_theme"
+                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+
+                            # Project work
+                            dpg.add_spacer(height=10)
+                            dpg.add_separator()
+                            dpg.add_spacer(height=10)
+
+                            dpg.add_text(
+                                DISPLAY_TEXTS["ui_project_work"][LANGUAGE.get()] + ":"
                             )
+                            dpg.add_spacer(height=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()] + "...",
+                                callback=open_assignment_browse,
+                                user_data=(
+                                    True,
+                                    True,
+                                    [],
+                                    UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"],
+                                ),
+                            )
+                            dpg.add_spacer(height=5)
+                            with dpg.group(horizontal=True):
+                                dpg.add_text(
+                                    DISPLAY_TEXTS["ui_selected"][LANGUAGE.get()] + ":"
+                                )
+                                dpg.add_input_text(
+                                    readonly=True,
+                                    tag=UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"],
+                                )
+
+                            dpg.add_spacer(height=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
+                                callback=create_project_work,
+                            )
+                            dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+
                             dpg.add_spacer(height=10)
 
         # Assignment management header
@@ -417,9 +446,7 @@ def _add_example_run_window(
                     tag=UUIDs["CMD_INPUTS"],
                     enabled=select,
                     tab_input=True,
-                    default_value=", ".join(
-                        [str(item) for item in ex_run["cmd_inputs"]]
-                    ),
+                    default_value=", ".join([str(item) for item in ex_run["cmd_inputs"]]),
                 )
 
                 # Generate ex run checkbox
@@ -475,9 +502,7 @@ def _add_example_run_window(
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_remove_selected"][
-                                    LANGUAGE.get()
-                                ],
+                                label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                                 callback=remove_selected,
                                 user_data=(
                                     UUIDs["OUTPUT_FILES"],
@@ -897,9 +922,7 @@ def _assignment_window(var_data=None, select=False):
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_remove_selected"][
-                                    LANGUAGE.get()
-                                ],
+                                label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                                 callback=del_prev,
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_DEL"],
@@ -1310,7 +1333,7 @@ def assignment_browse_window(
                     )
 
 
-def open_assignment_browse(s, a, u: tuple[bool, bool, list, int | str]):
+def open_assignment_browse(s, a, u: tuple[bool, bool, list, int | str | tuple]):
     """
     Shorthand to check and open the assingment browse window.
     """
@@ -1722,9 +1745,7 @@ def show_var(s, a, user_data):
                             []
                             if not data["example_runs"]
                             else [
-                                "{} {}".format(
-                                    DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i
-                                )
+                                "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
                                 for i, _ in enumerate(data["example_runs"], start=1)
                             ]
                         )
@@ -1750,9 +1771,7 @@ def show_var(s, a, user_data):
                     dpg.add_text(DISPLAY_TEXTS["ui_used_in"][LANGUAGE.get()])
                     help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
                     dpg.add_input_text(
-                        default_value=", ".join(
-                            year_conversion(data["used_in"], False)
-                        ),
+                        default_value=", ".join(year_conversion(data["used_in"], False)),
                         enabled=select,
                     )
                     dpg.add_spacer(width=5)
@@ -1827,9 +1846,7 @@ def show_exrun(s, a, user_data):
                 help_(DISPLAY_TEXTS["help_cmd_inputs"][LANGUAGE.get()])
                 dpg.add_input_text(
                     enabled=select,
-                    default_value=", ".join(
-                        [str(item) for item in ex_run["cmd_inputs"]]
-                    ),
+                    default_value=", ".join([str(item) for item in ex_run["cmd_inputs"]]),
                 )
 
                 # Generate ex run checkbox
@@ -2254,3 +2271,22 @@ def reopen_main(s, a, lang: str):
     #     close_window(window)
     main_window()
     dpg.set_primary_window(UI_ITEM_TAGS["MAIN_WINDOW"], True)
+
+
+def create_project_work(**args):
+    """
+    Creates a project work file from selected assignment.
+    """
+
+    a_id = dpg.get_value(UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"])
+    logging.debug("Project work")
+    logging.debug(a_id)
+    if a_id == "":
+        popup_ok(DISPLAY_TEXTS["ui_no_assig_selected"][LANGUAGE.get()])
+        return
+    data = get_assignment_json(
+        join(OPEN_COURSE_PATH.get_subdir(metadata=True), 
+            a_id + ".json")
+        )
+
+    create_pw_pdf(data)

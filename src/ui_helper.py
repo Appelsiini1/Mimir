@@ -57,9 +57,7 @@ def _load_fonts():
             24,
         )
         _fonts["bold"] = dpg.add_font(
-            resource_path(
-                join("resource", "source-sans-pro", "SourceSansPro-Bold.ttf")
-            ),
+            resource_path(join("resource", "source-sans-pro", "SourceSansPro-Bold.ttf")),
             24,
         )
 
@@ -371,9 +369,7 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     assig["level"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LEVEL"])
     assig["code_language"] = dpg.get_value(UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"])
     logging.debug("Assignment code language: %s", assig["code_language"])
-    assig["instruction_language"] = dpg.get_value(
-        UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"]
-    )
+    assig["instruction_language"] = dpg.get_value(UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"])
     logging.debug("Assignment instruction language: %s", assig["instruction_language"])
     assig["exp_lecture"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"])
 
@@ -452,25 +448,30 @@ def clear_search_bar(s, a, u: list):
     dpg.configure_item(UI_ITEM_TAGS["LISTBOX"], items=headers)
 
 
-def save_select(s, a, u: tuple[list, int | str | dict]):
+def save_select(s, a, u: tuple[list, int | str | dict | tuple]):
     """
     Save the selected to the list and close browse window.
     """
 
     result = get_value_from_browse()
 
-    if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:
+    if u[1] == UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"]:  # Previous part
         data = u[0][0]
 
         if not data["previous"]:
             data["previous"] = [result["a_id"]]
         else:
             data["previous"].append(result["a_id"])
+        dpg.configure_item(UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"])
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+
+    elif u[1] == UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"]:  # Project work
         dpg.configure_item(
-            UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"], items=data["previous"]
+            UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"], default_value=result["a_id"]
         )
         close_window(UI_ITEM_TAGS["LIST_WINDOW"])
-    else:
+
+    else:  # Whatever the fuck this was...
         field_ids = u[1][1]
         data = get_assignment_json(
             join(OPEN_COURSE_PATH.get_subdir(metadata=True), result["a_id"] + ".json")

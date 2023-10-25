@@ -23,12 +23,14 @@ from src.window_helper import close_window
 # pylint: disable=anomalous-backslash-in-string
 
 
-def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
+def _hdr_ftr_gen(doc_settings: dict, gen_info: dict, pw=False):
     """
     Generate header and footer
 
     Params:
     doc_settings: Document settings as JSON (dict)
+    gen_info: dictionary containing general course and week info
+    pw: Project work boolean. Defaults to False.
     """
     header_opt = doc_settings["document"]["preamble"]["header"]
     footer_opt = doc_settings["document"]["preamble"]["footer"]
@@ -41,8 +43,12 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
             course = gen_info["course_id"] + " " + gen_info["course_name"]
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
-        if footer_opt["include_week"]:
+        if footer_opt["include_week"] and not pw:
             ftr_cmd += f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_week'][LANGUAGE.get()]} {gen_info['lecture']}}}\n"
+        elif pw:
+            ftr_cmd += (
+                f"\\fancyfoot[C]{{{DISPLAY_TEXTS['ui_project_work'][LANGUAGE.get()]}}}\n"
+            )
 
         if footer_opt["include_program"]:
             ftr_cmd += f"\\fancyfoot[L]{{Mímir v{VERSION}}}"
@@ -61,14 +67,16 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict):
     return ""
 
 
-def _preamble_gen(doc_settings: dict, lecture: int):
+def _preamble_gen(doc_settings: dict, gen_info: dict, pw=False) -> list:
     """
     Create preamble for the TeX document.
     This includes most of the general settings for the document.
-    Returns a string.
+    Returns a list of strings.
 
     Params:
     doc_settings: Documents settings as a JSON string.
+    gen_info: General info as dictionary
+    pw: Project Work boolean. Defaults to False.
     """
     preamble = doc_settings["document"]["preamble"]
     colours = doc_settings["document"]["colours"]
@@ -108,11 +116,17 @@ bottom={margins[3]}mm]\
         + "}\n"
     )
     metadata = "\\hypersetup{pdfauthor={" + f"Mímir v{VERSION}" + "}"
-    metadata += (
-        ",\n\tpdftitle={L"
-        + f"{lecture:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
-        + "}"
-    )
+    if not pw:
+        metadata += (
+            ",\n\tpdftitle={L"
+            + f"{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}"
+            + "}"
+        )
+    else:
+        metadata += (
+            ",\n\tpdftitle={" + DISPLAY_TEXTS["ui_project_work"][LANGUAGE.get()] + "}"
+        )
+
     if doc_settings["document"]["colour_links"]:
         metadata += (
             ",\n\tcolorlinks=true,\n\t"
@@ -214,6 +228,66 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     return text
 
 
+def _ge_ex_run(example_run: dict, i: int, pw=False):
+    """
+    Generate example run TeX.
+
+    Params:
+    example_run: dict with example run data
+    i: index of example runs
+    """
+
+    text = ""
+    text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
+    text += "\\hfill\\break\\newline\n"
+    if example_run["CMD"]:
+        if example_run["CMD"][0] != "":
+            text += _block_gen("cmd_input", example_run["CMD"])
+    if example_run["inputs"]:
+        if example_run["inputs"][0] != "":
+            text += _block_gen("ex_input", example_run["inputs"])
+    if example_run["output"]:
+        if example_run["output"][0] != "":
+            text += _block_gen("ex_output", example_run["output"])
+    if example_run["outputfiles"]:
+        if pw:
+            text += (
+                "\\phantomsection\n"
+                + "\\addcontentsline{toc}{section}{"
+                + DISPLAY_TEXTS["tex_ex_resultfile"][LANGUAGE.get()]
+                + " " + str(i) + "}"
+            )
+        for resultfile in example_run["outputfiles"]:
+            text += _block_gen(
+                "tex_ex_resultfile", resultfile["data"], resultfile["filename"]
+            )
+    return text
+
+
+def _include_solution(assignment: dict, pw=False):
+    """
+    Generate solution TeX.
+
+    Params:
+    assignment: assignment data as dict
+    """
+    text = ""
+    if pw:
+        text += (
+            "\\phantomsection\n"
+            + "\\addcontentsline{toc}{section}{"
+            + DISPLAY_TEXTS["tex_ex_solution"][LANGUAGE.get()]
+            + "}"
+        )
+    text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
+    for code in assignment["example_codes"]:
+        text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
+        text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
+        text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
+        text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
+    return text
+
+
 def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: bool):
     """
     Creates assignment TeX string from assingment code and metadata.
@@ -259,32 +333,10 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
                 )
 
         for i, example_run in enumerate(assignment["example_runs"], start=1):
-            text += (
-                f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
-            )
-            text += "\\hfill\\break\\newline\n"
-            if example_run["CMD"]:
-                if example_run["CMD"][0] != "":
-                    text += _block_gen("cmd_input", example_run["CMD"])
-            if example_run["inputs"]:
-                if example_run["inputs"][0] != "":
-                    text += _block_gen("ex_input", example_run["inputs"])
-            if example_run["output"]:
-                if example_run["output"][0] != "":
-                    text += _block_gen("ex_output", example_run["output"])
-            if example_run["outputfiles"]:
-                for resultfile in example_run["outputfiles"]:
-                    text += _block_gen(
-                        "tex_ex_resultfile", resultfile["data"], resultfile["filename"]
-                    )
+            text += _ge_ex_run(example_run, i)
 
         if incl_solution:
-            text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
-            for code in assignment["example_codes"]:
-                text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
-                text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
-                text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
-                text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
+            text += _include_solution(assignment)
 
         text += "\\fontfamily{lmr}\\selectfont\n"
 
@@ -370,6 +422,32 @@ def _gen_one(gen_info: dict, assignment_list: list, incl_solution: bool):
     return result
 
 
+def _gen_pdf(filename, directory, popupID, textID):
+    """
+    Generates a PDF file and copies it to the destionation.
+
+    Params:
+    filename: what to name the file generated
+    directory: the output folder
+    popupID: the ID of the info popup when generating PDF
+    textID: ID of the text inside the popup
+    """
+
+    configure_item(textID, default_value=DISPLAY_TEXTS["ui_creating_pdf"][LANGUAGE.get()])
+    output = generate_pdf()
+    if not isinstance(output, CompletedProcess):
+        pdf_error(popupID)
+        return False
+
+    configure_item(textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()])
+    res2 = copy_files(directory, filename)
+    if not res2:
+        copy_error(popupID)
+        return False
+
+    return True
+
+
 def tex_gen(data: tuple[list, dict]):
     """
     Generates all instruction papers based on given set. Calls PDF generation afterwards.
@@ -400,7 +478,7 @@ def tex_gen(data: tuple[list, dict]):
             "lecture": week_data["lectures"][i]["lecture_no"],
             "topics": week_data["lectures"][i]["topics"],
             "instructions": week_data["lectures"][i]["instructions"],
-            "title": week_data["lectures"][i]["title"]
+            "title": week_data["lectures"][i]["title"],
         }
         filename = (
             DISPLAY_TEXTS["tex_lecture_letter"][LANGUAGE.get()]
@@ -410,20 +488,8 @@ def tex_gen(data: tuple[list, dict]):
         formatted_set = [format_metadata_json(assig) for assig in _set]
         res = _gen_one(gen_info, formatted_set, False)
         if res:
-            configure_item(
-                textID, default_value=DISPLAY_TEXTS["ui_creating_pdf"][LANGUAGE.get()]
-            )
-            output = generate_pdf()
-            if not isinstance(output, CompletedProcess):
-                pdf_error(popupID)
-                return
-
-            configure_item(
-                textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()]
-            )
-            res2 = copy_files(directory, filename)
-            if not res2:
-                copy_error(popupID)
+            res = _gen_pdf(filename, directory, popupID, textID)
+            if not res:
                 return
 
         filename = (
@@ -438,20 +504,8 @@ def tex_gen(data: tuple[list, dict]):
         )
         res = _gen_one(gen_info, formatted_set, True)
         if res:
-            configure_item(
-                textID, default_value=DISPLAY_TEXTS["ui_creating_pdf"][LANGUAGE.get()]
-            )
-            output = generate_pdf()
-            if not isinstance(output, CompletedProcess):
-                pdf_error(popupID)
-                return
-
-            configure_item(
-                textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()]
-            )
-            res2 = copy_files(directory, filename)
-            if not res2:
-                copy_error(popupID)
+            res = _gen_pdf(filename, directory, popupID, textID)
+            if not res:
                 return
     close_window(popupID)
     sleep(0.1)
@@ -474,6 +528,7 @@ def pdf_error(popupID):
         + "\\log.txt"
     )
 
+
 def copy_error(popupID):
     """
     Displays a copy error popup.
@@ -489,3 +544,130 @@ def copy_error(popupID):
         + ENV["PROGRAM_DATA"]
         + "\\log.txt"
     )
+
+
+def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> str:
+    """
+    Generate project work content TeX.
+
+    Params:
+    assignment_data: assignment data as dictionary
+    gen_info: general info as dictionary
+    incl_solution: Boolean whether to add solution to TeX
+    """
+    text = ""
+    text += f"\\section*{{{gen_info['title']}}}\n"
+    text += "\\vspace{0.2cm}\n"
+    text += "\\tableofcontents\n\\vspace{0.5cm}\n"
+    text += assignment["instructions"] + "\n"
+    text += "\\vspace{5mm}\n"
+
+    if "datafiles" in assignment:
+        text += "\\hfill\\break\\newline\n"
+        text += (
+            "\\phantomsection\n"
+            + "\\addcontentsline{toc}{section}{"
+            + DISPLAY_TEXTS["tex_ex_input_datafile"][LANGUAGE.get()]
+            + "}"
+        )
+        for datafile in assignment["datafiles"]:
+            text += _block_gen(
+                "tex_ex_input_datafile", datafile["data"], datafile["filename"]
+            )
+    for i, example_run in enumerate(assignment["example_runs"], start=1):
+        text += (
+            "\\phantomsection\n"
+            + "\\addcontentsline{toc}{section}{"
+            + DISPLAY_TEXTS["ex_run"][LANGUAGE.get()]
+            + " "
+            + str(i)
+            + "}"
+        )
+        text += _ge_ex_run(example_run, i, True)
+
+    if incl_solution:
+        text += _include_solution(assignment)
+
+    text += "\\fontfamily{lmr}\\selectfont\n"
+    return text
+
+
+def gen_pw_tex(assignment_data: dict, gen_info: dict, incl_solution: bool) -> bool:
+    """
+    Generate project work TeX file.
+
+    Params:
+    assignment_data: assignment data as dictionary
+    gen_info: general info as dictionary
+    incl_solution: Boolean whether to add solution to TeX
+    """
+
+    document_settings = get_texdoc_settings()
+    preamble = _preamble_gen(document_settings, gen_info, pw=True)
+    header, footer = _hdr_ftr_gen(document_settings, gen_info, pw=True)
+    begin = "\\begin{document}\n"
+    pagestyle = f'\\pagestyle{{{document_settings["document"]["pagestyle"]}}}'
+    end = "\\end{document}"
+
+    content = _gen_pw_content(assignment_data, gen_info, incl_solution)
+
+    tex_cmd = preamble + [
+        begin,
+        pagestyle,
+        header,
+        footer,
+        content,
+        end,
+    ]
+    tex_data = "\n".join(tex_cmd)
+    logging.info("TeX data created.")
+    result = _write_tex_file(tex_data)
+    return result
+
+
+def create_pw_pdf(assignment_data: dict) -> None:
+    """
+    Create project work file from the given assignment data.
+
+    Params:
+    assignment_data: assignment data as dictionary
+    """
+
+    popupID = generate_uuid()
+    textID = generate_uuid()
+
+    directory = askdirectory(
+        mustexist=True, title=DISPLAY_TEXTS["ui_choose_output_folder"][LANGUAGE.get()]
+    )
+
+    if not directory:
+        return
+
+    popup_load(DISPLAY_TEXTS["ui_generating_tex"][LANGUAGE.get()], popupID, textID)
+
+    formatted_data = format_metadata_json(assignment_data)
+    gen_info = {
+        "course_name": COURSE_INFO["course_title"],
+        "course_id": COURSE_INFO["course_id"],
+        "title": formatted_data["title"],
+    }
+    result = gen_pw_tex(formatted_data, gen_info, False)
+    if result:
+        filename = DISPLAY_TEXTS["ui_project_work"][LANGUAGE.get()]
+        res = _gen_pdf(filename, directory, popupID, textID)
+        if not res:
+            return
+
+    result = gen_pw_tex(formatted_data, gen_info, True)
+    if result:
+        filename = (
+            DISPLAY_TEXTS["ui_project_work"][LANGUAGE.get()]
+            + DISPLAY_TEXTS["tex_answers"][LANGUAGE.get()].upper()
+        )
+        res = _gen_pdf(filename, directory, popupID, textID)
+        if not res:
+            return
+
+    close_window(popupID)
+    sleep(0.1)
+    popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)

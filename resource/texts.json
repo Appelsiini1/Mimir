@@ -143,7 +143,7 @@
         "ENG" : "Variations"
     },
     "ui_selected" : {
-        "FI" : "Valitut",
+        "FI" : "Valittu",
         "ENG" : "Selected"
     },
     "ui_full_course_setup" : {
@@ -593,5 +593,13 @@
     "ui_error_save_course" : {
         "FI" : "Virhe kurssin tietojen tallennuksessa. Lisätietoja lokitiedostossa.",
         "ENG" : "Error saving course information. More details in the log file."
+    },
+    "ui_project_work" : {
+        "FI" : "Harjoitustyö",
+        "ENG" : "Project work"
+    },
+    "ui_no_assig_selected" : {
+        "FI" : "Mitään tehtävää ei ole valittuna.",
+        "ENG" : "No assignment has been selected."
     }
 }
