@@ -171,11 +171,11 @@ def _starting_instructions_gen(gen_info: dict):
     for topic in gen_info["topics"]:
         topics += f"\t\\item {topic}\n"
 
-    text += title
+    text += title.replace('_', '\_')
     text += "\\vspace{0.2cm}"
-    text += topics
+    text += topics.replace('_', '\_')
     text += "\\end{itemize}\n"
-    text += gen_info["instructions"] + "\n"
+    text += gen_info["instructions"].replace('_', '\_') + "\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
 
     logging.debug("TEX STARTING INSTRUCTIONS")
@@ -202,7 +202,7 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
         text += "\\textit{"
     text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE.get()]}"
     if ex_file:
-        text += f" '{split(ex_file)[1]}'"
+        text += " '{0}'".format(split(ex_file)[1].replace('_', '\_'))
     text += ":}"
     if not ex_file:
         text += "}"
@@ -281,7 +281,7 @@ def _include_solution(assignment: dict, pw=False):
         )
     text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
     for code in assignment["example_codes"]:
-        text += f"\\textbf{{'{split(code['filename'])[1]}':}}"
+        text += "\\textbf{'" + split(code['filename'])[1].replace('_', '\_') + "':}"
         text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
         text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
         text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
@@ -319,10 +319,10 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
             title += f" ({level_abbr})"
         title += "}\n"
         text += title
-        text += "\\section*" + title
+        text += "\\section*" + title.replace('_', '\_')
         if a_level != None:
             text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
-        text += assignment["instructions"] + "\n"
+        text += assignment["instructions"].replace('_', '\_') + "\n"
         text += "\\vspace{5mm}\n"
 
         if "datafiles" in assignment:
@@ -559,7 +559,7 @@ def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> st
     text += f"\\section*{{{gen_info['title']}}}\n"
     text += "\\vspace{0.2cm}\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
-    text += assignment["instructions"] + "\n"
+    text += assignment["instructions"].replace('_', '\_') + "\n"
     text += "\\vspace{5mm}\n"
 
     if "datafiles" in assignment:
@@ -586,7 +586,7 @@ def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> st
         text += _ge_ex_run(example_run, i, True)
 
     if incl_solution:
-        text += _include_solution(assignment)
+        text += _include_solution(assignment, True)
 
     text += "\\fontfamily{lmr}\\selectfont\n"
     return text
