@@ -14,7 +14,7 @@ from dearpygui.dearpygui import generate_uuid, configure_item
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
 from src.data_handler import format_metadata_json
-from src.data_getters import get_texdoc_settings
+from src.data_getters import get_texdoc_settings, get_extension_list
 from src.ext_service import generate_pdf, copy_files
 from src.popups import popup_ok, popup_load
 from src.window_helper import close_window
@@ -206,7 +206,23 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     text += ":}"
     if not ex_file:
         text += "}"
-    text += "{\\fontfamily{{cmr}}\\selectfont\n\\begin{minted}[bgcolor=bg, fontsize=\\small]{text}\n"
+    text += "{\\fontfamily{{cmr}}\\selectfont\n\\begin{minted}[bgcolor=bg, fontsize=\\small]"
+    if ex_file:
+        try:
+            extension = ex_file.split(".")[1]
+            extension_list = get_extension_list()
+            if not extension_list:
+                text += "{text}\n"
+            else:
+                text += "{" + "{0}".format(extension_list[extension]) + "}\n"
+        except (IndexError, KeyError):
+            if ex_file.lower() == "makefile" or ex_file.lower() == "make":
+                text += "{make}\n"
+            else:
+                logging.error("Cannot find extension from extension list, defaulting to plain text.")
+                text += "{text}\n"
+    else:
+        text += "{text}\n"
     if display_text_key == "ex_input":
         for line in data:
             text += str(line) + "\n"
@@ -283,7 +299,20 @@ def _include_solution(assignment: dict, pw=False):
     for code in assignment["example_codes"]:
         text += "\\textbf{'" + split(code['filename'])[1].replace('_', '\_') + "':}"
         text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
-        text += f"[bgcolor=bg, fontsize=\\small]{{{assignment['code_lang']}}}\n"
+        text += f"[bgcolor=bg, fontsize=\\small]"
+        try:
+            extension = split(code['filename'])[1].split(".")[1]
+            extension_list = get_extension_list()
+            if not extension_list:
+                text += "{text}\n"
+            else:
+                text += "{" + "{0}".format(extension_list[extension]) + "}\n"
+        except (IndexError, KeyError):
+            if split(code['filename'])[1].lower() == "makefile" or split(code['filename'])[1].lower() == "make":
+                text += "{make}\n"
+            else:
+                logging.error("Cannot find extension from extension list, defaulting to plain text.")
+                text += "{text}\n"
         text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
     return text
 
