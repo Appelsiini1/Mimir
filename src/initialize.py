@@ -52,14 +52,16 @@ def init_defaults():
                     f2.write(data)
         except OSError:
             logging.exception("Unable to write document settings defaults to ENV!!")
-    # if not path.exists(untt_path):
-    #     try:
-    #         with open(resource_path("resource/unnumberedtotoc.sty"), "r", encoding="utf-8") as f:
-    #             data = f.read()
-    #             with open(untt_path, "w", encoding="utf-8") as f2:
-    #                 f2.write(data)
-    #     except OSError:
-    #         logging.exception("Unable to write needed TeX libraries to ENV!!")
+
+    ext_path = path.join(ENV["PROGRAM_DATA"], "pygmentize_extensions.json")
+    if not path.exists(ext_path):
+        try:
+            with open(resource_path("resource/pygmentize_extensions.json"), "r", encoding="utf-8") as f:
+                data = f.read()
+                with open(ext_path, "w", encoding="utf-8") as f2:
+                    f2.write(data)
+        except OSError:
+            logging.exception("Unable to write document settings defaults to ENV!!")
 
     LANGUAGE.set_all(list(DISPLAY_TEXTS["languages"].keys()))
 

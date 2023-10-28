@@ -86,8 +86,12 @@ def get_texdoc_settings() -> dict:
     Gets TeX document settings from file. Returns a dict.
     """
     _path = path.join(ENV["PROGRAM_DATA"], "document_settings.json")
-    with open(_path, "r", encoding="UTF-8") as _file:
-        _json = json.loads(_file.read())
+    try:
+        with open(_path, "r", encoding="UTF-8") as _file:
+            _json = json.loads(_file.read())
+    except OSError:
+        logging.exception("Cannot open texdoc settings!")
+        return None
 
     return _json
 
@@ -309,3 +313,18 @@ def get_variation_index(vars:list, _id:str) -> int|None:
         if var["variation_id"] == letter:
             return i
     return None
+
+def get_extension_list() -> dict:
+    """
+    Get pygmentize extension list. Returns a dict.
+    """
+
+    _path = path.join(ENV["PROGRAM_DATA"], "pygmentize_extensions.json")
+    try:
+        with open(_path, "r", encoding="UTF-8") as _file:
+            _json = json.loads(_file.read())
+    except OSError:
+        logging.exception("Cannot read pygmentize extension list!")
+        return None
+
+    return _json
