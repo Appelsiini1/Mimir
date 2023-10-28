@@ -30,8 +30,6 @@ from src.data_handler import (
     del_prev,
     gen_result_headers,
     del_result,
-    move_down,
-    move_up,
     del_assignment_files,
     del_assignment_from_index,
     del_week_data,
@@ -1997,6 +1995,7 @@ def result_window(orig_set: list, weeks: dict):
                             tag=_id,
                             num_items=weeks["lectures"][i]["assignment_count"],
                         )
+                        dpg.add_spacer(height=5)
                         with dpg.group(horizontal=True):
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
@@ -2032,18 +2031,6 @@ def result_window(orig_set: list, weeks: dict):
                                 user_data=(_id, i, _set, weeks),
                             )
                         dpg.add_spacer(height=5)
-                        with dpg.group(horizontal=True):
-                            dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_move_up"][LANGUAGE.get()],
-                                callback=move_up,
-                                user_data=(_id, i, _set),
-                            )
-                            dpg.add_spacer(width=5)
-                            dpg.add_button(
-                                label=DISPLAY_TEXTS["ui_move_down"][LANGUAGE.get()],
-                                callback=move_down,
-                                user_data=(_id, i, _set),
-                            )
 
                 with dpg.group():
                     dpg.add_spacer(height=5)
