@@ -363,7 +363,7 @@ def _tex_gen(
     content = _assignment_text_gen(gen_info, assignment_list, incl_solution)
     end = "\\end{document}"
 
-    preamble = _preamble_gen(doc_settings, gen_info["lecture"])
+    preamble = _preamble_gen(doc_settings, gen_info)
     header, footer = _hdr_ftr_gen(doc_settings, gen_info)
 
     tex_cmd = preamble + [

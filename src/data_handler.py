@@ -710,20 +710,6 @@ def del_result(s, a, u: tuple[int | str, int, list]):
     configure_item(listbox_id, items=headers)
 
 
-def move_up(s, a, u: tuple[int | str, int, list]):
-    """
-    Move result up in the result set.
-    """
-    print("Not implemented.")
-
-
-def move_down(s, a, u: tuple[int | str, int, list]):
-    """
-    Move result down in the result set.
-    """
-    print("Not implemented.")
-
-
 def del_assignment_files(ID: str) -> bool:
     """
     Delete assignment from disk.
