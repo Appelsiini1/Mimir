@@ -351,7 +351,10 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
         text += "\\section*" + title.replace('_', '\_')
         if a_level != None:
             text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
-        text += assignment["instructions"].replace('_', '\_') + "\n"
+        if assignment["instructions"].startswith("!$IGN$!"):
+            text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
+        else:
+            text += assignment["instructions"].replace('_', '\_') + "\n"
         text += "\\vspace{5mm}\n"
 
         if "datafiles" in assignment:
@@ -588,7 +591,10 @@ def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> st
     text += f"\\section*{{{gen_info['title']}}}\n"
     text += "\\vspace{0.2cm}\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
-    text += assignment["instructions"].replace('_', '\_') + "\n"
+    if assignment["instructions"].startswith("!$IGN$!"):
+        text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
+    else:
+        text += assignment["instructions"].replace('_', '\_') + "\n"
     text += "\\vspace{5mm}\n"
 
     if "datafiles" in assignment:
