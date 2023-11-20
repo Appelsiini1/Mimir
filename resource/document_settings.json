@@ -19,7 +19,8 @@
             ["minted", ""],
             ["hyperref", "hidelinks"],
             ["float", ""],
-            ["soul", ""]
+            ["soul", ""],
+            ["mathtools", ""]
         ],
         "header" : {
             "page_numbering" : ["R", "\\thepage \\hspace{1pt} / \\pageref{LastPage}"],
