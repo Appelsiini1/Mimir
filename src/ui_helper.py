@@ -14,6 +14,7 @@ from src.constants import (
     LANGUAGE,
     UI_ITEM_TAGS,
     OPEN_COURSE_PATH,
+    COURSE_INFO,
 )
 from src.data_handler import (
     path_leaf,
@@ -31,6 +32,7 @@ from src.data_getters import (
     get_all_indexed_assignments,
     get_assignment_json,
     get_variation_index,
+    get_period_default,
 )
 from src.common import resource_path, round_up
 from src.window_helper import close_window
@@ -542,3 +544,28 @@ def save_result_popup(s, a, u: tuple[dict, tuple, list, dict]):
 
     dpg.configure_item(listbox_id, items=headers)
     close_window(field_ids["popup"])
+
+
+def configure_period_text(s: None | str | int, a: None, u: str | int) -> None:
+    """
+    Configure period text item
+
+    Params:
+    s: the sending (calling) function UUID or None
+    a: not used
+    u: text uuid
+    """
+
+    if not s:
+        value = 1
+    else:
+        value = dpg.get_value(s)
+    if value <= 3:
+        if COURSE_INFO["periods"][str(value)] == "DEFAULT":
+            period_name = get_period_default(value)
+        else:
+            period_name = COURSE_INFO["periods"][str(value)]
+    else:
+        period_name = COURSE_INFO["periods"][str(value)]
+
+    dpg.set_value(u, period_name)
