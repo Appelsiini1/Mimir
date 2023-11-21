@@ -629,5 +629,17 @@
     "ui_name" : {
         "FI" : "Nimi",
         "ENG" : "Name"
+    },
+    "ui_error_load_set" : {
+        "FI" : "Virhe aiempien tehtäväsarjojen latauksessa. Katso lisätietoja lokista.",
+        "ENG" : "Error in loading assignment sets. See log for details."
+    },
+    "ui_error_save_set" : {
+        "FI" : "Virhe aiempien tehtäväsarjojen tallennuksessa. Katso lisätietoja lokista.",
+        "ENG" : "Error in saving assignment sets. See log for details."
+    },
+    "ui_set_save_success" : {
+        "FI" : "Tehtäväsarja tallennettu.",
+        "ENG" : "Assignment set saved."
     }
 }
