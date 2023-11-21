@@ -167,6 +167,13 @@ def save_course_info(**args):
         COURSE_INFO["min_level"] = 0
         COURSE_INFO["max_level"] = 0
 
+    if new:
+        COURSE_INFO["periods"] = {
+            1 : "DEFAULT",
+            2 : "DEFAULT",
+            3 : "DEFAULT",
+        }
+
     if not OPEN_COURSE_PATH.get():
         ask_course_dir()
     _save_course_file()
@@ -216,6 +223,7 @@ def format_metadata_json(data: dict):
     new["title"] = data["title"]
     new["code_lang"] = data["code_language"]
     new["level"] = data["level"]
+    new["a_id"] = data["assignment_id"]
     variation = None
     variation = data["variations"][0]
     new["instructions"] = variation["instructions"]
@@ -767,3 +775,12 @@ def del_week_data(s, a, u:tuple[dict, int]) -> None:
     close_window(window_id)
     del parent["lectures"][_index]
     save_full_week(parent)
+
+
+def save_assignment_set(set_UUIDs:dict) -> None:
+    """
+    Save assignment set to disk.
+
+    Params:
+    set_UUIDs: the UUIDs of the set metadata from the result window
+    """
