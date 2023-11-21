@@ -358,7 +358,10 @@ def get_saved_assignment_sets() -> dict:
 
     _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
     if not path.exists(_path):
-        result = {}
+        result = {
+            "maxSetID" : 0,
+            "sets" : []
+        }
     else:
         try:
             with open(_path, "r", encoding="utf-8") as f:
