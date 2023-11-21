@@ -8,6 +8,7 @@ Functions to handle UI
 import logging
 from os.path import join
 import dearpygui.dearpygui as dpg
+from time import localtime, sleep
 
 from src.constants import (
     DISPLAY_TEXTS,
@@ -33,6 +34,7 @@ from src.data_handler import (
     del_assignment_files,
     del_assignment_from_index,
     del_week_data,
+    save_new_set,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -63,13 +65,13 @@ from src.ui_helper import (
     clear_search_bar,
     save_select,
     save_result_popup,
+    configure_period_text,
 )
-from src.popups import popup_ok, popup_confirmation
+from src.popups import popup_ok, popup_confirmation, popup_load
 from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen, create_pw_pdf
-from pprint import pprint
 
 #############################################################
 
@@ -1957,6 +1959,14 @@ def result_window(orig_set: list, weeks: dict):
     )
 
     window_id = dpg.generate_uuid()
+    set_UUIDs = {
+            "year": dpg.generate_uuid(),
+            "period": dpg.generate_uuid(),
+            "ptext": dpg.generate_uuid(),
+            "name": dpg.generate_uuid(),
+            "pdf": dpg.generate_uuid(),
+            "window" : window_id
+        }
 
     if not isinstance(orig_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(orig_set))]
@@ -1970,16 +1980,56 @@ def result_window(orig_set: list, weeks: dict):
     with dpg.window(
         label=label,
         width=1400,
-        height=725,
         tag=window_id,
         no_close=True,
         no_collapse=True,
-        no_resize=True,
+        no_resize=False,
     ):
+        dpg.add_text(DISPLAY_TEXTS["ui_set_id"][LANGUAGE.get()] + ":")
+
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_year"][LANGUAGE.get()] + ":")
+            dpg.add_input_int(
+                tag=set_UUIDs["year"],
+                min_value=2000,
+                max_value=3000,
+                default_value=localtime().tm_year,
+                width=150,
+            )
+            dpg.add_spacer(width=10)
+            dpg.add_text(DISPLAY_TEXTS["ui_study_period"][LANGUAGE.get()] + ":")
+
+            dpg.add_input_int(
+                tag=set_UUIDs["period"],
+                min_value=1,
+                max_value=len(COURSE_INFO["periods"].keys()),
+                max_clamped=True,
+                min_clamped=True,
+                user_data=set_UUIDs["ptext"],
+                callback=configure_period_text,
+                width=120,
+                default_value=1,
+            )
+            dpg.add_spacer(width=3)
+            dpg.add_text("", tag=set_UUIDs["ptext"])
+            configure_period_text(None, None, set_UUIDs["ptext"])
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_name"][LANGUAGE.get()] + ":")
+            dpg.add_input_text(tag=set_UUIDs["name"], width=400)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_create_pdf"][LANGUAGE.get()])
+            dpg.add_checkbox(
+                tag=set_UUIDs["pdf"],
+                default_value=True,
+            )
+
+        dpg.add_spacer(height=30)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             with dpg.group():
-                i = 0
                 for i, _id in enumerate(UUIDs):
                     with dpg.group():
                         dpg.add_text(
@@ -2036,15 +2086,11 @@ def result_window(orig_set: list, weeks: dict):
                     dpg.add_spacer(height=5)
                     dpg.add_separator()
                     dpg.add_spacer(height=5)
-                    if i == 0:
-                        dpg.add_spacer(height=325)
-                        dpg.add_separator()
-                        dpg.add_spacer(height=5)
                     with dpg.group(horizontal=True):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
                             callback=accept_result_set,
-                            user_data=(_set, weeks),
+                            user_data=(_set, weeks, set_UUIDs),
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
@@ -2052,6 +2098,7 @@ def result_window(orig_set: list, weeks: dict):
                             callback=lambda s, a, u: close_window(u),
                             user_data=window_id,
                         )
+                    dpg.add_spacer(height=10)
 
 
 def add_result(s, a, u: tuple[int | str, int, list]):
@@ -2134,11 +2181,20 @@ def show_result_assig(s, a, u):
     show_prev_part(None, None, correct)
 
 
-def accept_result_set(s, a, u: tuple[list, dict]):
+def accept_result_set(s, a, u: tuple[list, dict, dict]):
     """
-    Create instruction papers from accepted set
+    Create instruction papers from accepted set and save the set
     """
-    tex_gen(u)
+
+    res = save_new_set(u[2], u[0])
+    _id = dpg.generate_uuid()
+    popup_load(
+        DISPLAY_TEXTS["ui_set_save_success"][LANGUAGE.get()], _id, dpg.generate_uuid()
+    )
+    sleep(3)
+    close_window(_id)
+    if res and dpg.get_value(u[2]["pdf"]):
+        tex_gen(u)
 
 
 def result_popup(
@@ -2272,8 +2328,7 @@ def create_project_work(**args):
         popup_ok(DISPLAY_TEXTS["ui_no_assig_selected"][LANGUAGE.get()])
         return
     data = get_assignment_json(
-        join(OPEN_COURSE_PATH.get_subdir(metadata=True), 
-            a_id + ".json")
-        )
+        join(OPEN_COURSE_PATH.get_subdir(metadata=True), a_id + ".json")
+    )
 
     create_pw_pdf(data)

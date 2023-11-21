@@ -37,6 +37,7 @@ from src.data_getters import (
     get_week_data,
     get_number_of_docs,
     get_assignment_json,
+    get_saved_assignment_sets,
 )
 from src.popups import popup_ok
 from src.window_helper import close_window
@@ -167,6 +168,13 @@ def save_course_info(**args):
         COURSE_INFO["min_level"] = 0
         COURSE_INFO["max_level"] = 0
 
+    if new:
+        COURSE_INFO["periods"] = {
+            1 : "DEFAULT",
+            2 : "DEFAULT",
+            3 : "DEFAULT",
+        }
+
     if not OPEN_COURSE_PATH.get():
         ask_course_dir()
     _save_course_file()
@@ -216,6 +224,7 @@ def format_metadata_json(data: dict):
     new["title"] = data["title"]
     new["code_lang"] = data["code_language"]
     new["level"] = data["level"]
+    new["a_id"] = data["assignment_id"]
     variation = None
     variation = data["variations"][0]
     new["instructions"] = variation["instructions"]
@@ -767,3 +776,69 @@ def del_week_data(s, a, u:tuple[dict, int]) -> None:
     close_window(window_id)
     del parent["lectures"][_index]
     save_full_week(parent)
+
+
+def save_new_set(set_UUIDs:dict, sets:list) -> bool:
+    """
+    Save assignment set to disk.
+
+    Params:
+    set_UUIDs: the UUIDs of the set metadata from the result window
+    """
+
+    saved = get_saved_assignment_sets()
+    if not saved:
+        popup_ok(DISPLAY_TEXTS["ui_error_load_set"][LANGUAGE.get()])
+        return
+    
+    max_set_id = saved["maxSetID"]
+    year = get_value(set_UUIDs["year"])
+    period = get_value(set_UUIDs["period"])
+    name = get_value(set_UUIDs["name"])
+
+    set_to_save = {
+        "id" : max_set_id+1,
+        "year" : year,
+        "period" : period,
+        "name" : name,
+        "type" : "week" if (len(sets) == 1) else "full",
+        "assignments" : None,
+        "weeks" : []
+        }
+    for _set in sets:
+        tempList = []
+        for assig in _set:
+            tempAssig = {}
+            tempAssig["id"] = assig["assignment_id"]
+            tempAssig["variationID"] = assig["variations"][0]["variation_id"]
+            tempList.append(tempAssig)
+        if set_to_save["type"] == "full":
+            set_to_save["weeks"].append(tempList)
+        else:
+            set_to_save["assignments"] = tempList
+
+    saved["maxSetID"] += 1
+    saved["sets"].append(set_to_save)
+
+    res = save_sets_disk(saved)
+    return res
+
+
+def save_sets_disk(sets:dict) -> bool:
+    """
+    Save set data dict to disk.
+
+    Params:
+    sets: dictionary containing set information.
+    """
+
+    _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
+
+    try:
+        with open(_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(sets, ensure_ascii=False, indent=4))
+    except OSError:
+        logging.exception("Could not save assignment sets to disk!")
+        popup_ok(DISPLAY_TEXTS["ui_error_save_set"][LANGUAGE.get()])
+        return False
+    return True

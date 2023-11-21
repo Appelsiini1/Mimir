@@ -601,5 +601,49 @@
     "ui_no_assig_selected" : {
         "FI" : "Mitään tehtävää ei ole valittuna.",
         "ENG" : "No assignment has been selected."
+    },
+    "period_default_1" : {
+        "FI" : "Kevät",
+        "ENG" : "Spring"
+    },
+    "period_default_2" : {
+        "FI" : "Kesä",
+        "ENG" : "Summer"
+    },
+    "period_default_3" : {
+        "FI" : "Syksy",
+        "ENG" : "Autumn"
+    },
+    "ui_study_period" : {
+        "FI" : "Periodi",
+        "ENG" : "Study period"
+    },
+    "ui_year" : {
+        "FI" : "Vuosi",
+        "ENG" : "Year"
+    },
+    "ui_set_id" : {
+        "FI" : "Tehtäväsarjan tunniste",
+        "ENG" : "Assingment set identification"
+    },
+    "ui_name" : {
+        "FI" : "Nimi",
+        "ENG" : "Name"
+    },
+    "ui_error_load_set" : {
+        "FI" : "Virhe aiempien tehtäväsarjojen latauksessa. Katso lisätietoja lokista.",
+        "ENG" : "Error in loading assignment sets. See log for details."
+    },
+    "ui_error_save_set" : {
+        "FI" : "Virhe aiempien tehtäväsarjojen tallennuksessa. Katso lisätietoja lokista.",
+        "ENG" : "Error in saving assignment sets. See log for details."
+    },
+    "ui_set_save_success" : {
+        "FI" : "Tehtäväsarja tallennettu.",
+        "ENG" : "Assignment set saved."
+    },
+    "ui_create_pdf" : {
+        "FI" : "Luo PDF",
+        "ENG" : "Create PDF"
     }
 }

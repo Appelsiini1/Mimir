@@ -46,7 +46,7 @@ def get_assignment_json(json_path: str) -> dict | None:
         return json_data
 
 
-def get_assignment_code(data_path: str, a_id:str) -> str | None:
+def get_assignment_code(data_path: str, a_id: str) -> str | None:
     """
     Read code file and return its contents, excluding the ID line. Note that function
     checks whether the assignment ID matches the ID given. Raises an exception if
@@ -58,7 +58,9 @@ def get_assignment_code(data_path: str, a_id:str) -> str | None:
     """
 
     try:
-        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, data_path)
+        full_path = path.join(
+            OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, data_path
+        )
         with open(full_path, "r", encoding="UTF-8") as code_file:
             code = code_file.read()
             return code
@@ -67,12 +69,14 @@ def get_assignment_code(data_path: str, a_id:str) -> str | None:
         return None
 
 
-def read_datafile(filename: str, a_id:str) -> str | None:
+def read_datafile(filename: str, a_id: str) -> str | None:
     """
     Read a data file of given path and return its data. Returns None on error.
     """
     try:
-        full_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, filename)
+        full_path = path.join(
+            OPEN_COURSE_PATH.get_subdir(assignment_data=True), a_id, filename
+        )
         with open(full_path, "r", encoding="UTF-8") as _file:
             data = _file.read()
             return data
@@ -297,7 +301,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
     return headers
 
 
-def get_variation_index(vars:list, _id:str) -> int|None:
+def get_variation_index(vars: list, _id: str) -> int | None:
     """
     Return the position of the variation that has the letter as its ID.
 
@@ -307,12 +311,13 @@ def get_variation_index(vars:list, _id:str) -> int|None:
     """
     if not vars:
         return -2
-    
+
     letter = get_value(_id).split(" ")[1]
     for i, var in enumerate(vars):
         if var["variation_id"] == letter:
             return i
     return None
+
 
 def get_extension_list() -> dict:
     """
@@ -328,3 +333,40 @@ def get_extension_list() -> dict:
         return None
 
     return _json
+
+
+def get_period_default(period: int) -> str:
+    """
+    Returns the default value of a period name.
+
+    Params:
+    period: an integer of the period index
+    """
+
+    if period > 3:
+        return None
+
+    key = "period_default_{0}".format(period)
+
+    return DISPLAY_TEXTS[key][LANGUAGE.get()]
+
+
+def get_saved_assignment_sets() -> dict:
+    """
+    Get saved assignment sets from disk
+    """
+
+    _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
+    if not path.exists(_path):
+        result = {
+            "maxSetID" : 0,
+            "sets" : []
+        }
+    else:
+        try:
+            with open(_path, "r", encoding="utf-8") as f:
+                result = json.loads(f.read())
+        except OSError:
+            logging.exception("Could not load saved assignment sets!")
+
+    return result
