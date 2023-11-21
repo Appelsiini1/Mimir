@@ -641,5 +641,9 @@
     "ui_set_save_success" : {
         "FI" : "Tehtäväsarja tallennettu.",
         "ENG" : "Assignment set saved."
+    },
+    "ui_create_pdf" : {
+        "FI" : "Luo PDF",
+        "ENG" : "Create PDF"
     }
 }

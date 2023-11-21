@@ -1959,6 +1959,14 @@ def result_window(orig_set: list, weeks: dict):
     )
 
     window_id = dpg.generate_uuid()
+    set_UUIDs = {
+            "year": dpg.generate_uuid(),
+            "period": dpg.generate_uuid(),
+            "ptext": dpg.generate_uuid(),
+            "name": dpg.generate_uuid(),
+            "pdf": dpg.generate_uuid(),
+            "window" : window_id
+        }
 
     if not isinstance(orig_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(orig_set))]
@@ -1979,12 +1987,6 @@ def result_window(orig_set: list, weeks: dict):
     ):
         dpg.add_text(DISPLAY_TEXTS["ui_set_id"][LANGUAGE.get()] + ":")
 
-        set_UUIDs = {
-            "year": dpg.generate_uuid(),
-            "period": dpg.generate_uuid(),
-            "ptext": dpg.generate_uuid(),
-            "name": dpg.generate_uuid(),
-        }
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             dpg.add_text(DISPLAY_TEXTS["ui_year"][LANGUAGE.get()] + ":")
@@ -2016,6 +2018,13 @@ def result_window(orig_set: list, weeks: dict):
             dpg.add_spacer(width=25)
             dpg.add_text(DISPLAY_TEXTS["ui_name"][LANGUAGE.get()] + ":")
             dpg.add_input_text(tag=set_UUIDs["name"], width=400)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_create_pdf"][LANGUAGE.get()])
+            dpg.add_checkbox(
+                tag=set_UUIDs["pdf"],
+                default_value=True,
+            )
 
         dpg.add_spacer(height=30)
         with dpg.group(horizontal=True):
@@ -2178,13 +2187,13 @@ def accept_result_set(s, a, u: tuple[list, dict, dict]):
     """
 
     res = save_new_set(u[2], u[0])
-    if res:
-        _id = dpg.generate_uuid()
-        popup_load(
-            DISPLAY_TEXTS["ui_set_save_success"][LANGUAGE.get()], _id, dpg.generate_uuid()
-        )
-        sleep(2)
-        close_window(_id)
+    _id = dpg.generate_uuid()
+    popup_load(
+        DISPLAY_TEXTS["ui_set_save_success"][LANGUAGE.get()], _id, dpg.generate_uuid()
+    )
+    sleep(3)
+    close_window(_id)
+    if res and dpg.get_value(u[2]["pdf"]):
         tex_gen(u)
 
 
