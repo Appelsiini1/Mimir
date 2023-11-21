@@ -362,6 +362,8 @@ def get_saved_assignment_sets() -> dict:
     else:
         try:
             with open(_path, "r", encoding="utf-8") as f:
-                json.loads()
+                result = json.loads(f.read())
         except OSError:
-            pass
+            logging.exception("Could not load saved assignment sets!")
+
+    return result
