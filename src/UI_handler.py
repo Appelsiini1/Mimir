@@ -8,7 +8,7 @@ Functions to handle UI
 import logging
 from os.path import join
 import dearpygui.dearpygui as dpg
-from time import localtime
+from time import localtime, sleep
 
 from src.constants import (
     DISPLAY_TEXTS,
@@ -34,6 +34,7 @@ from src.data_handler import (
     del_assignment_files,
     del_assignment_from_index,
     del_week_data,
+    save_new_set,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -66,12 +67,11 @@ from src.ui_helper import (
     save_result_popup,
     configure_period_text,
 )
-from src.popups import popup_ok, popup_confirmation
+from src.popups import popup_ok, popup_confirmation, popup_load
 from src.popups2 import popup_create_course
 from src.common import round_up
 from src.set_generator import generate_one_set, format_set, generate_full_set
 from src.tex_generator import tex_gen, create_pw_pdf
-from pprint import pprint
 
 #############################################################
 
@@ -1976,15 +1976,14 @@ def result_window(orig_set: list, weeks: dict):
         no_close=True,
         no_collapse=True,
         no_resize=False,
-        modal=True
     ):
         dpg.add_text(DISPLAY_TEXTS["ui_set_id"][LANGUAGE.get()] + ":")
 
         set_UUIDs = {
-            "year" : dpg.generate_uuid(),
+            "year": dpg.generate_uuid(),
             "period": dpg.generate_uuid(),
-            "ptext" : dpg.generate_uuid(),
-            "name" : dpg.generate_uuid()
+            "ptext": dpg.generate_uuid(),
+            "name": dpg.generate_uuid(),
         }
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
@@ -2177,7 +2176,16 @@ def accept_result_set(s, a, u: tuple[list, dict, dict]):
     """
     Create instruction papers from accepted set and save the set
     """
-    tex_gen(u)
+
+    res = save_new_set(u[2], u[0])
+    if res:
+        _id = dpg.generate_uuid()
+        popup_load(
+            DISPLAY_TEXTS["ui_set_save_success"][LANGUAGE.get()], _id, dpg.generate_uuid()
+        )
+        sleep(2)
+        close_window(_id)
+        tex_gen(u)
 
 
 def result_popup(
