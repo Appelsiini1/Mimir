@@ -20,6 +20,9 @@ from src.constants import (
     RECENTS,
     OPEN_COURSE_PATH,
     COURSE_INFO,
+    BUTTON_SMALL,
+    BUTTON_LARGE,
+    BUTTON_XL,
 )
 from src.data_handler import (
     save_course_info,
@@ -210,6 +213,7 @@ def main_window():
                                 label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                                 callback=save_course_info,
                                 user_data=None,
+                                width=BUTTON_LARGE
                             )
                 dpg.add_spacer(width=50)
                 dpg.add_image("mimir_logo")
@@ -255,6 +259,7 @@ def main_window():
                                     week_input_tag,
                                     checkbox_tag,
                                 ),
+                                width=BUTTON_LARGE
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -276,6 +281,7 @@ def main_window():
                                 label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_all_sets_callback,
                                 user_data=checkbox_tag2,
+                                width=BUTTON_LARGE
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -297,6 +303,7 @@ def main_window():
                                     [],
                                     UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"],
                                 ),
+                                width=BUTTON_LARGE
                             )
                             dpg.add_spacer(height=5)
                             with dpg.group(horizontal=True):
@@ -312,6 +319,7 @@ def main_window():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_project_work,
+                                width=BUTTON_LARGE
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -329,12 +337,14 @@ def main_window():
                             label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_assignment_window(),
                             tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+                            width=BUTTON_XL
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_week_window(),
+                            width=BUTTON_XL
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -348,6 +358,7 @@ def main_window():
                             ],
                             callback=open_assignment_browse,
                             user_data=(True, False, None, None),
+                            width=BUTTON_XL
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
@@ -355,6 +366,7 @@ def main_window():
                             label=DISPLAY_TEXTS["ui_open_week_browse"][LANGUAGE.get()],
                             callback=open_week_browse,
                             user_data=(False, None),
+                            width=BUTTON_XL
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
             dpg.add_spacer(height=10)
@@ -2056,6 +2068,7 @@ def result_window(orig_set: list, weeks: dict):
                                     _set,
                                     weeks["lectures"][i]["lecture_no"],
                                 ),
+                                width=BUTTON_SMALL
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -2067,18 +2080,21 @@ def result_window(orig_set: list, weeks: dict):
                                     _set,
                                     weeks["lectures"][i]["lecture_no"],
                                 ),
+                                width=BUTTON_SMALL
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
                                 callback=add_result,
                                 user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
                                 callback=change_result,
                                 user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL
                             )
                         dpg.add_spacer(height=5)
 
@@ -2091,12 +2107,14 @@ def result_window(orig_set: list, weeks: dict):
                             label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
                             callback=accept_result_set,
                             user_data=(_set, weeks, set_UUIDs),
+                            width=BUTTON_LARGE
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                             callback=lambda s, a, u: close_window(u),
                             user_data=window_id,
+                            width=BUTTON_LARGE
                         )
                     dpg.add_spacer(height=10)
 

@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 #################################
 # Environment spesific constants
@@ -62,6 +62,9 @@ elif OSname == "POSIX":
 
 DISPLAY_TEXTS = _get_texts()
 LANGUAGE = LANG()
+BUTTON_SMALL = 75
+BUTTON_LARGE = 120
+BUTTON_XL = 170
 
 #################################
 # Unique UI item tags
