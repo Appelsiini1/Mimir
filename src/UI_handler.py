@@ -20,6 +20,13 @@ from src.constants import (
     RECENTS,
     OPEN_COURSE_PATH,
     COURSE_INFO,
+    BUTTON_SMALL,
+    BUTTON_LARGE,
+    BUTTON_XL,
+    BUTTON_XXL,
+    BOX_SMALL,
+    BOX_MEDIUM,
+    BOX_LARGE,
 )
 from src.data_handler import (
     save_course_info,
@@ -143,7 +150,7 @@ def main_window():
                         dpg.add_table_column(
                             label="Course info two",
                             width_fixed=True,
-                            init_width_or_weight=410,
+                            init_width_or_weight=440,
                         )
                         with dpg.table_row():
                             dpg.add_text(
@@ -151,7 +158,7 @@ def main_window():
                             )
                             dpg.add_input_text(
                                 callback=None,
-                                width=400,
+                                width=BOX_MEDIUM,
                                 hint=DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()],
                                 tag=UI_ITEM_TAGS["COURSE_ID"],
                                 default_value=COURSE_INFO["course_id"]
@@ -164,7 +171,7 @@ def main_window():
                             )
                             dpg.add_input_text(
                                 callback=None,
-                                width=400,
+                                width=BOX_MEDIUM,
                                 tag=UI_ITEM_TAGS["COURSE_TITLE"],
                                 default_value=COURSE_INFO["course_title"]
                                 if COURSE_INFO["course_title"] is not None
@@ -176,7 +183,7 @@ def main_window():
                             )
                             dpg.add_input_int(
                                 callback=None,
-                                width=150,
+                                width=BOX_SMALL,
                                 min_value=1,
                                 min_clamped=True,
                                 tag=UI_ITEM_TAGS["COURSE_WEEKS"],
@@ -197,7 +204,7 @@ def main_window():
                             )
                             help_(DISPLAY_TEXTS["help_course_levels"][LANGUAGE.get()])
                             dpg.add_input_text(
-                                width=400,
+                                width=BOX_MEDIUM,
                                 tag=UI_ITEM_TAGS["COURSE_LEVELS"],
                                 default_value=COURSE_INFO["course_levels"]
                                 if COURSE_INFO["course_levels"] is not None
@@ -210,6 +217,7 @@ def main_window():
                                 label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                                 callback=save_course_info,
                                 user_data=None,
+                                width=BUTTON_LARGE,
                             )
                 dpg.add_spacer(width=50)
                 dpg.add_image("mimir_logo")
@@ -238,7 +246,7 @@ def main_window():
                                 week_input_tag = dpg.generate_uuid()
                                 dpg.add_input_int(
                                     callback=None,
-                                    width=150,
+                                    width=BOX_SMALL,
                                     min_value=0,
                                     min_clamped=True,
                                     tag=week_input_tag,
@@ -255,6 +263,7 @@ def main_window():
                                     week_input_tag,
                                     checkbox_tag,
                                 ),
+                                width=BUTTON_LARGE,
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -276,6 +285,7 @@ def main_window():
                                 label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_all_sets_callback,
                                 user_data=checkbox_tag2,
+                                width=BUTTON_LARGE,
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -297,6 +307,7 @@ def main_window():
                                     [],
                                     UI_ITEM_TAGS["PROJECT_WORK_DISPLAY"],
                                 ),
+                                width=BUTTON_LARGE,
                             )
                             dpg.add_spacer(height=5)
                             with dpg.group(horizontal=True):
@@ -312,6 +323,7 @@ def main_window():
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_create"][LANGUAGE.get()] + "...",
                                 callback=create_project_work,
+                                width=BUTTON_LARGE,
                             )
                             dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -329,12 +341,14 @@ def main_window():
                             label=DISPLAY_TEXTS["ui_add_assignment"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_assignment_window(),
                             tag=UI_ITEM_TAGS["OPEN_ADD_ASSINGMENT_BUTTON"],
+                            width=BUTTON_XXL,
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_week"][LANGUAGE.get()],
                             callback=lambda s, a, u: open_new_week_window(),
+                            width=BUTTON_XXL,
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
 
@@ -343,18 +357,18 @@ def main_window():
                     dpg.add_spacer(height=10)
                     with dpg.group(horizontal=True):
                         dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_open_assignment_browse"][
-                                LANGUAGE.get()
-                            ],
+                            label=DISPLAY_TEXTS["ui_assignment_browser"][LANGUAGE.get()],
                             callback=open_assignment_browse,
                             user_data=(True, False, None, None),
+                            width=BUTTON_XXL,
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
                         dpg.add_spacer(width=5)
                         dpg.add_button(
-                            label=DISPLAY_TEXTS["ui_open_week_browse"][LANGUAGE.get()],
+                            label=DISPLAY_TEXTS["ui_week_browse"][LANGUAGE.get()],
                             callback=open_week_browse,
                             user_data=(False, None),
+                            width=BUTTON_XXL,
                         )
                         dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
             dpg.add_spacer(height=10)
@@ -436,6 +450,7 @@ def _add_example_run_window(
                     tag=UUIDs["INPUTS"],
                     enabled=select,
                     default_value="\n".join([str(item) for item in ex_run["inputs"]]),
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(height=5)
 
@@ -447,6 +462,7 @@ def _add_example_run_window(
                     enabled=select,
                     tab_input=True,
                     default_value=", ".join([str(item) for item in ex_run["cmd_inputs"]]),
+                    width=BOX_LARGE,
                 )
 
                 # Generate ex run checkbox
@@ -472,6 +488,7 @@ def _add_example_run_window(
                     enabled=select,
                     tab_input=True,
                     default_value=ex_run["output"],
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(height=5)
 
@@ -484,7 +501,7 @@ def _add_example_run_window(
                         if not ex_run["outputfiles"]
                         else [path_leaf(f_p) for f_p in ex_run["outputfiles"]]
                     )
-                    dpg.add_listbox(files, tag=UUIDs["OUTPUT_FILES"])
+                    dpg.add_listbox(files, tag=UUIDs["OUTPUT_FILES"], width=BOX_LARGE)
                     dpg.add_spacer(height=5)
 
                     if select:
@@ -499,6 +516,7 @@ def _add_example_run_window(
                                     UUIDs["OUTPUT_FILES"],
                                     "outputfiles",
                                 ),
+                                width=BUTTON_XL,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -509,6 +527,7 @@ def _add_example_run_window(
                                     ex_run,
                                     "outputfiles",
                                 ),
+                                width=BUTTON_XL,
                             )
         dpg.add_spacer(height=10)
 
@@ -523,18 +542,21 @@ def _add_example_run_window(
                         label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                         callback=extract_exrun_data,
                         user_data=(UUIDs, ex_run, var, new, ix, ex_listbox),
+                        width=BUTTON_LARGE,
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=UUIDs["WINDOW_ID"],
+                        width=BUTTON_LARGE,
                     )
             else:
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                     callback=lambda s, a, u: close_window(u),
                     user_data=UUIDs["WINDOW_ID"],
+                    width=BUTTON_LARGE,
                 )
 
 
@@ -547,7 +569,10 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
         return
     else:
         var_index = get_variation_index(*user_data[1])
-        data = parent_data["variations"][var_index]
+        if parent_data["variations"]:
+            data = parent_data["variations"][var_index]
+        else:
+            return
 
     select = user_data[2]
     if select:
@@ -581,6 +606,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                     default_value=data["instructions"],
                     tag=UUIDs["INSTRUCTIONS"],
                     enabled=select,
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(width=5)
 
@@ -598,7 +624,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             for i, _ in enumerate(data["example_runs"], start=1)
                         ]
                     )
-                    dpg.add_listbox(runs, tag=UUIDs["EXAMPLE_LISTBOX"])
+                    dpg.add_listbox(runs, tag=UUIDs["EXAMPLE_LISTBOX"], width=BOX_LARGE)
                 dpg.add_spacer(height=5)
 
                 with dpg.group(horizontal=True):
@@ -607,12 +633,14 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE.get()],
                             callback=_add_example_run_window,
                             user_data=(data, True, UUIDs["EXAMPLE_LISTBOX"], select),
+                            width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
                             user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run"),
+                            width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
                     dpg.add_button(
@@ -626,6 +654,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             UUIDs["EXAMPLE_LISTBOX"],
                             select,
                         ),
+                        width=BUTTON_XL,
                     )
 
         # Used in text box
@@ -639,6 +668,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                     tag=UUIDs["USED_IN"],
                     default_value=", ".join(year_conversion(data["used_in"], False)),
                     enabled=select,
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(width=5)
 
@@ -652,7 +682,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                     if not data["codefiles"]
                     else [path_leaf(f_p) for f_p in data["codefiles"]]
                 )
-                dpg.add_listbox(files, tag=UUIDs["CODEFILE_LISTBOX"])
+                dpg.add_listbox(files, tag=UUIDs["CODEFILE_LISTBOX"], width=BOX_LARGE)
                 dpg.add_spacer(height=5)
 
                 if select:
@@ -661,12 +691,14 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             label=DISPLAY_TEXTS["ui_import_codefiles"][LANGUAGE.get()],
                             callback=get_files,
                             user_data=(data, UUIDs["CODEFILE_LISTBOX"], "codefile"),
+                            width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
                             user_data=(UUIDs["CODEFILE_LISTBOX"], data, "codefiles"),
+                            width=BUTTON_XL,
                         )
                     dpg.add_spacer(height=5)
 
@@ -680,7 +712,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                     if not data["datafiles"]
                     else [path_leaf(f_p) for f_p in data["datafiles"]]
                 )
-                dpg.add_listbox(files, tag=UUIDs["DATAFILE_LISTBOX"])
+                dpg.add_listbox(files, tag=UUIDs["DATAFILE_LISTBOX"], width=BOX_LARGE)
                 dpg.add_spacer(height=5)
 
                 if select:
@@ -689,12 +721,14 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             label=DISPLAY_TEXTS["ui_import_datafiles"][LANGUAGE.get()],
                             callback=get_files,
                             user_data=(data, UUIDs["DATAFILE_LISTBOX"], "datafiles"),
+                            width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
                             user_data=(UUIDs["DATAFILE_LISTBOX"], data, "datafiles"),
+                            width=BUTTON_XL,
                         )
                     dpg.add_spacer(height=5)
 
@@ -709,18 +743,21 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                         callback=extract_variation_data,
                         user_data=(UUIDs, var_letter, parent_data, data, user_data[1]),
+                        width=BUTTON_LARGE,
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=UUIDs["WINDOW_ID"],
+                        width=BUTTON_LARGE,
                     )
             else:
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                     callback=lambda s, a, u: close_window(u),
                     user_data=UUIDs["WINDOW_ID"],
+                    width=BUTTON_LARGE,
                 )
 
 
@@ -780,7 +817,7 @@ def _assignment_window(var_data=None, select=False):
                         )
                         dpg.add_input_text(
                             callback=None,
-                            width=430,
+                            width=BOX_MEDIUM,
                             tag=UI_ITEM_TAGS["ASSIGNMENT_TITLE"],
                             default_value=var["title"],
                             enabled=enable,
@@ -793,7 +830,7 @@ def _assignment_window(var_data=None, select=False):
                         )
                         dpg.add_input_int(
                             callback=None,
-                            width=150,
+                            width=BOX_SMALL,
                             min_value=0,
                             min_clamped=True,
                             tag=UI_ITEM_TAGS["ASSIGNMENT_LECTURE_WEEK"],
@@ -809,7 +846,7 @@ def _assignment_window(var_data=None, select=False):
                         help_(DISPLAY_TEXTS["help_assignment_no"][LANGUAGE.get()])
                         dpg.add_input_text(
                             callback=None,
-                            width=150,
+                            width=BOX_SMALL,
                             tag=UI_ITEM_TAGS["ASSIGNMENT_NO"],
                             default_value=", ".join(
                                 [str(item) for item in var["exp_assignment_no"]]
@@ -823,7 +860,7 @@ def _assignment_window(var_data=None, select=False):
                             DISPLAY_TEXTS["ui_assignment_level"][LANGUAGE.get()] + ":"
                         )
                         dpg.add_input_int(
-                            width=150,
+                            width=BOX_SMALL,
                             min_value=COURSE_INFO["min_level"],
                             max_value=COURSE_INFO["max_level"],
                             max_clamped=True,
@@ -840,7 +877,7 @@ def _assignment_window(var_data=None, select=False):
                         help_(DISPLAY_TEXTS["help_assignment_tags"][LANGUAGE.get()])
                         dpg.add_input_text(
                             callback=None,
-                            width=430,
+                            width=BOX_MEDIUM,
                             tag=UI_ITEM_TAGS["ASSIGNMENT_TAGS"],
                             default_value=", ".join(var["tags"]),
                             enabled=enable,
@@ -872,6 +909,7 @@ def _assignment_window(var_data=None, select=False):
                             tag=UI_ITEM_TAGS["CODE_LANGUAGE_COMBOBOX"],
                             default_value=var["code_language"],
                             enabled=enable,
+                            width=BOX_MEDIUM,
                         )
 
                     # Instruction language
@@ -886,6 +924,7 @@ def _assignment_window(var_data=None, select=False):
                             tag=UI_ITEM_TAGS["INST_LANGUAGE_COMBOBOX"],
                             default_value=var["instruction_language"],
                             enabled=enable,
+                            width=BOX_MEDIUM,
                         )
             dpg.add_spacer(height=5)
             with dpg.group(horizontal=True):
@@ -900,6 +939,7 @@ def _assignment_window(var_data=None, select=False):
                         num_items=2,
                         enabled=enable,
                         tag=UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"],
+                        width=BOX_LARGE,
                     )
 
                     # Previous part listbox buttons
@@ -910,6 +950,7 @@ def _assignment_window(var_data=None, select=False):
                             callback=show_prev_part,
                             tag=UI_ITEM_TAGS["PREV_PART_SHOW"],
                             enabled=False if not var["previous"] else True,
+                            width=BUTTON_XL,
                         )
                         if enable:
                             dpg.add_spacer(width=5)
@@ -919,6 +960,7 @@ def _assignment_window(var_data=None, select=False):
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_ADD"],
                                 enabled=False if not var["previous"] else True,
+                                width=BUTTON_XL,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -927,6 +969,7 @@ def _assignment_window(var_data=None, select=False):
                                 user_data=var,
                                 tag=UI_ITEM_TAGS["PREV_PART_DEL"],
                                 enabled=False if not var["previous"] else True,
+                                width=BUTTON_XL,
                             )
 
             dpg.add_spacer(height=5)
@@ -947,7 +990,9 @@ def _assignment_window(var_data=None, select=False):
                             for item in var["variations"]
                         ]
                     )
-                    dpg.add_listbox(_vars, tag=UI_ITEM_TAGS["VARIATION_GROUP"])
+                    dpg.add_listbox(
+                        _vars, tag=UI_ITEM_TAGS["VARIATION_GROUP"], width=BOX_LARGE
+                    )
 
             # Variation listbox buttons
             dpg.add_spacer(height=5)
@@ -958,12 +1003,14 @@ def _assignment_window(var_data=None, select=False):
                         label=DISPLAY_TEXTS["ui_add_variation"][LANGUAGE.get()],
                         callback=_add_variation_window,
                         user_data=(var, -1, select),
+                        width=BUTTON_XL,
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                         user_data=(UI_ITEM_TAGS["VARIATION_GROUP"], var, "variation"),
                         callback=remove_selected,
+                        width=BUTTON_XL,
                     )
                     dpg.add_spacer(width=5)
                 dpg.add_button(
@@ -979,6 +1026,7 @@ def _assignment_window(var_data=None, select=False):
                         ),
                         select,
                     ),
+                    width=BUTTON_XL,
                 )
             dpg.add_spacer(height=5)
             dpg.add_separator()
@@ -991,11 +1039,13 @@ def _assignment_window(var_data=None, select=False):
                         label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                         callback=save_assignment,
                         user_data=(var, new),
+                        width=BUTTON_LARGE,
                     )
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                        width=BUTTON_LARGE,
                     )
                     if not new:
                         dpg.add_button(
@@ -1009,12 +1059,14 @@ def _assignment_window(var_data=None, select=False):
                                     UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
                                 ),
                             ),
+                            width=BUTTON_LARGE,
                         )
             else:
                 dpg.add_button(
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                     callback=lambda s, a, u: close_window(u),
                     user_data=UI_ITEM_TAGS["ADD_ASSIGNMENT_WINDOW"],
+                    width=BUTTON_LARGE,
                 )
 
 
@@ -1058,7 +1110,6 @@ def _add_week_window(parent=None, index=None, select=False):
     else:
         week = get_empty_week()
         new = True
-    multiline_width = 430
     enable = True
     if select:
         enable = False
@@ -1074,7 +1125,7 @@ def _add_week_window(parent=None, index=None, select=False):
                 dpg.add_text(DISPLAY_TEXTS["ui_week_title"][LANGUAGE.get()] + ":")
                 help_(DISPLAY_TEXTS["help_week_title"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    width=multiline_width,
+                    width=BOX_LARGE,
                     tag=UUIDs["TITLE"],
                     default_value=week["title"],
                     enabled=enable,
@@ -1088,7 +1139,7 @@ def _add_week_window(parent=None, index=None, select=False):
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_week_no"][LANGUAGE.get()])
                         dpg.add_input_int(
-                            width=150,
+                            width=BOX_SMALL,
                             min_value=0,
                             min_clamped=True,
                             tag=UUIDs["LECTURE_NO"],
@@ -1101,7 +1152,7 @@ def _add_week_window(parent=None, index=None, select=False):
                     with dpg.table_row():
                         dpg.add_text(DISPLAY_TEXTS["ui_no_assignments"][LANGUAGE.get()])
                         dpg.add_input_int(
-                            width=150,
+                            width=BOX_SMALL,
                             min_value=1,
                             min_clamped=True,
                             tag=UUIDs["A_COUNT"],
@@ -1114,7 +1165,7 @@ def _add_week_window(parent=None, index=None, select=False):
                 dpg.add_text(DISPLAY_TEXTS["ui_week_topics"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_week_topics"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    width=multiline_width,
+                    width=BOX_LARGE,
                     tag=UUIDs["TOPICS"],
                     default_value="\n".join(week["topics"]),
                     multiline=True,
@@ -1126,7 +1177,7 @@ def _add_week_window(parent=None, index=None, select=False):
                 dpg.add_text(DISPLAY_TEXTS["ui_inst"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_week_inst"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    width=multiline_width,
+                    width=BOX_LARGE,
                     tag=UUIDs["INSTRUCTIONS"],
                     default_value=week["instructions"],
                     multiline=True,
@@ -1138,7 +1189,7 @@ def _add_week_window(parent=None, index=None, select=False):
                 dpg.add_text(DISPLAY_TEXTS["ui_week_tags"][LANGUAGE.get()])
                 help_(DISPLAY_TEXTS["help_week_tags"][LANGUAGE.get()])
                 dpg.add_input_text(
-                    width=multiline_width,
+                    width=BOX_LARGE,
                     tag=UUIDs["TAGS"],
                     default_value=", ".join(week["tags"]),
                     enabled=enable,
@@ -1153,7 +1204,7 @@ def _add_week_window(parent=None, index=None, select=False):
                         label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["ADD_WEEK"],
-                        width=90,
+                        width=BUTTON_LARGE,
                     )
                 else:
                     with dpg.group(horizontal=True):
@@ -1161,13 +1212,13 @@ def _add_week_window(parent=None, index=None, select=False):
                             label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
                             callback=save_week,
                             user_data=(week, new, UUIDs),
-                            width=90,
+                            width=BUTTON_LARGE,
                         )
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                             callback=lambda s, a, u: close_window(u),
                             user_data=UI_ITEM_TAGS["ADD_WEEK"],
-                            width=90,
+                            width=BUTTON_LARGE,
                         )
                         if not new:
                             dpg.add_button(
@@ -1178,8 +1229,9 @@ def _add_week_window(parent=None, index=None, select=False):
                                     del_week_data,
                                     (parent, index, UI_ITEM_TAGS["ADD_WEEK"]),
                                 ),
-                                width=90,
+                                width=BUTTON_LARGE,
                             )
+                dpg.add_spacer(height=5)
 
 
 def open_new_week_window(parent=None, index=None, select=False):
@@ -1279,7 +1331,7 @@ def assignment_browse_window(
                     dpg.add_spacer(width=340)
                     dpg.add_button(
                         label="<- " + DISPLAY_TEXTS["ui_previous"][LANGUAGE.get()],
-                        width=120,
+                        width=BUTTON_LARGE,
                         enabled=True,
                         callback=swap_page,
                         user_data=(pagenum, get_all_indexed_assignments(), "-", False),
@@ -1298,7 +1350,7 @@ def assignment_browse_window(
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()] + " ->",
-                        width=120,
+                        width=BUTTON_LARGE,
                         enabled=True,
                         callback=swap_page,
                         user_data=(pagenum, get_all_indexed_assignments(), "+", False),
@@ -1313,21 +1365,21 @@ def assignment_browse_window(
                     with dpg.group(horizontal=True):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
-                            width=80,
+                            width=BUTTON_LARGE,
                             callback=save_select,
                             user_data=(select_save, listbox_id),
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                            width=80,
+                            width=BUTTON_LARGE,
                             callback=lambda s, a, u: close_window(u),
                             user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                         )
                 else:
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                        width=90,
+                        width=BUTTON_LARGE,
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                     )
@@ -1398,7 +1450,7 @@ def week_browse_window(select=False, select_save=None):
                     dpg.add_spacer(width=340)
                     dpg.add_button(
                         label="<- " + DISPLAY_TEXTS["ui_previous"][LANGUAGE.get()],
-                        width=120,
+                        width=BUTTON_LARGE,
                         enabled=True,
                         callback=swap_page,
                         user_data=(pagenum, get_week_data()["lectures"], "-", True),
@@ -1417,7 +1469,7 @@ def week_browse_window(select=False, select_save=None):
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_next"][LANGUAGE.get()] + " ->",
-                        width=120,
+                        width=BUTTON_LARGE,
                         enabled=True,
                         callback=swap_page,
                         user_data=(pagenum, get_week_data()["lectures"], "+", True),
@@ -1433,21 +1485,21 @@ def week_browse_window(select=False, select_save=None):
                     with dpg.group(horizontal=True):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_select"][LANGUAGE.get()],
-                            width=90,
+                            width=BUTTON_LARGE,
                             callback=save_select,
                             user_data=select_save,
                         )
                         dpg.add_spacer(width=6)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                            width=90,
+                            width=BUTTON_LARGE,
                             callback=lambda s, a, u: close_window(u),
                             user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                         )
                 else:
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
-                        width=90,
+                        width=BUTTON_LARGE,
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                     )
@@ -1545,7 +1597,7 @@ def show_prev_part(s, a, u: dict | None):
                         )
                         dpg.add_input_text(
                             callback=None,
-                            width=430,
+                            width=BOX_MEDIUM,
                             default_value=var["title"],
                             enabled=enable,
                         )
@@ -1557,7 +1609,7 @@ def show_prev_part(s, a, u: dict | None):
                         )
                         dpg.add_input_int(
                             callback=None,
-                            width=150,
+                            width=BOX_SMALL,
                             min_value=0,
                             min_clamped=True,
                             default_value=var["exp_lecture"],
@@ -1572,7 +1624,7 @@ def show_prev_part(s, a, u: dict | None):
                         help_(DISPLAY_TEXTS["help_assignment_no"][LANGUAGE.get()])
                         dpg.add_input_text(
                             callback=None,
-                            width=150,
+                            width=BOX_SMALL,
                             default_value=", ".join(
                                 [str(item) for item in var["exp_assignment_no"]]
                             ),
@@ -1587,7 +1639,7 @@ def show_prev_part(s, a, u: dict | None):
                         help_(DISPLAY_TEXTS["help_assignment_tags"][LANGUAGE.get()])
                         dpg.add_input_text(
                             callback=None,
-                            width=430,
+                            width=BOX_MEDIUM,
                             default_value=", ".join(var["tags"]),
                             enabled=enable,
                         )
@@ -1613,6 +1665,7 @@ def show_prev_part(s, a, u: dict | None):
                             ("Python", "C"),
                             default_value=var["code_language"],
                             enabled=enable,
+                            width=BOX_MEDIUM,
                         )
 
                     # Instruction language
@@ -1626,6 +1679,7 @@ def show_prev_part(s, a, u: dict | None):
                             ),
                             default_value=var["instruction_language"],
                             enabled=enable,
+                            width=BOX_MEDIUM,
                         )
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
@@ -1638,7 +1692,11 @@ def show_prev_part(s, a, u: dict | None):
                         prev = [] if not var["previous"] else var["previous"]
                         listbox_tag = dpg.generate_uuid()
                         dpg.add_listbox(
-                            prev, num_items=2, enabled=enable, tag=listbox_tag
+                            prev,
+                            num_items=2,
+                            enabled=enable,
+                            tag=listbox_tag,
+                            width=BOX_LARGE,
                         )
 
                         # Previous part listbox buttons
@@ -1647,6 +1705,7 @@ def show_prev_part(s, a, u: dict | None):
                                 label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
                                 callback=show_prev_part,
                                 user_data=dpg.get_value(listbox_tag),
+                                width=BUTTON_LARGE,
                             )
 
                     dpg.add_spacer(height=5)
@@ -1666,7 +1725,7 @@ def show_prev_part(s, a, u: dict | None):
                             ]
                         )
                         var_tag = dpg.generate_uuid()
-                        dpg.add_listbox(_vars, tag=var_tag)
+                        dpg.add_listbox(_vars, tag=var_tag, width=BOX_LARGE)
 
                     # Listbox buttons
                     dpg.add_button(
@@ -1681,6 +1740,7 @@ def show_prev_part(s, a, u: dict | None):
                                 var_tag,
                             ),
                         ),
+                        width=BUTTON_LARGE,
                     )
                     dpg.add_spacer(height=5)
                     dpg.add_separator()
@@ -1691,6 +1751,7 @@ def show_prev_part(s, a, u: dict | None):
                         label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                         callback=lambda s, a, u: close_window(u),
                         user_data=window_id,
+                        width=BUTTON_LARGE,
                     )
 
 
@@ -1730,10 +1791,11 @@ def show_var(s, a, user_data):
                 help_(DISPLAY_TEXTS["help_inst"][LANGUAGE.get()])
                 dpg.add_input_text(
                     multiline=True,
-                    height=150,
+                    height=BOX_SMALL,
                     tab_input=True,
                     default_value=data["instructions"],
                     enabled=select,
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(width=5)
 
@@ -1750,7 +1812,7 @@ def show_var(s, a, user_data):
                             ]
                         )
                         exrun_id = dpg.generate_uuid()
-                        dpg.add_listbox(runs, tag=exrun_id)
+                        dpg.add_listbox(runs, tag=exrun_id, width=BOX_LARGE)
                     dpg.add_spacer(height=5)
 
                     with dpg.group(horizontal=True):
@@ -1763,6 +1825,7 @@ def show_var(s, a, user_data):
                                 if not data["example_runs"]
                                 else int(dpg.get_value(exrun_id).split(" ")[1]) - 1,
                             ),
+                            width=BUTTON_LARGE,
                         )
 
                 # Used in text box
@@ -1773,6 +1836,7 @@ def show_var(s, a, user_data):
                     dpg.add_input_text(
                         default_value=", ".join(year_conversion(data["used_in"], False)),
                         enabled=select,
+                        width=BOX_LARGE,
                     )
                     dpg.add_spacer(width=5)
 
@@ -1784,7 +1848,7 @@ def show_var(s, a, user_data):
                         if not data["codefiles"]
                         else [path_leaf(f_p) for f_p in data["codefiles"]]
                     )
-                    dpg.add_listbox(files)
+                    dpg.add_listbox(files, width=BOX_LARGE)
                     dpg.add_spacer(height=5)
 
                 # Datafiles listbox and its buttons
@@ -1795,7 +1859,7 @@ def show_var(s, a, user_data):
                         if not data["datafiles"]
                         else [path_leaf(f_p) for f_p in data["datafiles"]]
                     )
-                    dpg.add_listbox(files)
+                    dpg.add_listbox(files, width=BOX_LARGE)
                     dpg.add_spacer(height=5)
 
                 # Window buttons
@@ -1805,6 +1869,7 @@ def show_var(s, a, user_data):
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                     callback=lambda s, a, u: close_window(u),
                     user_data=window_id,
+                    width=BUTTON_LARGE,
                 )
 
 
@@ -1822,7 +1887,7 @@ def show_exrun(s, a, user_data):
 
     select = False
 
-    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1])
+    label = DISPLAY_TEXTS["ex_run"][LANGUAGE.get()] + " " + str(user_data[1] + 1)
     window_id = dpg.generate_uuid()
     with dpg.window(label=label, tag=window_id, width=750, height=700, no_close=True):
         dpg.add_spacer(height=5)
@@ -1834,10 +1899,11 @@ def show_exrun(s, a, user_data):
                 help_(DISPLAY_TEXTS["help_inputs"][LANGUAGE.get()])
                 dpg.add_input_text(
                     multiline=True,
-                    height=150,
+                    height=BOX_SMALL,
                     tab_input=True,
                     enabled=select,
                     default_value="\n".join([str(item) for item in ex_run["inputs"]]),
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(height=5)
 
@@ -1847,6 +1913,7 @@ def show_exrun(s, a, user_data):
                 dpg.add_input_text(
                     enabled=select,
                     default_value=", ".join([str(item) for item in ex_run["cmd_inputs"]]),
+                    width=BOX_LARGE,
                 )
 
                 # Generate ex run checkbox
@@ -1865,9 +1932,10 @@ def show_exrun(s, a, user_data):
                 help_(DISPLAY_TEXTS["help_ex_output"][LANGUAGE.get()])
                 dpg.add_input_text(
                     multiline=True,
-                    height=150,
+                    height=BOX_SMALL,
                     enabled=select,
                     default_value=ex_run["output"],
+                    width=BOX_LARGE,
                 )
                 dpg.add_spacer(height=5)
 
@@ -1880,7 +1948,7 @@ def show_exrun(s, a, user_data):
                         if not ex_run["outputfiles"]
                         else [path_leaf(f_p) for f_p in ex_run["outputfiles"]]
                     )
-                    dpg.add_listbox(files)
+                    dpg.add_listbox(files, width=BOX_LARGE)
                     dpg.add_spacer(height=5)
 
                 dpg.add_spacer(height=10)
@@ -1892,6 +1960,7 @@ def show_exrun(s, a, user_data):
                     label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
                     callback=lambda s, a, u: close_window(u),
                     user_data=window_id,
+                    width=BUTTON_LARGE,
                 )
 
 
@@ -1960,13 +2029,13 @@ def result_window(orig_set: list, weeks: dict):
 
     window_id = dpg.generate_uuid()
     set_UUIDs = {
-            "year": dpg.generate_uuid(),
-            "period": dpg.generate_uuid(),
-            "ptext": dpg.generate_uuid(),
-            "name": dpg.generate_uuid(),
-            "pdf": dpg.generate_uuid(),
-            "window" : window_id
-        }
+        "year": dpg.generate_uuid(),
+        "period": dpg.generate_uuid(),
+        "ptext": dpg.generate_uuid(),
+        "name": dpg.generate_uuid(),
+        "pdf": dpg.generate_uuid(),
+        "window": window_id,
+    }
 
     if not isinstance(orig_set[0], dict):
         UUIDs = [dpg.generate_uuid() for i in range(0, len(orig_set))]
@@ -1995,7 +2064,7 @@ def result_window(orig_set: list, weeks: dict):
                 min_value=2000,
                 max_value=3000,
                 default_value=localtime().tm_year,
-                width=150,
+                width=BOX_SMALL,
             )
             dpg.add_spacer(width=10)
             dpg.add_text(DISPLAY_TEXTS["ui_study_period"][LANGUAGE.get()] + ":")
@@ -2008,7 +2077,7 @@ def result_window(orig_set: list, weeks: dict):
                 min_clamped=True,
                 user_data=set_UUIDs["ptext"],
                 callback=configure_period_text,
-                width=120,
+                width=BOX_SMALL,
                 default_value=1,
             )
             dpg.add_spacer(width=3)
@@ -2017,7 +2086,7 @@ def result_window(orig_set: list, weeks: dict):
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             dpg.add_text(DISPLAY_TEXTS["ui_name"][LANGUAGE.get()] + ":")
-            dpg.add_input_text(tag=set_UUIDs["name"], width=400)
+            dpg.add_input_text(tag=set_UUIDs["name"], width=BOX_MEDIUM)
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=25)
             dpg.add_text(DISPLAY_TEXTS["ui_create_pdf"][LANGUAGE.get()])
@@ -2056,6 +2125,7 @@ def result_window(orig_set: list, weeks: dict):
                                     _set,
                                     weeks["lectures"][i]["lecture_no"],
                                 ),
+                                width=BUTTON_SMALL,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
@@ -2067,18 +2137,21 @@ def result_window(orig_set: list, weeks: dict):
                                     _set,
                                     weeks["lectures"][i]["lecture_no"],
                                 ),
+                                width=BUTTON_SMALL,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
                                 callback=add_result,
                                 user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL,
                             )
                             dpg.add_spacer(width=5)
                             dpg.add_button(
                                 label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
                                 callback=change_result,
                                 user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL,
                             )
                         dpg.add_spacer(height=5)
 
@@ -2091,12 +2164,14 @@ def result_window(orig_set: list, weeks: dict):
                             label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
                             callback=accept_result_set,
                             user_data=(_set, weeks, set_UUIDs),
+                            width=BUTTON_LARGE,
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
                             callback=lambda s, a, u: close_window(u),
                             user_data=window_id,
+                            width=BUTTON_LARGE,
                         )
                     dpg.add_spacer(height=10)
 
