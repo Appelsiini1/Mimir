@@ -559,7 +559,10 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
         return
     else:
         var_index = get_variation_index(*user_data[1])
-        data = parent_data["variations"][var_index]
+        if parent_data["variations"]:
+            data = parent_data["variations"][var_index]
+        else:
+            return
 
     select = user_data[2]
     if select:
