@@ -3,5 +3,8 @@
     "txt" : "text",
     "c" : "c",
     "mk" : "make",
-    "h" : "c"
+    "h" : "c",
+    "json" : "json",
+    "yml" : "yaml",
+    "yaml" : "yaml"
 }

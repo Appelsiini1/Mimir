@@ -10,7 +10,8 @@
     ],
     "textfile" : [
         ["txt", [".txt"]],
-        ["json", [".json"]]
+        ["JSON", [".json"]],
+        ["YAML", [".yml",".yaml"]]
     ],
     "any" : [
         ["any", [".*"]]
