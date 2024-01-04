@@ -170,9 +170,9 @@ def save_course_info(**args):
 
     if new:
         COURSE_INFO["periods"] = {
-            1 : "DEFAULT",
-            2 : "DEFAULT",
-            3 : "DEFAULT",
+            "1" : "DEFAULT",
+            "2" : "DEFAULT",
+            "3" : "DEFAULT",
         }
 
     if not OPEN_COURSE_PATH.get():
