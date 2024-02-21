@@ -6,12 +6,15 @@
     ],
     "codefile" : [
         ["C", [".c", ".h"]],
-        ["Python", [".py"]]
+        ["Python", [".py"]],
+        ["Makefile", ["*.mak", "*.mk", "Makefile", "makefile", "Makefile.*"]],
+        ["Java", [".java"]]
     ],
     "textfile" : [
         ["txt", [".txt"]],
         ["JSON", [".json"]],
-        ["YAML", [".yml",".yaml"]]
+        ["YAML", [".yml",".yaml"]],
+        ["CSV", [".csv"]]
     ],
     "any" : [
         ["any", [".*"]]

@@ -6,5 +6,7 @@
     "h" : "c",
     "json" : "json",
     "yml" : "yaml",
-    "yaml" : "yaml"
+    "yaml" : "yaml",
+    "csv" : "text",
+    "java" : "java"
 }
