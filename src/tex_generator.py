@@ -343,7 +343,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
 
         text += "\\phantomsection\n"
         text += "\\addcontentsline{toc}{section}"
-        title = f"{{L{gen_info['lecture']:02}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}"
+        title = f"{{L{gen_info['lecture']}{DISPLAY_TEXTS['tex_assignment_letter'][LANGUAGE.get()]}{i}: {assignment['title']}"
         if level_abbr:
             title += f" ({level_abbr})"
         title += "}\n"
