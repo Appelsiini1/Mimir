@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 #################################
 # Environment spesific constants

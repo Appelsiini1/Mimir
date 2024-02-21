@@ -264,14 +264,14 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
 
     if pagenum == 1:
         start = 0
-        stop = perpage - 1
+        stop = perpage
     else:
         start = (pagenum - 1) * perpage
-        stop = (perpage * pagenum) - 1
+        stop = (perpage * pagenum)
 
     headers = []
     if not week:
-        data.sort(key=lambda a: a["position"].split(";")[0])
+        data.sort(key=lambda a: a["position"])
         _slice = data[start:stop]
         for item in _slice:
             header = ""
