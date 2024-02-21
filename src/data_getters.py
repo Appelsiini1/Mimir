@@ -259,7 +259,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
     Params:
     pagenum: the number of the page to return
     data: where to extract pages from
-    perpage: how many to show per page, default is 20
+    perpage: how many to show per page, default is 15
     """
 
     if pagenum == 1:
@@ -271,6 +271,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
 
     headers = []
     if not week:
+        data.sort(key=lambda a: a["position"].split(";")[0])
         _slice = data[start:stop]
         for item in _slice:
             header = ""
@@ -282,6 +283,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
             header += item["position"].split(";")[1] + ")"
             header += " - " + item["title"]
             headers.append(header)
+        headers.sort(key=lambda a: a.split(" - ")[0])
     else:
         data.sort(key=lambda a: a["lecture_no"])
         _slice = data[start:stop]
