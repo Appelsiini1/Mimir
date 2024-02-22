@@ -196,8 +196,7 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     ex_file: If the block is a file example, spesify the filename here. Defaults to None.
     """
 
-    text = "{"
-    text = "\\normalsize"
+    text += "\\normalsize"
     if not ex_file:
         text += "\\textit{"
     text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE.get()]}"

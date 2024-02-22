@@ -34,7 +34,8 @@
         "head_height" : "15pt",
         "no_hyphenation" : ["\\tolerance=1", "\\emergencystretch=\\maxdimen", "\\hyphenpenalty=10000", "\\hbadness=10000"],
         "other" : [
-            "\\definecolor{bg}{HTML}{F3F3F3}"
+            "\\definecolor{bg}{HTML}{F3F3F3}",
+            "\\setlength{\\parindent}{0pt}"
         ]
     },
     "pagestyle" : "fancy",
