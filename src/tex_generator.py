@@ -196,7 +196,7 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     ex_file: If the block is a file example, spesify the filename here. Defaults to None.
     """
 
-    text += "\\normalsize"
+    text = "\\normalsize"
     if not ex_file:
         text += "\\textit{"
     text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE.get()]}"
@@ -230,11 +230,10 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
             text += str(line) + " "
         text += "\n"
     else:
-        text += data
+        text += data.strip()
     if text[-1] != "\n":
         text += "\n"
     text += "\end{minted}\n}\n"
-    text += "\\vspace{0.1cm}\n"
 
     logging.debug("TEX BLOCK GENERATOR")
     logging.debug("DISPLAY KEY: %s" % display_text_key)
@@ -254,7 +253,7 @@ def _ge_ex_run(example_run: dict, i: int, pw=False):
 
     text = ""
     text += f"\n\\large\\textbf{{{DISPLAY_TEXTS['ex_run'][LANGUAGE.get()]} {i}}}\n"
-    text += "\\hfill\\break\\newline\n"
+    text += "\\hfill\\break\\newline"
     if example_run["CMD"]:
         if example_run["CMD"][0] != "":
             text += _block_gen("cmd_input", example_run["CMD"])
