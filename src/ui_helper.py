@@ -161,7 +161,7 @@ def extract_variation_data(s, a, u: tuple[dict, str, dict, dict, int]):
     data = u[3]
     ix = u[4]
 
-    data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"])
+    data["instructions"] = dpg.get_value(UUIDS["INSTRUCTIONS"]).strip()
     data["used_in"] = year_conversion(
         [item.strip() for item in dpg.get_value(UUIDS["USED_IN"]).split(",")], True
     )
@@ -360,8 +360,7 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     """Save assignment data and close window"""
 
     assig = u[0]
-
-    assig["title"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TITLE"])
+    assig["title"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TITLE"]).strip().replace("*", "")
     assig["tags"] = [
         i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
     ]
@@ -388,10 +387,10 @@ def save_week(s, a, u: tuple[dict, bool, dict]) -> None:
     UUIDs = u[2]
 
     week["lecture_no"] = dpg.get_value(UUIDs["LECTURE_NO"])
-    week["title"] = dpg.get_value(UUIDs["TITLE"])
+    week["title"] = dpg.get_value(UUIDs["TITLE"]).strip().replace("*", "")
     week["assignment_count"] = dpg.get_value(UUIDs["A_COUNT"])
     week["topics"] = [i.strip() for i in dpg.get_value(UUIDs["TOPICS"]).split("\n")]
-    week["instructions"] = dpg.get_value(UUIDs["INSTRUCTIONS"])
+    week["instructions"] = dpg.get_value(UUIDs["INSTRUCTIONS"]).strip()
     week["tags"] = [i.strip() for i in dpg.get_value(UUIDs["TAGS"]).split(",")]
 
     save_week_data(week, new)
