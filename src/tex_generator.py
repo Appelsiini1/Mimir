@@ -13,7 +13,7 @@ from tkinter.filedialog import askdirectory
 from dearpygui.dearpygui import generate_uuid, configure_item
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
-from src.data_handler import format_metadata_json
+from src.data_handler import format_metadata_json, escape_latex_symbols
 from src.data_getters import get_texdoc_settings, get_extension_list
 from src.ext_service import generate_pdf, copy_files
 from src.popups import popup_ok, popup_load
@@ -40,7 +40,7 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict, pw=False):
         ftr_cmd = "\\fancyfoot{}\n"
 
         if header_opt["include_course"]:
-            course = gen_info["course_id"] + " " + gen_info["course_name"]
+            course = escape_latex_symbols(gen_info["course_id"]) + " " + escape_latex_symbols(gen_info["course_name"])
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
         if footer_opt["include_week"] and not pw:
@@ -165,17 +165,17 @@ def _starting_instructions_gen(gen_info: dict):
     if not gen_info["title"]:
         title = f"\\section*{{L{gen_info['lecture']:02} {DISPLAY_TEXTS['assignments'][LANGUAGE.get()]}}}\n"
     else:
-        title = f"\\section*{{{gen_info['title']}}}\n"
+        title = f"\\section*{{{escape_latex_symbols(gen_info['title'])}}}\n"
 
     topics = "\\begin{itemize}[noitemsep]\n"
     for topic in gen_info["topics"]:
         topics += f"\t\\item {topic}\n"
 
-    text += title.replace('_', '\_')
+    text += escape_latex_symbols(title)
     text += "\\vspace{0.2cm}"
-    text += topics.replace('_', '\_')
+    text += escape_latex_symbols(topics)
     text += "\\end{itemize}\n"
-    text += gen_info["instructions"].replace('_', '\_') + "\n"
+    text += escape_latex_symbols(gen_info["instructions"]) + "\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
 
     logging.debug("TEX STARTING INSTRUCTIONS")
@@ -201,7 +201,7 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
         text += "\\textit{"
     text += f"\\textbf{{{DISPLAY_TEXTS[display_text_key][LANGUAGE.get()]}"
     if ex_file:
-        text += " '{0}'".format(split(ex_file)[1].replace('_', '\_'))
+        text += " '{0}'".format(escape_latex_symbols(split(ex_file)[1]))
     text += ":}"
     if not ex_file:
         text += "}"
@@ -295,7 +295,7 @@ def _include_solution(assignment: dict, pw=False):
         )
     text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
     for code in assignment["example_codes"]:
-        text += "\\textbf{'" + split(code['filename'])[1].replace('_', '\_') + "':}"
+        text += "\\textbf{'" + escape_latex_symbols(split(code['filename'])[1]) + "':}"
         text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
         text += f"[bgcolor=bg, fontsize=\\small]"
         try:
@@ -346,13 +346,13 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
             title += f" ({level_abbr})"
         title += "}\n"
         text += title
-        text += "\\section*" + title.replace('_', '\_')
+        text += "\\section*" + escape_latex_symbols(title)
         if a_level != None:
             text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
         if assignment["instructions"].startswith("!$IGN$!"):
             text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
         else:
-            text += assignment["instructions"].replace('_', '\_') + "\n"
+            text += escape_latex_symbols(assignment["instructions"]) + "\n"
         text += "\\vspace{5mm}\n"
 
         if "datafiles" in assignment:
@@ -586,13 +586,13 @@ def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> st
     incl_solution: Boolean whether to add solution to TeX
     """
     text = ""
-    text += f"\\section*{{{gen_info['title']}}}\n"
+    text += f"\\section*{{{escape_latex_symbols(gen_info['title'])}}}\n"
     text += "\\vspace{0.2cm}\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
     if assignment["instructions"].startswith("!$IGN$!"):
         text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
     else:
-        text += assignment["instructions"].replace('_', '\_') + "\n"
+        text += escape_latex_symbols(assignment["instructions"]) + "\n"
     text += "\\vspace{5mm}\n"
 
     if "datafiles" in assignment:
