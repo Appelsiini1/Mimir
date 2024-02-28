@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 #################################
 # Environment spesific constants
@@ -157,3 +157,11 @@ INDEX_SCHEMA = Schema(
     level=ID(stored=True),
 )
 WEEK_DATA = WEEK()
+LATEX_SYMBOLS = {
+    "#": "\#",
+    "$": "\$",
+    "%": "\%",
+    "&": "\&",
+    "^": "\\textasciicircum{}",
+    "_": "\_"
+}

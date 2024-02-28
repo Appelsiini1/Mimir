@@ -28,6 +28,7 @@ from src.constants import (
     RECENTS,
     INDEX_SCHEMA,
     WEEK_DATA,
+    LATEX_SYMBOLS
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 from src.data_getters import (
@@ -842,3 +843,34 @@ def save_sets_disk(sets:dict) -> bool:
         popup_ok(DISPLAY_TEXTS["ui_error_save_set"][LANGUAGE.get()])
         return False
     return True
+
+
+def escape_latex_symbols(text:str):
+    """
+    Function to replace special symbols so they do not interfere with PDF generation
+    NOTE: this function will not replace { or } characters, or re-escape symbols that are already escaped.
+    The function is not a semantic LaTeX analyser though, so it will replace characters even if they are
+    inside a special environment.
+
+    Params:
+    text: a string of text from which to replace symbols
+    """
+
+    for symbol in LATEX_SYMBOLS.keys():
+        start=0
+        while(True):
+            substring = text[start:]
+            text2 = text[:start]
+            index = substring.find(symbol)
+            if index==-1:
+                break
+            
+            if substring[index-1] != "\\":
+                substring = substring.replace(symbol, LATEX_SYMBOLS[symbol], 1)
+                start += index+2
+                text = text2+ substring
+            else:
+                start += index+2
+                text = text2+ substring
+
+    return text
