@@ -39,6 +39,7 @@ from src.data_getters import (
     get_number_of_docs,
     get_assignment_json,
     get_saved_assignment_sets,
+    get_result_sets
 )
 from src.popups import popup_ok
 from src.window_helper import close_window
@@ -884,7 +885,7 @@ def _resolve_assignment(assig:dict):
     assig: dict from the raw result set
     """
     data = get_assignment_json(
-        path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assig["id"])
+        path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assig["id"] + ".json")
     )
     if not data:
         return []
@@ -915,3 +916,12 @@ def resolve_assignment_set(_set: dict) -> list[dict] | list[list[dict]]:
             new_set.append(new_week)
 
     return new_set
+
+
+def resolve_set_header(header:str) -> dict:
+    """
+    Get result set based on header
+    """
+
+    set_id = int(header.split(" - ")[0])
+    return get_result_sets(set_id)
