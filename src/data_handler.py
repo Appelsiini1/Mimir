@@ -875,3 +875,43 @@ def escape_latex_symbols(text: str):
 
     return text
 
+
+def _resolve_assignment(assig:dict):
+    """
+    Resolves a single assignment for result set
+
+    Params:
+    assig: dict from the raw result set
+    """
+    data = get_assignment_json(
+        path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assig["id"])
+    )
+    if not data:
+        return []
+    for var in data["variations"]:
+        if var["variation_id"] == assig["variationID"]:
+            data["variations"] = [var]
+
+    return data
+
+def resolve_assignment_set(_set: dict) -> list[dict] | list[list[dict]]:
+    """
+    Resolves assignment set to get full assignment data
+
+    Params:
+    _set: an assignment set to resolve as dict
+    """
+
+    if _set["type"] == "week":
+        new_set = []
+        for assig in _set["assignments"]:
+            new_set.append(_resolve_assignment(assig))
+    else:
+        new_set = []
+        for week in _set["weeks"]:
+            new_week = []
+            for assig in week:
+                new_week.append(_resolve_assignment(assig))
+            new_set.append(new_week)
+
+    return new_set
