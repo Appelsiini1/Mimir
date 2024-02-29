@@ -4,7 +4,7 @@
 from os import name as OSname
 from os import getenv
 from os.path import join
-from logging import DEBUG  # , INFO
+from logging import DEBUG, INFO
 from sys import exit as sysexit
 import json
 
@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 #################################
 # Environment spesific constants
@@ -145,7 +145,7 @@ COURSE_INFO = {
     "max_level": 100,
 }
 FILETYPES = _get_filetypes()
-LOG_LEVEL = DEBUG
+LOG_LEVEL = INFO
 RECENTS = RECENTS_LIST()
 INDEX_SCHEMA = Schema(
     a_id=ID(stored=True, unique=True),

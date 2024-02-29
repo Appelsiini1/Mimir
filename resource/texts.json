@@ -645,5 +645,21 @@
     "ui_create_pdf" : {
         "FI" : "Luo PDF",
         "ENG" : "Create PDF"
+    },
+    "ui_no_name" : {
+        "FI" : "Ei nimeä",
+        "ENG" : "No name"
+    },
+    "ui_saved_sets" : {
+        "FI" : "Tallennetut tehtäväsarjat",
+        "ENG" : "Saved assignment sets"
+    },
+    "ui_full" : {
+        "FI" : "Täysi",
+        "ENG" : "Full"
+    },
+    "ui_set_browser" : {
+        "FI" : "Sarjaselain",
+        "ENG" : "Set browser"
     }
 }

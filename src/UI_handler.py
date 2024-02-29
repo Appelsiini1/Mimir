@@ -54,6 +54,7 @@ from src.data_getters import (
     get_week_data,
     get_assignment_json,
     get_variation_index,
+    get_result_sets
 )
 
 from src.ui_helper import (
@@ -229,6 +230,20 @@ def main_window():
             with dpg.group(horizontal=True):
                 dpg.add_spacer(width=25)
                 with dpg.group():
+
+                    # Saved sets
+                    dpg.add_text(DISPLAY_TEXTS["ui_saved_sets"][LANGUAGE.get()])
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_set_browser"][LANGUAGE.get()],
+                        callback=lambda s, a, u: show_result_sets(),
+                        width=BUTTON_XXL
+                    )
+                    dpg.bind_item_theme(dpg.last_item(), "alternate_button_theme")
+                    dpg.add_spacer(height=10)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=10)
+
+                    # New sets
                     dpg.add_text(DISPLAY_TEXTS["ui_create_new_set"][LANGUAGE.get()])
                     dpg.add_spacer(height=5)
                     with dpg.group(horizontal=True):
@@ -2407,3 +2422,56 @@ def create_project_work(**args):
     )
 
     create_pw_pdf(data)
+
+
+def show_result_sets():
+    """
+    Window to browse saved assignment sets
+    """
+
+    label = "Mímir - {}".format(DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE.get()])
+
+    with dpg.window(
+        label=label,
+        width=1400,
+        height=695,
+        tag=UI_ITEM_TAGS["LIST_WINDOW"],
+        no_close=True,
+        no_collapse=True,
+        no_resize=True,
+    ):
+        dpg.add_spacer(height=10)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                # Listbox header
+                dpg.add_spacer(height=10)
+                dpg.add_text(DISPLAY_TEXTS["ui_saved_sets"][LANGUAGE.get()] + ":")
+
+                # Set listbox
+                dpg.add_spacer(height=5)
+                headers = get_result_sets()
+                dpg.add_listbox(
+                    headers, tag=UI_ITEM_TAGS["LISTBOX"], width=1300, num_items=15
+                )
+                dpg.add_spacer(height=5)
+
+                dpg.add_spacer(height=10)
+                dpg.add_separator()
+                dpg.add_spacer(height=5)
+
+                # Window buttons
+
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()],
+                        width=BUTTON_XL,
+                        callback=None, #TODO
+                    )
+                    dpg.add_spacer(width=5)
+                    dpg.add_button(
+                        label=DISPLAY_TEXTS["ui_close"][LANGUAGE.get()],
+                        width=BUTTON_LARGE,
+                        callback=lambda s, a, u: close_window(u),
+                        user_data=UI_ITEM_TAGS["LIST_WINDOW"],
+                    )
