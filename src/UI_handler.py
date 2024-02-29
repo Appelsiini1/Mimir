@@ -2428,13 +2428,20 @@ def show_result_sets():
     """
     Window to browse saved assignment sets
     """
-
+    if OPEN_COURSE_PATH.get():
+        if not COURSE_INFO["course_id"]:
+            popup_ok(DISPLAY_TEXTS["popup_courseinfo_missing"][LANGUAGE.get()])
+            return
+    else:
+        popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
+        return
+    
     label = "Mímir - {}".format(DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE.get()])
 
     with dpg.window(
         label=label,
         width=1400,
-        height=695,
+        height=640,
         tag=UI_ITEM_TAGS["LIST_WINDOW"],
         no_close=True,
         no_collapse=True,
