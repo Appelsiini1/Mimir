@@ -410,3 +410,25 @@ def get_result_sets(set_id: int | None = None):
             if _set["id"] == set_id:
                 return _set
         return []
+
+
+def get_one_week(week_n) -> dict | None:
+    """
+    Get one week for assignment sets
+    """
+    
+    try:
+        all_weeks = get_week_data().copy()
+    except TypeError:
+        return None
+    week = False
+    for w in all_weeks["lectures"]:
+        if w["lecture_no"] == week_n:
+            all_weeks["lectures"] = [w]
+            week = True
+            break
+
+    if week:
+        return all_weeks
+    else:
+        return {}
