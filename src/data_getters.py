@@ -267,7 +267,7 @@ def get_header_page(pagenum: int, data: list, perpage=15, week=False) -> list:
         stop = perpage
     else:
         start = (pagenum - 1) * perpage
-        stop = (perpage * pagenum)
+        stop = perpage * pagenum
 
     headers = []
     if not week:
@@ -360,10 +360,7 @@ def get_saved_assignment_sets() -> dict:
 
     _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
     if not path.exists(_path):
-        result = {
-            "maxSetID" : 0,
-            "sets" : []
-        }
+        result = {"maxSetID": 0, "sets": []}
     else:
         try:
             with open(_path, "r", encoding="utf-8") as f:
@@ -372,3 +369,44 @@ def get_saved_assignment_sets() -> dict:
             logging.exception("Could not load saved assignment sets!")
 
     return result
+
+
+def get_result_sets(set_id: int | None = None):
+    """
+    Return a list of result sets
+
+    Params:
+    set_id: Defaults to None, giving only headers. With non-zero positive ID
+    will try to find and return the set with the id. Returns an empty list if set cannot be found.
+    """
+    _path = OPEN_COURSE_PATH.get_set_path()
+
+    try:
+        with open(_path, "r", encoding="utf-8") as f:
+            data = json.loads(f.read())
+    except OSError:
+        logging.exception("Error reading result set file: ")
+        return []
+
+    if not set_id:
+        headers = []
+        for _set in data["sets"]:
+            t = "{} - ".format(_set["id"])
+            t += "{}/{}".format(_set["year"], _set["period"])
+            t += " - {} - ".format(
+                DISPLAY_TEXTS["ui_week"][LANGUAGE.get()]
+                if _set["type"] == "week"
+                else DISPLAY_TEXTS["ui_full"][LANGUAGE.get()]
+            )
+            t += (
+                _set["name"]
+                if _set["name"]
+                else "[" + DISPLAY_TEXTS["ui_no_name"][LANGUAGE.get()] + "]"
+            )
+            headers.append(t)
+        return headers
+    else:
+        for _set in data["sets"]:
+            if _set["id"] == set_id:
+                return _set
+        return []
