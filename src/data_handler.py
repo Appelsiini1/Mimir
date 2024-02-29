@@ -833,7 +833,7 @@ def save_sets_disk(sets:dict) -> bool:
     sets: dictionary containing set information.
     """
 
-    _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
+    _path = OPEN_COURSE_PATH.get_set_path()
 
     try:
         with open(_path, "w", encoding="utf-8") as f:
