@@ -42,6 +42,8 @@ from src.data_handler import (
     del_assignment_from_index,
     del_week_data,
     save_new_set,
+    resolve_assignment_set,
+    resolve_set_header,
 )
 from src.data_getters import (
     get_empty_variation,
@@ -54,7 +56,8 @@ from src.data_getters import (
     get_week_data,
     get_assignment_json,
     get_variation_index,
-    get_result_sets
+    get_result_sets,
+    get_one_week,
 )
 
 from src.ui_helper import (
@@ -1988,6 +1991,7 @@ def add_prev(s, a, u: dict):
     )
 
 
+
 def create_one_set_callback(s, a, u):
     """
     Callback function for main window button
@@ -1995,18 +1999,9 @@ def create_one_set_callback(s, a, u):
 
     week_n = dpg.get_value(u[0])
     exc_exp = dpg.get_value(u[1])
-    try:
-        all_weeks = get_week_data().copy()
-    except TypeError:
-        popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
-    week = False
-    for w in all_weeks["lectures"]:
-        if w["lecture_no"] == week_n:
-            all_weeks["lectures"] = [w]
-            week = True
-            break
+    all_weeks = get_one_week(week_n)
 
-    if week:
+    if all_weeks is not None and all_weeks is not {}:
         _set = generate_one_set(
             all_weeks["lectures"][0]["lecture_no"],
             all_weeks["lectures"][0]["assignment_count"],
@@ -2014,6 +2009,8 @@ def create_one_set_callback(s, a, u):
         )
         formatted = format_set(_set)
         result_window(formatted, all_weeks)
+    elif all_weeks is None:
+        popup_ok(DISPLAY_TEXTS["popup_nocourse"][LANGUAGE.get()])
     else:
         popup_ok(DISPLAY_TEXTS["ui_no_week_data"][LANGUAGE.get()])
 
@@ -2473,7 +2470,7 @@ def show_result_sets():
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_show_edit"][LANGUAGE.get()],
                         width=BUTTON_XL,
-                        callback=None, #TODO
+                        callback=lambda s, a, u: open_set_window(),
                     )
                     dpg.add_spacer(width=5)
                     dpg.add_button(
@@ -2482,3 +2479,169 @@ def show_result_sets():
                         callback=lambda s, a, u: close_window(u),
                         user_data=UI_ITEM_TAGS["LIST_WINDOW"],
                     )
+
+
+def set_window(set_info:dict):
+    """
+    The result preview window for generated sets
+    """
+
+    label = "Mímir - {} - {}".format(
+        DISPLAY_TEXTS["ui_assignment_set"][LANGUAGE.get()],
+        DISPLAY_TEXTS["ui_results"][LANGUAGE.get()],
+    )
+
+    window_id = dpg.generate_uuid()
+    set_UUIDs = {
+        "year": dpg.generate_uuid(),
+        "period": dpg.generate_uuid(),
+        "ptext": dpg.generate_uuid(),
+        "name": dpg.generate_uuid(),
+        "pdf": dpg.generate_uuid(),
+        "window": window_id,
+    }
+
+    orig_set = resolve_assignment_set(set_info)
+
+    if not isinstance(orig_set[0], dict):
+        UUIDs = [dpg.generate_uuid() for i in range(0, len(orig_set))]
+        _set = orig_set
+        weeks = get_week_data()
+    else:
+        _set = [orig_set]
+        UUIDs = [dpg.generate_uuid()]
+        weeks = get_one_week(orig_set[0]["exp_lecture"])
+
+    weeks["lectures"].sort(key=lambda a: a["lecture_no"])
+
+    with dpg.window(
+        label=label,
+        width=1400,
+        tag=window_id,
+        no_close=True,
+        no_collapse=True,
+        no_resize=False,
+    ):
+        dpg.add_text(DISPLAY_TEXTS["ui_set_id"][LANGUAGE.get()] + ":")
+
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_year"][LANGUAGE.get()] + ":")
+            dpg.add_input_int(
+                tag=set_UUIDs["year"],
+                min_value=2000,
+                max_value=3000,
+                default_value=set_info["year"],
+                width=BOX_SMALL,
+            )
+            dpg.add_spacer(width=10)
+            dpg.add_text(DISPLAY_TEXTS["ui_study_period"][LANGUAGE.get()] + ":")
+
+            dpg.add_input_int(
+                tag=set_UUIDs["period"],
+                min_value=1,
+                max_value=len(COURSE_INFO["periods"].keys()),
+                max_clamped=True,
+                min_clamped=True,
+                user_data=set_UUIDs["ptext"],
+                callback=configure_period_text,
+                width=BOX_SMALL,
+                default_value=set_info["period"],
+            )
+            dpg.add_spacer(width=3)
+            dpg.add_text("", tag=set_UUIDs["ptext"])
+            configure_period_text(None, None, set_UUIDs["ptext"])
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            dpg.add_text(DISPLAY_TEXTS["ui_name"][LANGUAGE.get()] + ":")
+            dpg.add_input_text(tag=set_UUIDs["name"], width=BOX_MEDIUM, default_value=set_info["name"])
+
+        dpg.add_spacer(height=30)
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                for i, _id in enumerate(UUIDs):
+                    with dpg.group():
+                        dpg.add_text(
+                            DISPLAY_TEXTS["ui_week"][LANGUAGE.get()]
+                            + " "
+                            + str(weeks["lectures"][i]["lecture_no"])
+                        )
+                        items = gen_result_headers(
+                            _set[i], weeks["lectures"][i]["lecture_no"]
+                        )
+                        dpg.add_listbox(
+                            items,
+                            tag=_id,
+                            num_items=weeks["lectures"][i]["assignment_count"],
+                        )
+                        dpg.add_spacer(height=5)
+                        with dpg.group(horizontal=True):
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_show"][LANGUAGE.get()],
+                                callback=show_result_assig,
+                                user_data=(
+                                    _id,
+                                    i,
+                                    _set,
+                                    weeks["lectures"][i]["lecture_no"],
+                                ),
+                                width=BUTTON_SMALL,
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                                callback=del_result,
+                                user_data=(
+                                    _id,
+                                    i,
+                                    _set,
+                                    weeks["lectures"][i]["lecture_no"],
+                                ),
+                                width=BUTTON_SMALL,
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_add"][LANGUAGE.get()],
+                                callback=add_result,
+                                user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL,
+                            )
+                            dpg.add_spacer(width=5)
+                            dpg.add_button(
+                                label=DISPLAY_TEXTS["ui_change"][LANGUAGE.get()],
+                                callback=change_result,
+                                user_data=(_id, i, _set, weeks),
+                                width=BUTTON_SMALL,
+                            )
+                        dpg.add_spacer(height=5)
+
+                with dpg.group():
+                    dpg.add_spacer(height=5)
+                    dpg.add_separator()
+                    dpg.add_spacer(height=5)
+                    with dpg.group(horizontal=True):
+                        #TODO
+                        # dpg.add_button(
+                        #     label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
+                        #     callback=accept_result_set,
+                        #     user_data=(_set, weeks, set_UUIDs),
+                        #     width=BUTTON_LARGE,
+                        # )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],
+                            callback=lambda s, a, u: close_window(u),
+                            user_data=window_id,
+                            width=BUTTON_LARGE,
+                        )
+                    dpg.add_spacer(height=10)
+
+def open_set_window():
+    """
+    Gets selected set and open set preview window
+    """
+
+    header = dpg.get_value(UI_ITEM_TAGS["LISTBOX"])
+    _set = resolve_set_header(header)
+    set_window(_set)
