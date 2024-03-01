@@ -28,7 +28,7 @@ from src.constants import (
     RECENTS,
     INDEX_SCHEMA,
     WEEK_DATA,
-    LATEX_SYMBOLS
+    LATEX_SYMBOLS,
 )
 from src.custom_errors import IndexExistsError, IndexNotOpenError
 from src.data_getters import (
@@ -39,6 +39,7 @@ from src.data_getters import (
     get_number_of_docs,
     get_assignment_json,
     get_saved_assignment_sets,
+    get_result_sets
 )
 from src.popups import popup_ok
 from src.window_helper import close_window
@@ -150,7 +151,7 @@ def save_course_info(**args):
     COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
     levels = {}
     raw = get_value(UI_ITEM_TAGS["COURSE_LEVELS"]).strip().split("\n")
-    if raw[0] != '':
+    if raw[0] != "":
         try:
             for item in raw:
                 data = item.split(":")
@@ -171,9 +172,9 @@ def save_course_info(**args):
 
     if new:
         COURSE_INFO["periods"] = {
-            "1" : "DEFAULT",
-            "2" : "DEFAULT",
-            "3" : "DEFAULT",
+            "1": "DEFAULT",
+            "2": "DEFAULT",
+            "3": "DEFAULT",
         }
 
     if not OPEN_COURSE_PATH.get():
@@ -235,18 +236,20 @@ def format_metadata_json(data: dict):
             "inputs": variation["example_runs"][i]["inputs"],
             "output": variation["example_runs"][i]["output"],
             "CMD": variation["example_runs"][i]["cmd_inputs"],
-            "outputfiles": [
-                {
-                    "filename": j,
-                    "data": read_datafile(
-                        j,
-                        data["assignment_id"],
-                    ),
-                }
-                for j in variation["example_runs"][i]["outputfiles"]
-            ]
-            if variation["example_runs"][i]["outputfiles"]
-            else [],
+            "outputfiles": (
+                [
+                    {
+                        "filename": j,
+                        "data": read_datafile(
+                            j,
+                            data["assignment_id"],
+                        ),
+                    }
+                    for j in variation["example_runs"][i]["outputfiles"]
+                ]
+                if variation["example_runs"][i]["outputfiles"]
+                else []
+            ),
         }
         example_runs.append(n)
     new["example_runs"] = example_runs
@@ -270,7 +273,7 @@ def format_metadata_json(data: dict):
     return new
 
 
-def save_next(assignment:dict):
+def save_next(assignment: dict):
     """
     Saves information on continuing assignments
 
@@ -393,7 +396,6 @@ def save_assignment_file(assignment: dict, new: bool, expanding: bool):
         popup_ok("Error saving assignment data into a file!")
 
 
-
 def path_leaf(f_path):
     """Return the filename from a filepath"""
     head, tail = split(f_path)
@@ -487,9 +489,7 @@ def open_course(**args):
             COURSE_INFO[key] = _json[key]
         if open_index() == -1:
             return
-        configure_item(
-            UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"]
-        )
+        configure_item(UI_ITEM_TAGS["COURSE_ID"], default_value=COURSE_INFO["course_id"])
         configure_item(
             UI_ITEM_TAGS["COURSE_TITLE"], default_value=COURSE_INFO["course_title"]
         )
@@ -497,13 +497,13 @@ def open_course(**args):
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=COURSE_INFO["course_weeks"]
         )
         configure_item(UI_ITEM_TAGS["total_index"], default_value=get_number_of_docs())
-        
+
         levels = ""
         data = list(COURSE_INFO["course_levels"].keys())
         data.sort()
         for key in data:
             levels += f"{str(key)}:{COURSE_INFO['course_levels'][key][0]}"
-            if len(COURSE_INFO['course_levels'][key]) == 2:
+            if len(COURSE_INFO["course_levels"][key]) == 2:
                 levels += f":{COURSE_INFO['course_levels'][key][1]}"
             levels += "\n"
         configure_item(UI_ITEM_TAGS["COURSE_LEVELS"], default_value=levels)
@@ -537,6 +537,7 @@ def save_week_data(week, new) -> None:
                 parent["lectures"][i] = week
                 break
     save_full_week(parent)
+
 
 def save_full_week(parent):
     """
@@ -750,7 +751,7 @@ def del_assignment_from_index(ID: str) -> bool:
     return False
 
 
-def format_week_data(data:dict) -> dict:
+def format_week_data(data: dict) -> dict:
     """
     Changes week data to include lectures as one dict, with week number as key.
     """
@@ -764,7 +765,7 @@ def format_week_data(data:dict) -> dict:
     return new_dict
 
 
-def del_week_data(s, a, u:tuple[dict, int]) -> None:
+def del_week_data(s, a, u: tuple[dict, int]) -> None:
     """
     Delete a week from week data
     """
@@ -779,33 +780,34 @@ def del_week_data(s, a, u:tuple[dict, int]) -> None:
     save_full_week(parent)
 
 
-def save_new_set(set_UUIDs:dict, sets:list) -> bool:
+def save_new_set(set_UUIDs: dict, sets: list) -> bool:
     """
     Save assignment set to disk.
 
     Params:
     set_UUIDs: the UUIDs of the set metadata from the result window
+    sets: A list of sets to save 
     """
 
     saved = get_saved_assignment_sets()
     if not saved:
         popup_ok(DISPLAY_TEXTS["ui_error_load_set"][LANGUAGE.get()])
         return
-    
+
     max_set_id = saved["maxSetID"]
     year = get_value(set_UUIDs["year"])
     period = get_value(set_UUIDs["period"])
     name = get_value(set_UUIDs["name"])
 
     set_to_save = {
-        "id" : max_set_id+1,
-        "year" : year,
-        "period" : period,
-        "name" : name,
-        "type" : "week" if (len(sets) == 1) else "full",
-        "assignments" : None,
-        "weeks" : []
-        }
+        "id": max_set_id + 1,
+        "year": year,
+        "period": period,
+        "name": name,
+        "type": "week" if (len(sets) == 1) else "full",
+        "assignments": None,
+        "weeks": [],
+    }
     for _set in sets:
         tempList = []
         for assig in _set:
@@ -825,7 +827,7 @@ def save_new_set(set_UUIDs:dict, sets:list) -> bool:
     return res
 
 
-def save_sets_disk(sets:dict) -> bool:
+def save_sets_disk(sets: dict) -> bool:
     """
     Save set data dict to disk.
 
@@ -833,7 +835,7 @@ def save_sets_disk(sets:dict) -> bool:
     sets: dictionary containing set information.
     """
 
-    _path = path.join(OPEN_COURSE_PATH.get(), "assignment_sets.json")
+    _path = OPEN_COURSE_PATH.get_set_path()
 
     try:
         with open(_path, "w", encoding="utf-8") as f:
@@ -844,8 +846,46 @@ def save_sets_disk(sets:dict) -> bool:
         return False
     return True
 
+def update_set(_set:dict, set_UUIDs:dict, assigs:list, window_id:int|str):
+    """
+    Update assignment set and save sets to disk
 
-def escape_latex_symbols(text:str):
+    Params:
+    _set: set to save
+    set_UUIDS: UUIDS of the fields to extract data from
+    assigs: the full (modified) assignment set 
+    window_id: ID of the window to close
+    """
+
+    data = get_saved_assignment_sets()
+
+    _set["year"] = get_value(set_UUIDs["year"])
+    _set["period"] = get_value(set_UUIDs["period"])
+    _set["name"] = get_value(set_UUIDs["name"])
+
+    for _assig in assigs:
+        tempList = []
+        for assig in _assig:
+            tempAssig = {}
+            tempAssig["id"] = assig["assignment_id"]
+            tempAssig["variationID"] = assig["variations"][0]["variation_id"]
+            tempList.append(tempAssig)
+        if _set["type"] == "full":
+            _set["weeks"].append(tempList)
+        else:
+            _set["assignments"] = tempList
+
+    for i, _sets in enumerate(data["sets"]):
+        if _sets["id"] == _set["id"]:
+            data["sets"][i] = _set
+            break
+
+    save_sets_disk(data)
+    configure_item(UI_ITEM_TAGS["LISTBOX"], items=get_result_sets())
+    close_window(window_id)
+    
+
+def escape_latex_symbols(text: str):
     """
     Function to replace special symbols so they do not interfere with PDF generation
     NOTE: this function will not replace { or } characters, or re-escape symbols that are already escaped.
@@ -857,20 +897,96 @@ def escape_latex_symbols(text:str):
     """
 
     for symbol in LATEX_SYMBOLS.keys():
-        start=0
-        while(True):
+        start = 0
+        while True:
             substring = text[start:]
             text2 = text[:start]
             index = substring.find(symbol)
-            if index==-1:
+            if index == -1:
                 break
-            
-            if substring[index-1] != "\\":
+
+            if substring[index - 1] != "\\":
                 substring = substring.replace(symbol, LATEX_SYMBOLS[symbol], 1)
-                start += index+2
-                text = text2+ substring
+                start += index + 2
+                text = text2 + substring
             else:
-                start += index+2
-                text = text2+ substring
+                start += index + 2
+                text = text2 + substring
 
     return text
+
+
+def _resolve_assignment(assig:dict):
+    """
+    Resolves a single assignment for result set
+
+    Params:
+    assig: dict from the raw result set
+    """
+    data = get_assignment_json(
+        path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assig["id"] + ".json")
+    )
+    if not data:
+        return []
+    for var in data["variations"]:
+        if var["variation_id"] == assig["variationID"]:
+            data["variations"] = [var]
+
+    return data
+
+def resolve_assignment_set(_set: dict) -> list[dict] | list[list[dict]]:
+    """
+    Resolves assignment set to get full assignment data
+
+    Params:
+    _set: an assignment set to resolve as dict
+    """
+
+    if _set["type"] == "week":
+        new_set = []
+        for assig in _set["assignments"]:
+            new_set.append(_resolve_assignment(assig))
+    else:
+        new_set = []
+        for week in _set["weeks"]:
+            new_week = []
+            for assig in week:
+                new_week.append(_resolve_assignment(assig))
+            new_set.append(new_week)
+
+    return new_set
+
+
+def resolve_set_header(header:str) -> dict:
+    """
+    Get result set based on header
+    """
+
+    set_id = int(header.split(" - ")[0])
+    return get_result_sets(set_id)
+
+
+def delete_assignment_set(s, a, u:tuple[int, int|str, int|str]):
+    """
+    Delete assignment set from set list
+
+    Params:
+    set_id: set to remove
+    window_id: window to close after removal
+    """
+
+    set_id = u[0]
+    window_id = u[1]
+    popup_id = u[2]
+
+    data = get_saved_assignment_sets()
+
+    for i, _sets in enumerate(data["sets"]):
+        if _sets["id"] == set_id:
+            del data["sets"][i]
+            break
+
+    save_sets_disk(data)
+    close_window(popup_id)
+    configure_item(UI_ITEM_TAGS["LISTBOX"], items=get_result_sets())
+    close_window(window_id)

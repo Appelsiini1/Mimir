@@ -11,6 +11,9 @@ class COURSE_PATH:
 
     def get(self):
         return self._path
+    
+    def get_set_path(self):
+        return join(self._path, "assignment_sets.json")
 
     def get_subdir(self, metadata=False, index=False, assignment_data=False):
         if metadata:
