@@ -367,6 +367,7 @@ def get_saved_assignment_sets() -> dict:
                 result = json.loads(f.read())
         except OSError:
             logging.exception("Could not load saved assignment sets!")
+            result = []
 
     return result
 
@@ -379,15 +380,7 @@ def get_result_sets(set_id: int | None = None):
     set_id: Defaults to None, giving only headers. With non-zero positive ID
     will try to find and return the set with the id. Returns an empty list if set cannot be found.
     """
-    _path = OPEN_COURSE_PATH.get_set_path()
-
-    try:
-        with open(_path, "r", encoding="utf-8") as f:
-            data = json.loads(f.read())
-    except OSError:
-        logging.exception("Error reading result set file: ")
-        return []
-
+    data = get_saved_assignment_sets()
     if not set_id:
         headers = []
         for _set in data["sets"]:
