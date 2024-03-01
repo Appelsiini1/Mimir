@@ -2621,6 +2621,13 @@ def set_window(set_info:dict):
                     dpg.add_separator()
                     dpg.add_spacer(height=5)
                     with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_create_pdf"][LANGUAGE.get()],
+                            callback=lambda s, a, u: tex_gen(u),
+                            user_data=(_set, weeks),
+                            width=BUTTON_LARGE,
+                        )
+                        dpg.add_spacer(width=5)
                         #TODO
                         # dpg.add_button(
                         #     label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
