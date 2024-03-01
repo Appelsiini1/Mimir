@@ -44,6 +44,8 @@ from src.data_handler import (
     save_new_set,
     resolve_assignment_set,
     resolve_set_header,
+    update_set,
+    delete_assignment_set
 )
 from src.data_getters import (
     get_empty_variation,
@@ -2628,13 +2630,19 @@ def set_window(set_info:dict):
                             width=BUTTON_LARGE,
                         )
                         dpg.add_spacer(width=5)
-                        #TODO
-                        # dpg.add_button(
-                        #     label=DISPLAY_TEXTS["ui_accept"][LANGUAGE.get()],
-                        #     callback=accept_result_set,
-                        #     user_data=(_set, weeks, set_UUIDs),
-                        #     width=BUTTON_LARGE,
-                        # )
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_save"][LANGUAGE.get()],
+                            callback=lambda s, a, u: update_set(u[0], u[1], u[2], u[3]),
+                            user_data=(set_info, set_UUIDs, _set, window_id),
+                            width=BUTTON_LARGE,
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_delete"][LANGUAGE.get()],
+                            callback=popup_confirmation,
+                            user_data=(DISPLAY_TEXTS["ui_confirm"][LANGUAGE.get()], delete_assignment_set, (set_info["id"], window_id)),
+                            width=BUTTON_LARGE,
+                        )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_cancel"][LANGUAGE.get()],

@@ -786,6 +786,7 @@ def save_new_set(set_UUIDs: dict, sets: list) -> bool:
 
     Params:
     set_UUIDs: the UUIDs of the set metadata from the result window
+    sets: A list of sets to save 
     """
 
     saved = get_saved_assignment_sets()
@@ -845,6 +846,44 @@ def save_sets_disk(sets: dict) -> bool:
         return False
     return True
 
+def update_set(_set:dict, set_UUIDs:dict, assigs:list, window_id:int|str):
+    """
+    Update assignment set and save sets to disk
+
+    Params:
+    _set: set to save
+    set_UUIDS: UUIDS of the fields to extract data from
+    assigs: the full (modified) assignment set 
+    window_id: ID of the window to close
+    """
+
+    data = get_saved_assignment_sets()
+
+    _set["year"] = get_value(set_UUIDs["year"])
+    _set["period"] = get_value(set_UUIDs["period"])
+    _set["name"] = get_value(set_UUIDs["name"])
+
+    for _assig in assigs:
+        tempList = []
+        for assig in _assig:
+            tempAssig = {}
+            tempAssig["id"] = assig["assignment_id"]
+            tempAssig["variationID"] = assig["variations"][0]["variation_id"]
+            tempList.append(tempAssig)
+        if _set["type"] == "full":
+            _set["weeks"].append(tempList)
+        else:
+            _set["assignments"] = tempList
+
+    for i, _sets in enumerate(data["sets"]):
+        if _sets["id"] == _set["id"]:
+            data["sets"][i] = _set
+            break
+
+    save_sets_disk(data)
+    configure_item(UI_ITEM_TAGS["LISTBOX"], items=get_result_sets())
+    close_window(window_id)
+    
 
 def escape_latex_symbols(text: str):
     """
@@ -925,3 +964,29 @@ def resolve_set_header(header:str) -> dict:
 
     set_id = int(header.split(" - ")[0])
     return get_result_sets(set_id)
+
+
+def delete_assignment_set(s, a, u:tuple[int, int|str, int|str]):
+    """
+    Delete assignment set from set list
+
+    Params:
+    set_id: set to remove
+    window_id: window to close after removal
+    """
+
+    set_id = u[0]
+    window_id = u[1]
+    popup_id = u[2]
+
+    data = get_saved_assignment_sets()
+
+    for i, _sets in enumerate(data["sets"]):
+        if _sets["id"] == set_id:
+            del data["sets"][i]
+            break
+
+    save_sets_disk(data)
+    close_window(popup_id)
+    configure_item(UI_ITEM_TAGS["LISTBOX"], items=get_result_sets())
+    close_window(window_id)
