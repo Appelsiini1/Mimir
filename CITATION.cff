@@ -14,8 +14,8 @@ authors:
     affiliation: LUT University
 identifiers:
   - type: url
-    value: 'https://github.com/Appelsiini1/Mimir/tree/v0.9.6'
-    description: Mímir v0.9.6
+    value: 'https://github.com/Appelsiini1/Mimir/tree/v1.6.0'
+    description: Mímir v1.6.0
 repository-code: 'https://github.com/Appelsiini1/Mimir'
 abstract: >-
   Mímir is a dynamic programming assignment management tool
@@ -32,6 +32,6 @@ keywords:
   - assignment management
   - programming education
 license: MIT
-commit: ab7c165
-version: 0.9.6
-date-released: '2023-06-06'
+commit: a412c9e
+version: 1.6.0
+date-released: '2024-03-05'

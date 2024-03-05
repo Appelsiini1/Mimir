@@ -4,8 +4,8 @@
 
  This tool is intended to be used for managing large volumes of programming assignments on programming courses. Assignments are imported into the program with a sleek UI. The user can then create assignment sets from the imported assignments. The sets are then exported into a LaTeX file, that can then be turned into a PDF using pdflatex.
 
- This tool is made as a part of my Master's thesis. 
- **The tool is still under development.**
+ This tool was started as a part of my Master's thesis. 
+ **The tool is under development.**
 
  ## Requirements
 
@@ -21,7 +21,7 @@
 
  Start the program by running `main.py`.
 
- To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Note that you need to install extra LaTeX packages, like `lastpage`. These should come with the LaTeX Extra. Mímir can use pdflatex either via PowerShell or WSL to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` for the highlighting to work.
+ To convert the TeX files the program creates to PDF's, you need to install `pdflatex`. Note that you need to install extra LaTeX packages, like `lastpage`. These should come with the LaTeX Extra. Mímir uses pdflatex via command-line to run it on Windows and normal shell on Linux. In addition, you need to install `pygmentize` for the PDF creation and highlighting to work.
  
  You can install them using these commands on Ubuntu:
 
