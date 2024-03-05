@@ -26,6 +26,7 @@ from src.data_handler import (
     search_index,
     get_value_from_browse,
     gen_result_headers,
+    delete_files
 )
 from src.data_getters import (
     get_header_page,
@@ -36,6 +37,7 @@ from src.data_getters import (
 )
 from src.common import resource_path, round_up
 from src.window_helper import close_window
+from src.popups import popup_ok
 
 ################################
 
@@ -265,6 +267,16 @@ def openfilebrowser(f_type: str) -> list:
     file_paths = askopenfilenames(initialdir=getcwd(), filetypes=extensions)
     return list(file_paths)
 
+def delete_wrapper(old, data, aID):
+    """
+    Wrapper for deletion function.
+    """
+
+    result = delete_files(join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), aID, old))
+    if not result:
+        data.append(old)
+        popup_ok(DISPLAY_TEXTS["ui_error_delete"][LANGUAGE.get()])
+
 
 def remove_selected(s, a, u):
     """
@@ -275,10 +287,12 @@ def remove_selected(s, a, u):
         0. The listbox to remove from
         1. The data structure to remove from
         2. The type of data to remove
+        3. Assignment ID (or None)
     """
     selected = dpg.get_value(u[0])
     data = u[1]
     i_type = u[2]
+    aID = u[3]
     final = []
 
     if selected == "":
@@ -287,30 +301,50 @@ def remove_selected(s, a, u):
     if i_type == "variation":
         for i, item in enumerate(data["variations"]):
             if item["variation_id"] == selected.split(" ")[1]:
-                data["variations"].pop(i)
+                old = data["variations"].pop(i)
                 final = data["variations"]
+                if aID:
+                    to_delete = []
+                    (to_delete.append(join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), aID, x)) for x in old["codefiles"])
+                    (to_delete.append(join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), aID, x)) for x in old["datafiles"])
+                    for y in old["example_runs"]:
+                        for x in y["outputfiles"]:
+                            to_delete.append(join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), aID, x))
+                    delete_files(to_delete)
                 break
     elif i_type == "datafiles":
         for i, item in enumerate(data["datafiles"]):
             if path_leaf(item) == selected:
-                data["datafiles"].pop(i)
+                old = data["datafiles"].pop(i)
+                if aID:
+                    delete_wrapper(old, data["datafiles"], aID)
                 final = [path_leaf(i) for i in data["datafiles"]]
                 break
     elif i_type == "codefiles":
         for i, item in enumerate(data["codefiles"]):
             if path_leaf(item) == selected:
-                data["codefiles"].pop(i)
+                old = data["codefiles"].pop(i)
+                if aID:
+                    delete_wrapper(old, data["codefiles"], aID)
                 final = [path_leaf(i) for i in data["codefiles"]]
                 break
     elif i_type == "outputfiles":
         for i, item in enumerate(data["outputfiles"]):
             if path_leaf(item) == selected:
-                data["outputfiles"].pop(i)
+                old = data["outputfiles"].pop(i)
+                if aID:
+                    delete_wrapper(old, data["outputfiles"], aID)
                 final = [path_leaf(i) for i in data["outputfiles"]]
+
                 break
     elif i_type == "ex_run":
         index = int(selected.split(" ")[1]) - 1
-        data["example_runs"].pop(index)
+        old = data["example_runs"].pop(index)
+        if aID:
+            to_delete = [join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), aID, x) for x in old["outputfiles"]]
+            result = delete_files(to_delete)
+            if not result:
+                popup_ok(DISPLAY_TEXTS["ui_error_delete"][LANGUAGE.get()])
         final = [
             "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
             for i, _ in enumerate(data["example_runs"], start=1)

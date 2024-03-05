@@ -7,7 +7,7 @@ Functions for processing data
 # pylint: disable=import-error, unused-argument, consider-using-f-string, invalid-name
 import json
 import logging
-from os import path, mkdir, getcwd
+from os import path, mkdir, getcwd, remove
 from ntpath import split, basename
 from tkinter.filedialog import askdirectory
 from hashlib import sha256
@@ -990,3 +990,27 @@ def delete_assignment_set(s, a, u:tuple[int, int|str, int|str]):
     close_window(popup_id)
     configure_item(UI_ITEM_TAGS["LISTBOX"], items=get_result_sets())
     close_window(window_id)
+
+
+def delete_files(file_paths:list | str) -> bool:
+    """
+    Delete files based on path.
+
+    Params:
+    file_path: file(s) to remove. Can be either one path or a list of paths
+    """
+
+    if isinstance(file_paths, list):
+        for _path in file_paths:
+            try:
+                remove(_path)
+            except OSError:
+                logging.exception("Error removing files!")
+                return False
+    else:
+        try:
+            remove(file_paths)
+        except OSError:
+            logging.exception("Error removing files!")
+            return False
+    return True

@@ -437,6 +437,7 @@ def _add_example_run_window(
 
     var = user_data[0]
     ex_listbox = user_data[2]
+    aID = u[3]
     val = dpg.get_value(ex_listbox).split(" ")
     ix = None
     if len(val) != 1:
@@ -546,6 +547,7 @@ def _add_example_run_window(
                                     UUIDs["OUTPUT_FILES"],
                                     ex_run,
                                     "outputfiles",
+                                    aID
                                 ),
                                 width=BUTTON_XL,
                             )
@@ -652,14 +654,14 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_add_ex_run"][LANGUAGE.get()],
                             callback=_add_example_run_window,
-                            user_data=(data, True, UUIDs["EXAMPLE_LISTBOX"], select),
+                            user_data=(data, True, UUIDs["EXAMPLE_LISTBOX"], select, parent_data["assignment_id"]),
                             width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
-                            user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run"),
+                            user_data=(UUIDs["EXAMPLE_LISTBOX"], data, "ex_run", parent_data["assignment_id"]),
                             width=BUTTON_XL,
                         )
                         dpg.add_spacer(width=5)
@@ -717,7 +719,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
-                            user_data=(UUIDs["CODEFILE_LISTBOX"], data, "codefiles"),
+                            user_data=(UUIDs["CODEFILE_LISTBOX"], data, "codefiles", parent_data["assignment_id"]),
                             width=BUTTON_XL,
                         )
                     dpg.add_spacer(height=5)
@@ -747,7 +749,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                         dpg.add_button(
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
-                            user_data=(UUIDs["DATAFILE_LISTBOX"], data, "datafiles"),
+                            user_data=(UUIDs["DATAFILE_LISTBOX"], data, "datafiles", parent_data["assignment_id"]),
                             width=BUTTON_XL,
                         )
                     dpg.add_spacer(height=5)
@@ -1028,7 +1030,7 @@ def _assignment_window(var_data=None, select=False):
                     dpg.add_spacer(width=5)
                     dpg.add_button(
                         label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
-                        user_data=(UI_ITEM_TAGS["VARIATION_GROUP"], var, "variation"),
+                        user_data=(UI_ITEM_TAGS["VARIATION_GROUP"], var, "variation", var["assignment_id"]),
                         callback=remove_selected,
                         width=BUTTON_XL,
                     )
