@@ -661,5 +661,9 @@
     "ui_set_browser" : {
         "FI" : "Sarjaselain",
         "ENG" : "Set browser"
+    },
+    "ui_error_delete" : {
+        "FI" : "Kohteen poistaminen epäonnistui, katso lisätietoja lokista.",
+        "ENG" : "Target removal failed. Check log for more information."
     }
 }

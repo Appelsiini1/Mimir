@@ -105,6 +105,7 @@ def get_empty_assignment() -> dict:
     Returns an empty instance of an assignment dictionary
     """
     empty = {}
+    empty["assignment_id"] = None
     empty["title"] = ""
     empty["exp_lecture"] = 0
     empty["exp_assignment_no"] = ""
