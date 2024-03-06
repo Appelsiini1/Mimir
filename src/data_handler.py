@@ -140,35 +140,43 @@ def _save_course_file():
 
 def save_course_info(**args):
     """
-    Function to save course information from main window
+    Function to save course information from main window or course creation popup
     """
 
     new = 0
-    if COURSE_INFO["course_id"] is None:
-        new = 1
-    COURSE_INFO["course_title"] = get_value(UI_ITEM_TAGS["COURSE_TITLE"])
-    COURSE_INFO["course_id"] = get_value(UI_ITEM_TAGS["COURSE_ID"])
-    COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
-    levels = {}
-    raw = get_value(UI_ITEM_TAGS["COURSE_LEVELS"]).strip().split("\n")
-    if raw[0] != "":
-        try:
-            for item in raw:
-                data = item.split(":")
-                levels[int(data[0])] = [data[1]]
-                if len(data) == 3:
-                    levels[int(data[0])].append(data[2])
-            COURSE_INFO["course_levels"] = levels
-            COURSE_INFO["min_level"] = min(levels.keys())
-            COURSE_INFO["max_level"] = max(levels.keys())
-        except (IndexError, ValueError):
-            logging.exception("Error in course level saving:")
-            popup_ok(DISPLAY_TEXTS["ui_level_error"][LANGUAGE.get()])
-            return
-    else:
+    if "new" in args.keys():
+        new = args["new"]
+        tags = args["tags"]
+        COURSE_INFO["course_title"] = get_value(tags["title"])
+        COURSE_INFO["course_id"] = get_value(tags["id"])
+        COURSE_INFO["course_weeks"] = get_value(tags["weeks"])
         COURSE_INFO["course_levels"] = {}
         COURSE_INFO["min_level"] = 0
         COURSE_INFO["max_level"] = 0
+    else:
+        COURSE_INFO["course_title"] = get_value(UI_ITEM_TAGS["COURSE_TITLE"])
+        COURSE_INFO["course_id"] = get_value(UI_ITEM_TAGS["COURSE_ID"])
+        COURSE_INFO["course_weeks"] = get_value(UI_ITEM_TAGS["COURSE_WEEKS"])
+        levels = {}
+        raw = get_value(UI_ITEM_TAGS["COURSE_LEVELS"]).strip().split("\n")
+        if raw[0] != "":
+            try:
+                for item in raw:
+                    data = item.split(":")
+                    levels[int(data[0])] = [data[1]]
+                    if len(data) == 3:
+                        levels[int(data[0])].append(data[2])
+                COURSE_INFO["course_levels"] = levels
+                COURSE_INFO["min_level"] = min(levels.keys())
+                COURSE_INFO["max_level"] = max(levels.keys())
+            except (IndexError, ValueError):
+                logging.exception("Error in course level saving:")
+                popup_ok(DISPLAY_TEXTS["ui_level_error"][LANGUAGE.get()])
+                return
+        else:
+            COURSE_INFO["course_levels"] = {}
+            COURSE_INFO["min_level"] = 0
+            COURSE_INFO["max_level"] = 0
 
     if new:
         COURSE_INFO["periods"] = {
@@ -420,6 +428,9 @@ def ask_course_dir(**args):
         OPEN_COURSE_PATH.set(_dir)
         save_recent()
         logging.info("Course path set as %s", OPEN_COURSE_PATH.get())
+        return True
+    else:
+        return False
 
 
 def save_recent(**args):

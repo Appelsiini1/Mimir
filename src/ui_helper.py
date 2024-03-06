@@ -375,7 +375,10 @@ def move_info(s, a, u: list):
     """
     Move course information to main window from popup and close it
     """
-    if dpg.get_value(u["id"]):
+
+    result = ask_course_dir()
+    if result and dpg.get_value(u["id"]):
+        save_course_info(new=1, tags=u)
         dpg.configure_item(
             UI_ITEM_TAGS["COURSE_ID"], default_value=dpg.get_value(u["id"])
         )
@@ -385,8 +388,6 @@ def move_info(s, a, u: list):
         dpg.configure_item(
             UI_ITEM_TAGS["COURSE_WEEKS"], default_value=dpg.get_value(u["weeks"])
         )
-        ask_course_dir()
-        save_course_info()
     close_window(u["popup"])
 
 
