@@ -452,7 +452,10 @@ def save_recent(**args):
             rec.append(OPEN_COURSE_PATH.get())
             rec.reverse()
         else:
-            ind = rec.index(OPEN_COURSE_PATH.get())
+            try:
+                ind = rec.index(OPEN_COURSE_PATH.get())
+            except ValueError:
+                ind = -1
             rec.pop(ind)
             rec.reverse()
             rec.append(OPEN_COURSE_PATH.get())
