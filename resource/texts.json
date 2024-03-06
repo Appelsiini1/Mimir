@@ -665,5 +665,9 @@
     "ui_error_delete" : {
         "FI" : "Kohteen poistaminen epäonnistui, katso lisätietoja lokista.",
         "ENG" : "Target removal failed. Check log for more information."
+    },
+    "ui_error_week_exists" : {
+        "FI" : "Viikon tiedot on jo olemassa!",
+        "ENG" : "This week's info already exists!"
     }
 }

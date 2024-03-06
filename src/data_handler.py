@@ -519,7 +519,7 @@ def close_index() -> None:
     logging.info("Indexes closed.")
 
 
-def save_week_data(week, new) -> None:
+def save_week_data(week, new) -> bool:
     """
     Save week data to file.
 
@@ -530,6 +530,10 @@ def save_week_data(week, new) -> None:
     parent = get_week_data()
 
     if new:
+        for i, item in enumerate(parent["lectures"]):
+            if item["lecture_no"] == week["lecture_no"]:
+                popup_ok(DISPLAY_TEXTS["ui_error_week_exists"][LANGUAGE.get()])
+                return False
         parent["lectures"].append(week)
     else:
         for i, item in enumerate(parent["lectures"]):
@@ -537,6 +541,7 @@ def save_week_data(week, new) -> None:
                 parent["lectures"][i] = week
                 break
     save_full_week(parent)
+    return True
 
 
 def save_full_week(parent):
