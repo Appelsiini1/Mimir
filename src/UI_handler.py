@@ -437,7 +437,7 @@ def _add_example_run_window(
 
     var = user_data[0]
     ex_listbox = user_data[2]
-    aID = u[3]
+    aID = user_data[3]
     val = dpg.get_value(ex_listbox).split(" ")
     ix = None
     if len(val) != 1:

@@ -427,8 +427,9 @@ def save_week(s, a, u: tuple[dict, bool, dict]) -> None:
     week["instructions"] = dpg.get_value(UUIDs["INSTRUCTIONS"]).strip()
     week["tags"] = [i.strip() for i in dpg.get_value(UUIDs["TAGS"]).split(",")]
 
-    save_week_data(week, new)
-    close_window(UI_ITEM_TAGS["ADD_WEEK"])
+    result = save_week_data(week, new)
+    if result:
+        close_window(UI_ITEM_TAGS["ADD_WEEK"])
 
 
 def swap_page(s, a, u: tuple[list, list, str, bool]):
