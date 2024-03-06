@@ -190,6 +190,8 @@ def save_course_info(**args):
     _save_course_file()
 
     if new:
+        configure_item(UI_ITEM_TAGS["COURSE_LEVELS"], default_value="")
+        configure_item(UI_ITEM_TAGS["total_index"], default_value=0)
         create_index()
 
 
