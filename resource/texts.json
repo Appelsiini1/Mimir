@@ -669,5 +669,9 @@
     "ui_error_week_exists" : {
         "FI" : "Viikon tiedot on jo olemassa!",
         "ENG" : "This week's info already exists!"
+    },
+    "ui_error_open_course" : {
+        "FI" : "Virhe avattaessa kurssia!",
+        "ENG" : "Error opening course!"
     }
 }

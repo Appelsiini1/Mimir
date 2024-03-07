@@ -499,6 +499,7 @@ def open_course(**args):
             _data = f.read()
     except OSError:
         logging.exception("Error in reading course info!")
+        popup_ok(DISPLAY_TEXTS["ui_error_open_course"][LANGUAGE.get()])
     else:
         _json = json.loads(_data)
         for key in _json.keys():
