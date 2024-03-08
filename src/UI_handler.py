@@ -1990,10 +1990,12 @@ def add_prev(s, a, u: dict):
     """
     Add a previous assignment to the current
     """
+    if dpg.does_item_exist(UI_ITEM_TAGS["LIST_WINDOW"]):
+        close_window(UI_ITEM_TAGS["LIST_WINDOW"])
+        sleep(0.05)
     open_assignment_browse(
         None, None, (True, True, [u], UI_ITEM_TAGS["PREVIOUS_PART_LISTBOX"])
     )
-
 
 
 def create_one_set_callback(s, a, u):
