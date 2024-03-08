@@ -585,6 +585,7 @@ def year_conversion(data: list, encode: bool) -> list:
     """
     Converts the 'used in' value to number from text or vice versa.
     """
+    return []
     if not data:
         return []
 
@@ -844,9 +845,29 @@ def save_new_set(set_UUIDs: dict, sets: list) -> bool:
 
     saved["maxSetID"] += 1
     saved["sets"].append(set_to_save)
+    update_used(set_to_save)
 
     res = save_sets_disk(saved)
     return res
+
+
+def update_used(_set:dict) -> None:
+    """
+    Add used period to the assignment metadata
+    """
+
+    period = f"{_set['year']}/{_set['period']}"
+    if _set["type"] == "full":
+        data_set = _set["weeks"]
+    else:
+        data_set = _set["assignments"]
+    for assig in data_set:
+        a_data = get_assignment_json(path.join(OPEN_COURSE_PATH.get_subdir(metadata=True), assig["id"]+".json"))
+        for var in a_data["variations"]:
+            if assig["variationID"] == var["variation_id"]:
+                if period not in var["used_in"]:
+                    var["used_in"].append(period)
+                    save_assignment_data(a_data, False)
 
 
 def save_sets_disk(sets: dict) -> bool:

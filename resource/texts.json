@@ -299,8 +299,8 @@
         "ENG" : "Click 'Import output files' to import the assignment example output files."
     },
     "help_used_in" : {
-        "FI" : "Syötä tähän setit joissa tehtävää on aiemmin käytetty. Oletusformaatti on 'Kevät/Kesä/Syksy[vuosi]', esim. Syksy2023",
-        "ENG" : "Input the sets where this assignment has been used before. Default format is 'Spring/Summer/Fall[year]', ex. Fall2023"
+        "FI" : "Syötä tähän setit joissa tehtävää on aiemmin käytetty. Oletusformaatti on '[vuosi]/[periodi]', esim. 2023/1",
+        "ENG" : "Input the sets where this assignment has been used before. Default format is '[year]/[period]', ex. 2023/1"
     },
     "ui_assig_man_warning_popup" : {
         "FI" : "'Lisää tehtävä' ikkuna on jo avattuna.",

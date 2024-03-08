@@ -688,7 +688,7 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                 help_(DISPLAY_TEXTS["help_used_in"][LANGUAGE.get()])
                 dpg.add_input_text(
                     tag=UUIDs["USED_IN"],
-                    default_value=", ".join(year_conversion(data["used_in"], False)),
+                    default_value=", ".join(data["used_in"]),
                     enabled=select,
                     width=BOX_LARGE,
                 )
