@@ -2,12 +2,13 @@
     "types" : [
         "codefile",
         "textfile",
-        "any"
+        "any",
+        "images"
     ],
     "codefile" : [
         ["C", [".c", ".h"]],
         ["Python", [".py"]],
-        ["Makefile", ["*.mak", "*.mk", "Makefile", "makefile", "Makefile.*"]],
+        ["Makefile", [".mak", ".mk", "Makefile", "makefile", "Makefile."]],
         ["Java", [".java"]]
     ],
     "textfile" : [
@@ -15,6 +16,15 @@
         ["JSON", [".json"]],
         ["YAML", [".yml",".yaml"]],
         ["CSV", [".csv"]]
+    ],
+    "images" : [
+        ["All", [".jpg", ".jpeg", ".jpe", ".jfif", ".exif", ".png", ".bmp", ".dib", ".rle", ".tiff", ".tif", ".gif", ".webp"]],
+        ["JPEG", [".jpg", ".jpeg", ".jpe", ".jfif", ".exif"]],
+        ["PNG", [".png"]],
+        ["BMP", [".bmp", ".dib", ".rle"]],
+        ["TIFF", [".tiff", ".tif"]],
+        ["GIF", [".gif"]],
+        ["WebP", [".webp"]]
     ],
     "any" : [
         ["any", [".*"]]

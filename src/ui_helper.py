@@ -248,6 +248,13 @@ def get_files(s, a, u: tuple[dict, int | str, str]):
         files = openfilebrowser("textfile")
         save_to["outputfiles"] += files
         files = save_to["outputfiles"]
+    elif f_type == "image":
+        files = openfilebrowser("images")
+        if save_to["images"]:
+            save_to["images"] += files
+            files = save_to["images"]
+        else:
+            save_to["images"] = files
 
     leafs = [path_leaf(i) for i in files]
     dpg.configure_item(listbox, items=leafs)
@@ -349,6 +356,14 @@ def remove_selected(s, a, u):
             "{} {}".format(DISPLAY_TEXTS["ex_run"][LANGUAGE.get()], i)
             for i, _ in enumerate(data["example_runs"], start=1)
         ]
+    elif i_type == "images":
+        for i, item in enumerate(data["images"]):
+            if path_leaf(item) == selected:
+                old = data["images"].pop(i)
+                if aID:
+                    delete_wrapper(old, data["images"], aID)
+                final = [path_leaf(i) for i in data["images"]]
+                break
 
     dpg.configure_item(u[0], items=final)
 

@@ -8,10 +8,10 @@ compilers or runtime environments
 # pylint: disable=import-error
 import logging
 import subprocess
-from os import path
+from os import path, remove
 from shutil import copy
 
-from src.constants import ENV
+from src.constants import ENV, OPEN_COURSE_PATH
 
 
 def run_command(command: str, inputs: str | None, process_timeout=10):
@@ -74,7 +74,7 @@ def generate_pdf():
     return output
 
 
-def copy_files(filepath_out: str, filename: str):
+def copy_pdf_files(filepath_out: str, filename: str) -> bool:
     """
     Copy files from input to output. Rename files if necessary, up to 100 iterations.
 
@@ -107,3 +107,37 @@ def copy_files(filepath_out: str, filename: str):
         Please delete old files or choose a new folder."
     )
     return False
+
+
+def copy_file(_src:str, dest:str) -> bool:
+    """
+    Copy file from src to dest 
+    """
+
+    if not path.exists(dest):
+        try:
+            copy(_src, dest)
+        except OSError:
+            logging.exception("Error copying files!")
+            return False
+        return True
+
+
+def move_images(_set:dict) -> list:
+    """
+    Copy needed images to the cache folder. Returns a list of paths to the images that were copied.
+
+    Params:
+    _set: Formattted assignment set
+    """
+
+    dest = ENV["PROGRAM_DATA"]
+    paths = []
+    for assig in _set:
+        for image in assig["images"]:
+            i_path = path.join(OPEN_COURSE_PATH.get_subdir(assignment_data=True), assig["a_id"], image)
+            destination = path.join(dest, image)
+            res = copy_file(i_path, destination)
+            if res:
+                paths.append(destination)
+    return paths

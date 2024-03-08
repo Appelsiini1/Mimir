@@ -280,6 +280,8 @@ def format_metadata_json(data: dict):
                 "code": get_assignment_code(cf, data["assignment_id"]),
             }
         )
+    if variation["images"]:
+        new["images"] = variation["images"]
     return new
 
 
@@ -1057,3 +1059,17 @@ def delete_files(file_paths:list | str) -> bool:
             logging.exception("Error removing files!")
             return False
     return True
+
+
+def check_new_features(data:dict, _type:str) -> None:
+    """
+    Checks if new features exist in data. If not, the function will do necessary things to fix it.
+
+    Params: 
+    data: data to check
+    type: what feature to check
+    """
+
+    if _type == "image":
+        if "images" not in data.keys():
+            data["images"] = []

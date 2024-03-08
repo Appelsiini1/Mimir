@@ -43,7 +43,7 @@ def _get_filetypes():
 #################################
 # Version
 
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 
 #################################
 # Environment spesific constants
@@ -110,6 +110,7 @@ VARIATION_KEY_LIST = [
     "CODEFILE_LISTBOX",
     "DATAFILE_LISTBOX",
     "WINDOW_ID",
+    "IMAGE_LISTBOX",
 ]
 
 EXAMPLE_RUN_KEY_LIST = [

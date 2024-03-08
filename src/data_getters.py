@@ -132,6 +132,7 @@ def get_empty_variation() -> dict:
     empty["codefiles"] = []
     empty["datafiles"] = []
     empty["used_in"] = []
+    empty["images"] = []
 
     return empty
 
