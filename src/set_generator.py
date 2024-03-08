@@ -122,16 +122,16 @@ def count_weight(data: list) -> int:
     pos_table_keys = list(pos_table.keys())
     pos_table_keys.sort()
     pos_weights = {}
-    i = 1
+    i = 3
     for key in pos_table_keys:
         pos_weights[key] = i
-        i += 1
+        i -= 1
 
     cur_year = date.today().year
     item_weights = []
     for item in data:
-        year = int(item[-4:])
-        pos = item[:-4]
+        year = int(item.split("/")[0])
+        pos = item.split("/")[1]
         weight = pos_weights[pos] + (cur_year - year) * i + randint(0, 5)
         weight -= len(data)
         if weight <= 0:
