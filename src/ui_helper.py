@@ -397,7 +397,7 @@ def save_assignment(s, a, u: tuple[dict, bool]):
     assig = u[0]
     assig["title"] = dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TITLE"]).strip().replace("*", "")
     assig["tags"] = [
-        i.strip() for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
+        i.strip().replace("*", "") for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_TAGS"]).split(",")
     ]
     assig["exp_assignment_no"] = [
         int(i.strip()) for i in dpg.get_value(UI_ITEM_TAGS["ASSIGNMENT_NO"]).split(",")
