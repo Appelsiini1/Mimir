@@ -40,7 +40,11 @@ def _hdr_ftr_gen(doc_settings: dict, gen_info: dict, pw=False):
         ftr_cmd = "\\fancyfoot{}\n"
 
         if header_opt["include_course"]:
-            course = escape_latex_symbols(gen_info["course_id"]) + " " + escape_latex_symbols(gen_info["course_name"])
+            course = (
+                escape_latex_symbols(gen_info["course_id"])
+                + " "
+                + escape_latex_symbols(gen_info["course_name"])
+            )
             hdr_cmd += f"\\fancyhead[L]{{{course}}}\n"
 
         if footer_opt["include_week"] and not pw:
@@ -134,6 +138,10 @@ bottom={margins[3]}mm]\
             + f"linkcolor={colours['linkcolor']},\n\t"
             + f"filecolor={colours['filecolor']}"
         )
+
+    metadata += (
+        "\\renewcommand{\\figurename}{" + DISPLAY_TEXTS["tex_fig"][LANGUAGE.get()] + "}"
+    )
     metadata += "}"
 
     result = [
@@ -205,7 +213,9 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
     text += ":}"
     if not ex_file:
         text += "}"
-    text += "{\\fontfamily{{cmr}}\\selectfont\n\\begin{minted}[bgcolor=bg, fontsize=\\small]"
+    text += (
+        "{\\fontfamily{{cmr}}\\selectfont\n\\begin{minted}[bgcolor=bg, fontsize=\\small]"
+    )
     if ex_file:
         try:
             extension = ex_file.split(".")[1]
@@ -218,7 +228,9 @@ def _block_gen(display_text_key: str, data: dict, ex_file=None):
             if ex_file.lower() == "makefile" or ex_file.lower() == "make":
                 text += "{make}\n"
             else:
-                logging.error("Cannot find extension from extension list, defaulting to plain text.")
+                logging.error(
+                    "Cannot find extension from extension list, defaulting to plain text."
+                )
                 text += "{text}\n"
     else:
         text += "{text}\n"
@@ -269,7 +281,9 @@ def _ge_ex_run(example_run: dict, i: int, pw=False):
                 "\\phantomsection\n"
                 + "\\addcontentsline{toc}{section}{"
                 + DISPLAY_TEXTS["tex_ex_resultfile"][LANGUAGE.get()]
-                + " " + str(i) + "}"
+                + " "
+                + str(i)
+                + "}"
             )
         for resultfile in example_run["outputfiles"]:
             text += _block_gen(
@@ -295,21 +309,26 @@ def _include_solution(assignment: dict, pw=False):
         )
     text += f"\\textbf{{{DISPLAY_TEXTS['tex_ex_solution'][LANGUAGE.get()]}}}\\newline\n"
     for code in assignment["example_codes"]:
-        text += "\\textbf{'" + escape_latex_symbols(split(code['filename'])[1]) + "':}"
+        text += "\\textbf{'" + escape_latex_symbols(split(code["filename"])[1]) + "':}"
         text += "{\\fontfamily{{cmr}}\\selectfont\n\\small\\begin{minted}"
         text += f"[bgcolor=bg, fontsize=\\small]"
         try:
-            extension = split(code['filename'])[1].split(".")[1]
+            extension = split(code["filename"])[1].split(".")[1]
             extension_list = get_extension_list()
             if not extension_list:
                 text += "{text}\n"
             else:
                 text += "{" + "{0}".format(extension_list[extension]) + "}\n"
         except (IndexError, KeyError):
-            if split(code['filename'])[1].lower() == "makefile" or split(code['filename'])[1].lower() == "make":
+            if (
+                split(code["filename"])[1].lower() == "makefile"
+                or split(code["filename"])[1].lower() == "make"
+            ):
                 text += "{make}\n"
             else:
-                logging.error("Cannot find extension from extension list, defaulting to plain text.")
+                logging.error(
+                    "Cannot find extension from extension list, defaulting to plain text."
+                )
                 text += "{text}\n"
         text += code["code"].replace("\t", "    ") + "\n\end{minted}\n}\n"
     return text
@@ -350,7 +369,7 @@ def _assignment_text_gen(gen_info: dict, assignment_list: list, incl_solution: b
         if a_level != None:
             text += f"\\textit{{{DISPLAY_TEXTS['tex_level_subheader'][LANGUAGE.get()]}: {a_level}}}\\newline\\newline\n"
         if assignment["instructions"].startswith("!$IGN$!"):
-            text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
+            text += assignment["instructions"].replace("!$IGN$!\n", "") + "\n"
         else:
             text += escape_latex_symbols(assignment["instructions"]) + "\n"
         text += "\\vspace{5mm}\n"
@@ -595,7 +614,7 @@ def _gen_pw_content(assignment: dict, gen_info: dict, incl_solution: bool) -> st
     text += "\\vspace{0.2cm}\n"
     text += "\\tableofcontents\n\\vspace{0.5cm}\n"
     if assignment["instructions"].startswith("!$IGN$!"):
-        text += assignment["instructions"].replace('!$IGN$!\n', '') + "\n"
+        text += assignment["instructions"].replace("!$IGN$!\n", "") + "\n"
     else:
         text += escape_latex_symbols(assignment["instructions"]) + "\n"
     text += "\\vspace{5mm}\n"

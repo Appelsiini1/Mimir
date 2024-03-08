@@ -681,5 +681,9 @@
     "ui_import_images" : {
         "FI" : "Tuo kuvat",
         "ENG" : "Import images"
+    },
+    "tex_fig" : {
+        "FI" : "Kuva",
+        "ENG" : "Figure"
     }
 }
