@@ -673,5 +673,13 @@
     "ui_error_open_course" : {
         "FI" : "Virhe avattaessa kurssia!",
         "ENG" : "Error opening course!"
+    },
+    "ui_images" : {
+        "FI" : "Kuvat",
+        "ENG" : "Images"
+    },
+    "ui_import_images" : {
+        "FI" : "Tuo kuvat",
+        "ENG" : "Import images"
     }
 }

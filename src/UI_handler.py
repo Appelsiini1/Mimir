@@ -45,7 +45,8 @@ from src.data_handler import (
     resolve_assignment_set,
     resolve_set_header,
     update_set,
-    delete_assignment_set
+    delete_assignment_set,
+    check_new_features
 )
 from src.data_getters import (
     get_empty_variation,
@@ -610,6 +611,8 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
     label = DISPLAY_TEXTS["ui_variation"][LANGUAGE.get()] + " " + var_letter
     UUIDs = {"{}".format(i): dpg.generate_uuid() for i in VARIATION_KEY_LIST}
 
+    check_new_features(data, "image")
+
     with dpg.window(
         label=label, tag=UUIDs["WINDOW_ID"], width=750, height=750, no_close=True
     ):
@@ -750,6 +753,36 @@ def _add_variation_window(sender, app_data, user_data: tuple[dict, int, bool]):
                             label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
                             callback=remove_selected,
                             user_data=(UUIDs["DATAFILE_LISTBOX"], data, "datafiles", parent_data["assignment_id"]),
+                            width=BUTTON_XL,
+                        )
+                    dpg.add_spacer(height=5)
+
+        # Images
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=25)
+            with dpg.group():
+                dpg.add_text(DISPLAY_TEXTS["ui_images"][LANGUAGE.get()])
+                files = (
+                    []
+                    if not data["images"]
+                    else [path_leaf(f_p) for f_p in data["images"]]
+                )
+                dpg.add_listbox(files, tag=UUIDs["IMAGE_LISTBOX"], width=BOX_LARGE)
+                dpg.add_spacer(height=5)
+
+                if select:
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_import_images"][LANGUAGE.get()],
+                            callback=get_files,
+                            user_data=(data, UUIDs["IMAGE_LISTBOX"], "image"),
+                            width=BUTTON_XL,
+                        )
+                        dpg.add_spacer(width=5)
+                        dpg.add_button(
+                            label=DISPLAY_TEXTS["ui_remove_selected"][LANGUAGE.get()],
+                            callback=remove_selected,
+                            user_data=(UUIDs["IMAGE_LISTBOX"], data, "images", parent_data["assignment_id"]),
                             width=BUTTON_XL,
                         )
                     dpg.add_spacer(height=5)

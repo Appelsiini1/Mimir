@@ -13,9 +13,9 @@ from tkinter.filedialog import askdirectory
 from dearpygui.dearpygui import generate_uuid, configure_item
 
 from src.constants import VERSION, ENV, DISPLAY_TEXTS, LANGUAGE, COURSE_INFO
-from src.data_handler import format_metadata_json, escape_latex_symbols
+from src.data_handler import format_metadata_json, escape_latex_symbols, delete_files
 from src.data_getters import get_texdoc_settings, get_extension_list
-from src.ext_service import generate_pdf, copy_files
+from src.ext_service import generate_pdf, copy_pdf_files, move_images
 from src.popups import popup_ok, popup_load
 from src.window_helper import close_window
 
@@ -470,7 +470,7 @@ def _gen_pdf(filename, directory, popupID, textID):
         return False
 
     configure_item(textID, default_value=DISPLAY_TEXTS["ui_copying"][LANGUAGE.get()])
-    res2 = copy_files(directory, filename)
+    res2 = copy_pdf_files(directory, filename)
     if not res2:
         copy_error(popupID)
         return False
@@ -500,6 +500,7 @@ def tex_gen(data: tuple[list, dict]):
 
     popup_load(DISPLAY_TEXTS["ui_generating_tex"][LANGUAGE.get()], popupID, textID)
     week_data["lectures"].sort(key=lambda a: a["lecture_no"])
+    img_paths = []
 
     for i, _set in enumerate(sets):
         gen_info = {
@@ -516,10 +517,12 @@ def tex_gen(data: tuple[list, dict]):
             + DISPLAY_TEXTS["assignments"][LANGUAGE.get()]
         )
         formatted_set = [format_metadata_json(assig) for assig in _set]
+        img_paths += move_images(formatted_set)
         res = _gen_one(gen_info, formatted_set, False)
         if res:
             res = _gen_pdf(filename, directory, popupID, textID)
             if not res:
+                delete_files(img_paths)
                 return
 
         filename = (
@@ -536,7 +539,9 @@ def tex_gen(data: tuple[list, dict]):
         if res:
             res = _gen_pdf(filename, directory, popupID, textID)
             if not res:
+                delete_files(img_paths)
                 return
+    delete_files(img_paths)
     close_window(popupID)
     sleep(0.1)
     popup_ok(DISPLAY_TEXTS["ui_pdf_success"][LANGUAGE.get()] + "\n" + directory)
