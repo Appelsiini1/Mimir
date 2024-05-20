@@ -4,8 +4,7 @@
 
  This tool is intended to be used for managing large volumes of programming assignments on programming courses. Assignments are imported into the program with a sleek UI. The user can then create assignment sets from the imported assignments. The sets are then exported into a LaTeX file, that can then be turned into a PDF using pdflatex.
 
- This tool was started as a part of my Master's thesis. 
- **The tool is under development.**
+ This tool was started as a part of my Master's thesis at LUT University (Finland).
 
  ## Requirements
 
